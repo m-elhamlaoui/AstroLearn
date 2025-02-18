@@ -10,7 +10,7 @@ This project is a user-driven platform where space enthusiasts can engage with s
 #### **1.1. User-Generated Articles**  
 - Users can **post** articles about space exploration.  
 - Other users can **view, rate, and comment** on articles.  
-- An **LLM-powered verification system** ensures:  
+- An **LLM-powered verification system & Algorithms** ensure:  
   - Content is **relevant** to space exploration.  
   - No **obvious misinformation** is present.  
   - No **plagiarism** is detected.  
@@ -55,7 +55,7 @@ This project is a user-driven platform where space enthusiasts can engage with s
 - **Docker** for containerization.  
 - **Kubernetes** for scalable deployment.
 
-**Optional: Cloud-Native Development**
+#### **Optional: Cloud-Native Development**
 The platform can be deployed using cloud-native technologies to ensure:
 - Scalability for handling high traffic.
 - Reliability through microservices and containerization.

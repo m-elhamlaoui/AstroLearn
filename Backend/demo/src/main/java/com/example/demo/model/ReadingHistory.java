@@ -1,26 +1,25 @@
 package com.example.demo.model;
-
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-@Data
+
+
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
 
 @Entity
-@Table(name = "comments")
-public class Comment {
+@Table(name = "reading_history")
+public class ReadingHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Lob
-    @NotBlank
-    private String content;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -30,10 +29,13 @@ public class Comment {
     @JoinColumn(name = "article_id")
     private Article article;
 
-    private LocalDateTime createdAt;
+    private boolean isRead;
+    private int timeSpentSeconds; // in seconds
+    private LocalDateTime lastAccessed;
 
+    @PreUpdate
     @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+    public void updateIsRead() {
+        this.isRead = timeSpentSeconds > 30; // Mark as read if spent >30 seconds
     }
 }

@@ -4,7 +4,7 @@ services:
   # Spring Boot Backend Service (NEW)
   space-hub-backend:
     build:
-      context: ../
+      context: ./Backend/demo
       dockerfile: Dockerfile
     container_name: space-hub-backend
     restart: always

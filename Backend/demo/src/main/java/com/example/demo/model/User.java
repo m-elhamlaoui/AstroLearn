@@ -34,10 +34,15 @@ public class User {
     @Column(unique = true)
     private String email;
 
-    private String profileImage;
+    private String bio;
+
+    private String profileImageUrl;
+    private String photoCoverUrl;
 
     @Enumerated(EnumType.STRING)
     private UserRole role;
+
+    private UserVerificetion isVerified;
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
     private List<Article> articles = new ArrayList<>();
@@ -52,6 +57,11 @@ public class User {
     private List<Comment> comments = new ArrayList<>();
 
     public enum UserRole {
-        USER, ADMIN, MODERATOR
+        USER, ADMIN
     }
+
+    public enum UserVerificetion {
+        VERIFIED, UNVERIFIED, PENDING
+    }
+
 }

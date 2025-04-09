@@ -34,8 +34,7 @@ This project is a user-driven platform where space enthusiasts can engage with s
 #### **1.5. Article Recommendation System**  
 - Uses AI-based **recommendation algorithms** to suggest articles based on:  
   - User **interests and reading history**.  
-  - Article **popularity and ratings**.  
-  - **Collaborative filtering** to match users with similar preferences.  
+  - Article **popularity and ratings**.
 
 ---
 
@@ -49,7 +48,7 @@ This project is a user-driven platform where space enthusiasts can engage with s
 - **Spring Boot** for REST API development and business logic.  
 
 #### **Database:**  
-- **PostgreSQL**, **Oracle Database**, or **MySQL** for data storage.  
+- **PostgreSQL** for data storage.  
 
 #### **DevOps & Deployment:**  
 - **Docker** for containerization.  

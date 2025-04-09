@@ -35,9 +35,7 @@ public class SpaceMission {
     @Enumerated(EnumType.STRING)
     private MissionStatus status;
 
-    // Constructors, getters, setters
-}
+    public enum MissionStatus {
+        UPCOMING, IN_PROGRESS, COMPLETED, FAILED
+    }}
 
-enum MissionStatus {
-    UPCOMING, IN_PROGRESS, COMPLETED, FAILED
-}

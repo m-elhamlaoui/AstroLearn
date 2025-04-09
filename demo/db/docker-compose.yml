@@ -11,15 +11,11 @@ services:
     ports:
       - "8088:8088" # Map host port 8087 to container port 8087
     environment:
-      # Override application.properties using environment variables
-      # IMPORTANT: Use the SERVICE NAME 'devopsify-postgres' as the host, not 'localhost'
       - SPRING_DATASOURCE_URL=jdbc:postgresql://devopsify-postgres:5432/si # Use the service name and correct DB name 'si'
       - SPRING_DATASOURCE_USERNAME=user
       - SPRING_DATASOURCE_PASSWORD=password
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update # Or 'validate'/'none' for more control
-      - SERVER_PORT=8088 # Ensure container uses the correct port
-      # Add any other environment variables your app needs (e.g., API keys)
-      # - LLM_API_KEY=your_llm_key_here
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SERVER_PORT=8088
     depends_on:
      - devopsify-postgres
 
@@ -43,20 +39,6 @@ services:
     networks:
       - si-network
 
-
-  phpmyadmin:
-    image: nazarpc/phpmyadmin
-    container_name: si-phpmyadmin
-    restart: always
-    environment:
-      PMA_HOST: si-postgres
-      PMA_PORT: 5432
-      PMA_USER: user
-      PMA_PASSWORD: password
-    ports:
-      - "8083:80"
-    networks:
-      - si-network
 
 volumes:
   postgres_data:

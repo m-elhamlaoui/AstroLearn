@@ -1,0 +1,36 @@
+services:
+  devopsify-postgres:
+    image: postgres:13
+    container_name: si-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: si
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - si-network
+
+  phpmyadmin:
+    image: nazarpc/phpmyadmin
+    container_name: si-phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: si-postgres
+      PMA_PORT: 5432
+      PMA_USER: user
+      PMA_PASSWORD: password
+    ports:
+      - "8083:80"
+    networks:
+      - si-network
+
+volumes:
+  postgres_data:
+
+networks:
+  si-network:
+    driver: bridge

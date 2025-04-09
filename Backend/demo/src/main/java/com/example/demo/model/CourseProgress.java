@@ -1,10 +1,17 @@
 package com.example.demo.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 
 @Entity
 @Table(name = "course_progress")
@@ -29,6 +36,8 @@ public class CourseProgress {
 
     private boolean completed;
 
+    // Tracking completed lessons
+
     @ElementCollection
     @CollectionTable(
             name = "completed_lessons",
@@ -39,7 +48,6 @@ public class CourseProgress {
     @Column(name = "last_accessed")
     private LocalDateTime lastAccessed;
 
-    // Constructors, getters, setters
     @PreUpdate
     @PrePersist
     public void updateCompletion() {

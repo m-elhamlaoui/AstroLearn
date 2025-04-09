@@ -51,13 +51,13 @@ public class Article {
     @OneToMany(mappedBy = "article", cascade = CascadeType.ALL)
     private List<ArticleRating> ratings = new ArrayList<>();
 
-    @Transient // Calculated field, not stored in DB
-    public Double getAverageRating() {
-        return ratings.stream()
-                .mapToInt(ArticleRating::getRating)
-                .average()
-                .orElse(0.0);
-    }
+//    @Transient // Calculated field, not stored in DB
+//    public Double getAverageRating() {
+//        return ratings.stream()
+//                .mapToInt(ArticleRating::getRating)
+//                .average()
+//                .orElse(0.0);
+//    }
 
 
     // Defines a many-to-many relationship between the Article and ArticleTag entities.

@@ -42,7 +42,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
-    private UserVerificetion isVerified;
+    private UserVerification isVerified;
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
     private List<Article> articles = new ArrayList<>();
@@ -56,12 +56,57 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Comment> comments = new ArrayList<>();
 
+
+
+    @Column(name = "experience_points")
+    private int experiencePoints = 0;
+
+    @Enumerated(EnumType.STRING)
+    private UserLevel level = UserLevel.NOVICE;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<ReadingHistory> readingHistory = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<QuizCompletion> quizCompletions = new ArrayList<>();
+
+
+
+    public void addExperience(int points) {
+        this.experiencePoints += points;
+        updateLevel();
+    }
+
+    private void updateLevel() {
+        if (experiencePoints >= UserLevel.GALACTIC.requiredXP) {
+            level = UserLevel.GALACTIC;
+        } else if (experiencePoints >= UserLevel.ASTRONAUT.requiredXP) {
+            level = UserLevel.ASTRONAUT;
+        } else if (experiencePoints >= UserLevel.EXPLORER.requiredXP) {
+            level = UserLevel.EXPLORER;
+        }
+    }
+
+
+
     public enum UserRole {
         USER, ADMIN
     }
 
-    public enum UserVerificetion {
+    public enum UserVerification {
         VERIFIED, UNVERIFIED, PENDING
+    }
+
+    public enum UserLevel {
+        NOVICE(0),
+        EXPLORER(1000),
+        ASTRONAUT(5000),
+        GALACTIC(10000);
+
+        private final int requiredXP;
+        UserLevel(int requiredXP) {
+            this.requiredXP = requiredXP;
+        }
     }
 
 }

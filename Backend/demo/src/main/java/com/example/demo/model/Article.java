@@ -29,25 +29,42 @@ public class Article {
     @NotBlank
     private String title;
 
+    private String Summary;
+
     @Lob
     @NotBlank
     private String content;
+
+    private String imageUrl;
+
 
     @ManyToOne
     @JoinColumn(name = "author_id")
     private User author;
 
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
-    @Enumerated(EnumType.STRING)
-    private ArticleStatus status;
+
+    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL)
+    private List<Comment> comments = new ArrayList<>();
 
     @OneToMany(mappedBy = "article", cascade = CascadeType.ALL)
     private List<ArticleRating> ratings = new ArrayList<>();
 
-    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL)
-    private List<Comment> comments = new ArrayList<>();
+    @Transient // Calculated field, not stored in DB
+    public Double getAverageRating() {
+        return ratings.stream()
+                .mapToInt(ArticleRating::getRating)
+                .average()
+                .orElse(0.0);
+    }
+
+
+    // Defines a many-to-many relationship between the Article and ArticleTag entities.
+    // The @JoinTable annotation specifies the join table "article_tags" that links the two entities.
+    // - "article_id" is the foreign key referencing the Article entity.
+    // - "tag_id" is the foreign key referencing the ArticleTag entity.
+    // The Set<ArticleTag> ensures no duplicate tags are associated with an Article.
 
     @ManyToMany
     @JoinTable(
@@ -61,9 +78,6 @@ public class Article {
     private boolean plagiarismChecked;
     private String verificationNotes;
 
-    public enum ArticleStatus {
-        DRAFT, PUBLISHED, FLAGGED, REMOVED
-    }
 
 }
 

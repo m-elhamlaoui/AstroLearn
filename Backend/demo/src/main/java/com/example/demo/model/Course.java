@@ -36,6 +36,7 @@ public class Course {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<CourseProgress> progresses = new ArrayList<>();
 
+
     @Transient // Calculated field, not persisted
     public int getTotalLessons() {
         return modules.stream()

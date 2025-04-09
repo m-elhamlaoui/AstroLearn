@@ -1,4 +1,29 @@
 services:
+
+
+  # Spring Boot Backend Service (NEW)
+  space-hub-backend:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    container_name: space-hub-backend
+    restart: always
+    ports:
+      - "8088:8088" # Map host port 8087 to container port 8087
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://devopsify-postgres:5432/si # Use the service name and correct DB name 'si'
+      - SPRING_DATASOURCE_USERNAME=user
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SERVER_PORT=8088
+    depends_on:
+     - devopsify-postgres
+
+    networks:
+      - si-network
+
+
+
   devopsify-postgres:
     image: postgres:13
     container_name: si-postgres
@@ -14,19 +39,6 @@ services:
     networks:
       - si-network
 
-  phpmyadmin:
-    image: nazarpc/phpmyadmin
-    container_name: si-phpmyadmin
-    restart: always
-    environment:
-      PMA_HOST: si-postgres
-      PMA_PORT: 5432
-      PMA_USER: user
-      PMA_PASSWORD: password
-    ports:
-      - "8083:80"
-    networks:
-      - si-network
 
 volumes:
   postgres_data:

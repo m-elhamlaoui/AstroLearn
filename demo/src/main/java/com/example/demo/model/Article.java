@@ -61,9 +61,11 @@ public class Article {
     private boolean plagiarismChecked;
     private String verificationNotes;
 
+    public enum ArticleStatus {
+        DRAFT, PUBLISHED, FLAGGED, REMOVED
+    }
+
 }
 
-enum ArticleStatus {
-    DRAFT, PUBLISHED, FLAGGED, REMOVED
-}
+
 

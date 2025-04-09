@@ -42,9 +42,11 @@ public class Course {
                 .mapToInt(module -> module.getLessons().size())
                 .sum();
     }
+
+    public enum DifficultyLevel {
+        BEGINNER, INTERMEDIATE, ADVANCED
+    }
 }
 
- enum DifficultyLevel {
-    BEGINNER, INTERMEDIATE, ADVANCED
-}
+
 

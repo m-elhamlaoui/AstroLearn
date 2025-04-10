@@ -6,6 +6,7 @@ public record QuizDTO(
         Long id,
         String title,
         List<QuizQuestionDTO> questions,
+        Long lessonId,
         int experienceReward
 ) {
 }

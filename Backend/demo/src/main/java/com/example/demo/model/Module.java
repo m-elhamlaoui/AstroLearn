@@ -8,7 +8,6 @@ import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Data
@@ -32,9 +31,5 @@ public class Module {
 
     @OneToMany(mappedBy = "module", cascade = CascadeType.ALL)
     private List<Lesson> lessons = new ArrayList<>();
-
-    // getLessons function
-    public List<Lesson> getLessons() {
-        return lessons;
-    }
+    
 }

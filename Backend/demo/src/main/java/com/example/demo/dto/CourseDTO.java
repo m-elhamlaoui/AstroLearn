@@ -1,6 +1,6 @@
 package com.example.demo.dto;
 
-import com.example.demo.model.Course;
+import com.example.demo.model.*;
 
 import java.util.List;
 
@@ -9,6 +9,7 @@ public record CourseDTO(
         String title,
         String description,
         Course.DifficultyLevel difficulty,
-        List<ModuleDTO> modules
+        List<ModuleDTO> modules,
+        List<CourseProgressDTO> progresses
 ) {}
 

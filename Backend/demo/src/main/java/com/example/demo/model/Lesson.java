@@ -30,4 +30,7 @@ public class Lesson {
     @ManyToOne
     @JoinColumn(name = "module_id")
     private Module module;
+
+    @OneToOne(mappedBy = "lesson", cascade = CascadeType.ALL)
+    private Quiz quiz;
 }

@@ -21,7 +21,7 @@ public class Quiz {
 
     private String title;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "lesson_id")
     private Lesson lesson;
 

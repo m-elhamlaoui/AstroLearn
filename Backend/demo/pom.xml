@@ -1,18 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
+	<!-- Inherit defaults from Spring Boot -->
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.4</version>
+		<version>3.4.4</version> <!-- Ensure this is the desired Spring Boot version -->
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
+
+	<!-- Project Coordinates -->
 	<groupId>com.example</groupId>
 	<artifactId>demo</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Space Hub</name>
 	<description>Demo project for Spring Boot</description>
+
+	<!-- Optional Metadata (Can be filled or removed) -->
 	<url/>
 	<licenses>
 		<license/>
@@ -26,10 +32,19 @@
 		<tag/>
 		<url/>
 	</scm>
+
+	<!-- Centralized Version Management -->
 	<properties>
 		<java.version>17</java.version>
+		<mapstruct.version>1.5.5.Final</mapstruct.version>
+		<!-- lombok.version is often managed by spring-boot-starter-parent,
+             but defining explicitly ensures consistency if needed -->
+		<lombok.version>1.18.30</lombok.version> <!-- Verify this aligns with your needs/parent -->
+		<lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
 	</properties>
+
 	<dependencies>
+		<!-- Spring Boot Starters -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -38,58 +53,104 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 
+		<!-- Database Driver -->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- Utilities -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<!-- Version typically managed by parent, uncomment <version> if needed -->
+			<!-- <version>${lombok.version}</version> -->
+			<optional>true</optional> <!-- Lombok is compile-time only -->
+		</dependency>
+
+		<!-- Mapping -->
 		<dependency>
 			<groupId>org.mapstruct</groupId>
 			<artifactId>mapstruct</artifactId>
-			<version>1.5.5.Final</version>
+			<version>${mapstruct.version}</version>
 		</dependency>
+		<!-- MapStruct Annotation Processor (compile-time only) -->
 		<dependency>
 			<groupId>org.mapstruct</groupId>
 			<artifactId>mapstruct-processor</artifactId>
-			<version>1.5.5.Final</version>
-			<scope>provided</scope>
+			<version>${mapstruct.version}</version>
+			<scope>provided</scope> <!-- 'provided' scope is appropriate -->
+		</dependency>
+		<!-- Binding for Lombok and MapStruct (Needed if MapStruct uses Lombok features like @Builder) -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok-mapstruct-binding</artifactId>
+			<version>${lombok-mapstruct-binding.version}</version>
+			<scope>provided</scope> <!-- Also compile-time only -->
+		</dependency>
+
+		<!-- Testing -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
+			<!-- Maven Compiler Plugin Configuration -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
+				<!-- Version usually inherited from parent -->
 				<configuration>
+					<!-- Java version specified in properties -->
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<!-- Crucial: Configure Annotation Processors -->
 					<annotationProcessorPaths>
+						<!-- Lombok Annotation Processor -->
 						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
+							<version>${lombok.version}</version> <!-- Use property -->
+						</path>
+						<!-- MapStruct Annotation Processor -->
+						<path>
+							<groupId>org.mapstruct</groupId>
+							<artifactId>mapstruct-processor</artifactId>
+							<version>${mapstruct.version}</version> <!-- Use property -->
+						</path>
+						<!-- Lombok/MapStruct Binding Annotation Processor -->
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok-mapstruct-binding</artifactId>
+							<version>${lombok-mapstruct-binding.version}</version> <!-- Use property -->
 						</path>
 					</annotationProcessorPaths>
+					<!-- Optional but recommended: Configure MapStruct for Spring component model -->
+					<compilerArgs>
+						<compilerArg>
+							-Amapstruct.defaultComponentModel=spring
+						</compilerArg>
+					</compilerArgs>
 				</configuration>
 			</plugin>
+
+			<!-- Spring Boot Maven Plugin (for creating executable JAR/WAR) -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<!-- Version usually inherited from parent -->
 				<configuration>
+					<!-- Exclude Lombok from the final fat JAR -->
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>

@@ -21,10 +21,10 @@ pipeline {
 
         // Étape 1: Récupérer le code source depuis Git
         stage('Checkout') {
-            steps {
-                // REMPLACEZ PAR L'URL HTTPS OU SSH DE VOTRE DÉPÔT GIT
-                git 'https://github.com/m-elhamlaoui/AstroLearn.git'
-            }
+                steps {
+                    // Spécifie explicitement la branche 'main' à utiliser
+                    git branch: 'main', url: 'https://github.com/m-elhamlaoui/AstroLearn.git' 
+                }
         }
 
         // Étape 2: Compiler l'application Spring Boot avec Maven Wrapper

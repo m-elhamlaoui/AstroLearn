@@ -14,6 +14,9 @@ pipeline {
         // Ceci doit correspondre à l'ID que vous avez donné aux credentials
         // Docker Hub dans Jenkins (Manage Jenkins -> Credentials)
         DOCKER_CREDENTIALS_ID = 'dockerhub-creds'
+        // Windows path to your kubeconfig
+        KUBECONFIG = 'C:\\Users\\Usuario\\.kube\\config'
+
     }
 
     // Les différentes étapes du pipeline
@@ -98,6 +101,12 @@ pipeline {
              }
          }
 
+         stage('Verify K8s Access') {
+              steps {
+                 bat 'kubectl config current-context'
+                 bat 'kubectl get nodes'
+               }
+        }
         // Étape 6: Déployer l'application sur Kubernetes (Docker Desktop)
         stage('Deploy to K8s') {
              steps {
@@ -108,13 +117,13 @@ pipeline {
                  // Applique les fichiers de configuration Kubernetes qui sont
                  // dans le dossier 'k8s/' de votre projet.
                  // Assurez-vous que 'kubectl' est dans le PATH de Windows.
-                 bat "kubectl apply -f k8s/ --validate=false"
+                 bat "kubectl --kubeconfig=${env.KUBECONFIG} apply -f k8s/ --validate=false"
 
                  // Force le redémarrage des pods du déploiement pour
                  // qu'ils récupèrent la nouvelle image ':latest'.
                  // Assurez-vous que 'space-hub-backend-deployment' est bien le nom
                  // de votre Deployment dans k8s/backend.yaml.
-                 bat "kubectl rollout restart deployment space-hub-backend-deployment"
+                 bat "kubectl --kubeconfig=${env.KUBECONFIG} rollout restart deployment space-hub-backend-deployment"
 
                  // Optionnel: Attendre et vérifier que le déploiement s'est bien passé
                  // bat "kubectl rollout status deployment/space-hub-backend-deployment --timeout=2m"

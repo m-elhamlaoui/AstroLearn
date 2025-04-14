@@ -1,0 +1,58 @@
+# k8s/postgres.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: devopsify-postgres # Nom du StatefulSet
+spec:
+  serviceName: "postgres-service" # Nom du Service associé
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:13 # Même image que dans docker-compose
+        ports:
+        - containerPort: 5432
+          name: postgresdb
+        env:
+          - name: POSTGRES_DB
+            value: si
+          - name: POSTGRES_USER
+            valueFrom: # Récupère la valeur depuis le Secret
+              secretKeyRef:
+                name: db-secret # Nom du Secret créé avant
+                key: POSTGRES_USER
+          - name: POSTGRES_PASSWORD
+            valueFrom: # Récupère la valeur depuis le Secret
+              secretKeyRef:
+                name: db-secret # Nom du Secret créé avant
+                key: POSTGRES_PASSWORD
+        volumeMounts:
+        - name: postgres-data-volume # Nom du montage
+          mountPath: /var/lib/postgresql/data # Chemin dans le conteneur
+  volumeClaimTemplates: # Demande de stockage persistant
+  - metadata:
+      name: postgres-data-volume # Doit correspondre au volumeMounts.name
+    spec:
+      accessModes: [ "ReadWriteOnce" ] # Mode d'accès standard
+      resources:
+        requests:
+          storage: 1Gi # Demande 1 Gigaoctet de stockage (ajustez si besoin)
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service # Nom utilisé par le backend pour se connecter
+spec:
+  ports:
+  - port: 5432
+    name: postgresdb
+  clusterIP: None # Type spécial pour StatefulSet
+  selector:
+    app: postgres # Sélectionne les pods du StatefulSet

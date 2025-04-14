@@ -108,7 +108,7 @@ pipeline {
                  // Applique les fichiers de configuration Kubernetes qui sont
                  // dans le dossier 'k8s/' de votre projet.
                  // Assurez-vous que 'kubectl' est dans le PATH de Windows.
-                 bat "kubectl apply -f k8s/"
+                 bat "kubectl apply -f k8s/ --validate=false"
 
                  // Force le redémarrage des pods du déploiement pour
                  // qu'ils récupèrent la nouvelle image ':latest'.

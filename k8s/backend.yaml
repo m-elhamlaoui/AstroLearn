@@ -1,0 +1,54 @@
+# k8s/backend.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: space-hub-backend-deployment
+spec:
+  replicas: 1 # Commencez avec 1 instance
+  selector:
+    matchLabels:
+      app: space-hub-backend
+  template:
+    metadata:
+      labels:
+        app: space-hub-backend
+    spec:
+      containers:
+      - name: space-hub-backend
+        # IMPORTANT: Utilisez votre image poussée sur Docker Hub
+        image: douaae/space-hub-backend:latest 
+        ports:
+        - containerPort: 8088
+        env:
+          # IMPORTANT: Changez l'URL pour utiliser le Service Kubernetes de Postgres
+          - name: SPRING_DATASOURCE_URL 
+            value: jdbc:postgresql://postgres-service:5432/si # Utilisez le nom du Service K8s
+          - name: SPRING_DATASOURCE_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: db-secret
+                key: POSTGRES_USER
+          - name: SPRING_DATASOURCE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: db-secret
+                key: POSTGRES_PASSWORD
+          - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+            value: update # Ou "validate" / "none" en production
+          - name: SERVER_PORT
+            value: "8088"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: space-hub-backend-service
+spec:
+  selector:
+    app: space-hub-backend # Sélectionne les pods du Deployment
+  ports:
+  - protocol: TCP
+    port: 8088 # Port exposé par le Service
+    targetPort: 8088 # Port du conteneur
+  # Type NodePort expose le service sur un port de votre machine locale (Docker Desktop)
+  # Utile pour tester localement sans LoadBalancer cloud
+  type: NodePort 

@@ -29,6 +29,4 @@ public class QuizCompletion {
 
     private int score;
     private LocalDateTime completionDate;
-
-
 }

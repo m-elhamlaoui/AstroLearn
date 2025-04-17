@@ -11,5 +11,7 @@ public record SpaceMissionDTO(
         String description,
         String missionImage,
         String liveStreamUrl,
-        SpaceMission.MissionStatus status
+        SpaceMission.MissionStatus status,
+        Long creatorUserId, // ID of the User who created the mission
+        String creatorUsername // Optional convenience field
 ) {}

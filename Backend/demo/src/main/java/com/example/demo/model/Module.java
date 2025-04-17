@@ -9,6 +9,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Formula;
 
 @Data
 @NoArgsConstructor
@@ -31,5 +32,7 @@ public class Module {
 
     @OneToMany(mappedBy = "module", cascade = CascadeType.ALL)
     private List<Lesson> lessons = new ArrayList<>();
-    
+
+    @Formula("(SELECT COUNT(*) FROM lessons l WHERE l.module_id = id)")
+    private int lessonCount; // Match DTO field
 }

@@ -4,8 +4,8 @@ import java.util.List;
 
 public record QuizQuestionDTO(
         Long id,
-        Long quizId,
         String questionText,
-        List<String> options,
-        int correctOptionIndex
+        List<String> options
+        // --- Relationship ---
+        // Long quizId; // Often unnecessary if QuizQuestionDTO is always nested within QuizDTO
 ) {}

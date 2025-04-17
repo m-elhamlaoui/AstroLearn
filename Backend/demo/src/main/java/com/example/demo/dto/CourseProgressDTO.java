@@ -5,11 +5,12 @@ import java.util.Set;
 
 public record CourseProgressDTO(
         Long id,
-        Long userId,
-        Long courseId,
-        Long currentLessonId,
         double completionPercentage,
         boolean completed,
-        Set<Long> completedLessonIds,
-        LocalDateTime lastAccessed
+        LocalDateTime lastAccessed,
+        // --- Relationships ---
+        Long userId,
+        Long courseId,
+        Long currentLessonId, // ID of the Lesson the user is currently on (optional)
+        Set<Long> completedLessonIds // If needed for detailed tracking
 ) {}

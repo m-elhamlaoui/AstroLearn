@@ -1,10 +1,14 @@
 package com.example.demo.dto;
 
+import java.time.LocalDateTime;
+
 public record CommentDTO(
         Long id,
         String content,
-        Long userId,
         Long articleId,
-        String createdAt
+        LocalDateTime createdAt,
+        // --- Relationships ---
+        Long userId,
+        String authorUsername // Convenient display field
 ) {
 }

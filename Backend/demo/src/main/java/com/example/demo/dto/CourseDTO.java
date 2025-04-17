@@ -9,7 +9,6 @@ public record CourseDTO(
         String title,
         String description,
         Course.DifficultyLevel difficulty,
-        List<ModuleDTO> modules,
-        List<CourseProgressDTO> progresses
+        int totalLessons
 ) {}
 

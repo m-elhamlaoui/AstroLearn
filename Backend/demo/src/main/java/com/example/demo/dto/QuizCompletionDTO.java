@@ -4,8 +4,10 @@ import java.time.LocalDateTime;
 
 public record QuizCompletionDTO(
         Long id,
-        Long userId,
-        Long quizId,
         int score,
-        LocalDateTime completionDate
+        LocalDateTime completionDate,
+        Long userId,
+        String username, // Convenient display field
+        Long quizId,
+        String quizTitle // Convenient display field
 ) {}

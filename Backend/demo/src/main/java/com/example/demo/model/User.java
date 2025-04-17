@@ -42,7 +42,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
-    private UserVerification isVerified;
+    private UserVerification verificationStatus = UserVerification.UNVERIFIED;
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
     private List<Article> articles = new ArrayList<>();
@@ -70,6 +70,8 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<QuizCompletion> quizCompletions = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<SpaceMission> spaceMissions = new ArrayList<>();
 
 
     public void addExperience(int points) {

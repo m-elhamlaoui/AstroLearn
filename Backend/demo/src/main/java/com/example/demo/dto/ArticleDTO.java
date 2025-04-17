@@ -9,10 +9,16 @@ public record ArticleDTO(
         String summary,
         String content,
         String imageUrl,
-        UserDTO author,
         LocalDateTime createdAt,
+
+        // --- Relationships ---
+        Long authorId,           // ID of the User who wrote it
+        String authorUsername,   // Convenient display field
+
         Double averageRating,
-        Set<String> tags,
+        Long commentCount,
+
+        Set<ArticleTagDTO> tags,
         boolean verified
 ) {
 }

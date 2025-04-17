@@ -35,6 +35,10 @@ public class SpaceMission {
     @Enumerated(EnumType.STRING)
     private MissionStatus status;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
     public enum MissionStatus {
         UPCOMING, IN_PROGRESS, COMPLETED, FAILED
     }}

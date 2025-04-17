@@ -5,6 +5,8 @@ import java.util.List;
 public record ModuleDTO(
         Long id,
         String title,
-        List<LessonDTO> lessons
+        Long courseId,
+        int lessonCount,
+        List<Long> lessonIds
 ) {
 }

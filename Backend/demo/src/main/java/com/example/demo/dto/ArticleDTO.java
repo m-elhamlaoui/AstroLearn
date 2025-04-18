@@ -18,7 +18,6 @@ public record ArticleDTO(
         Double averageRating,
         Long commentCount,
 
-        Set<String> tags,
-        boolean verified
+        Set<String> tags
 ) {
 }

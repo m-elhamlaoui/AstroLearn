@@ -275,6 +275,4 @@ public interface EntityMapper {
     @Mapping(target = "verificationStatus", ignore = true) // Usually updated by admin actions
     @Mapping(target = "email", ignore = true) // Often requires verification if changed
     void updateUserFromDto(UserDTO dto, @MappingTarget User entity);
-
-
 }

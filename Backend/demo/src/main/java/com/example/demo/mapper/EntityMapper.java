@@ -148,7 +148,7 @@ public interface EntityMapper {
 
     // Note: quizId might not be needed in DTO if always nested, but included per your DTO def
     // @Mapping(target = "quizId", source = "quiz.id") // Uncomment if QuizQuestionDTO needs quizId
-    @Mapping(target = "correctOptionIndex", ignore = true) // IMPORTANT: Do not expose correct answer
+   // @Mapping(target = "correctOptionIndex", ignore = true) // IMPORTANT: Do not expose correct answer
     QuizQuestionDTO toDTO(QuizQuestion quizQuestion);
 
     // @Mapping(target = "quiz", ignore = true) // Assuming QuizQuestion is part of Quiz creation/update

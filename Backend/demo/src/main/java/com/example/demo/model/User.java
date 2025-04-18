@@ -7,6 +7,7 @@ import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Formula;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,10 +54,18 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<ArticleRating> ratings = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
 
+    @Formula("(SELECT COUNT(*) FROM articles a WHERE a.author_id = id)")
+    private Long articleCount;
+
+    @Formula("(SELECT COUNT(*) FROM comments c WHERE c.user_id = id)")
+    private Long commentCount;
+
+    @Formula("(SELECT COUNT(*) FROM quiz_completions qc WHERE qc.user_id = id)")
+    private Long quizCompletionCount;
 
     @Column(name = "experience_points")
     private int experiencePoints = 0;
@@ -67,7 +76,7 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<ReadingHistory> readingHistory = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuizCompletion> quizCompletions = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)

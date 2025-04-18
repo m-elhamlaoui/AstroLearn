@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Formula;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -51,14 +53,11 @@ public class Article {
     @OneToMany(mappedBy = "article", cascade = CascadeType.ALL)
     private List<ArticleRating> ratings = new ArrayList<>();
 
-//    @Transient // Calculated field, not stored in DB
-//    public Double getAverageRating() {
-//        return ratings.stream()
-//                .mapToInt(ArticleRating::getRating)
-//                .average()
-//                .orElse(0.0);
-//    }
+    @Formula("(SELECT COALESCE(AVG(ar.rating), 0.0) FROM article_ratings ar WHERE ar.article_id = id)")
+    private Double averageRating; // Match DTO field
 
+    @Formula("(SELECT COUNT(*) FROM comments c WHERE c.article_id = id)")
+    private Long commentCount; // Match DTO field
 
     // Defines a many-to-many relationship between the Article and ArticleTag entities.
     // The @JoinTable annotation specifies the join table "article_tags" that links the two entities.

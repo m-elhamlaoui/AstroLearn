@@ -160,6 +160,7 @@ public interface EntityMapper {
     @Mapping(target = "userId", source = "user.id")
     @Mapping(target = "articleId", source = "article.id")
     @Mapping(target = "articleTitle", source = "article.title")
+    @Mapping(target = "isRead", expression = "java(readingHistory.getTimeSpentSeconds() > 0)") // Calculate isRead from timeSpentSeconds
     ReadingHistoryDTO toDTO(ReadingHistory readingHistory);
 
     @Mapping(target = "user", ignore = true) // Handled by service
@@ -171,7 +172,7 @@ public interface EntityMapper {
     // ==================== SpaceMission Mappings ====================
 
     @Mapping(target = "creatorUserId", source = "user.id")
-        // @Mapping(target = "creatorUsername", source = "user.username") // Add creatorUsername to DTO if needed
+    @Mapping(target = "creatorUsername", source = "user.username")
     SpaceMissionDTO toDTO(SpaceMission spaceMission);
 
     @Mapping(target = "user", ignore = true) // Handled by service

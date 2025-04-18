@@ -72,11 +72,6 @@ public class Article {
             inverseJoinColumns = @JoinColumn(name = "tag_id"))
     private Set<ArticleTag> tags = new HashSet<>();
 
-    // Verification fields
-    private boolean verified;
-    private boolean plagiarismChecked;
-    private String verificationNotes;
-
 
 }
 

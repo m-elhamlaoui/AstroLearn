@@ -8,11 +8,14 @@ import java.util.List;
 public record UserDTO(
         Long id,
         String username,
-        String email, // Consider if this should always be public
-        // String profileImageUrl, // Add if you have this field
-        User.UserRole role,             // Use Enum directly
-        User.UserVerification verificationStatus, // Added based on UML
-        User.UserLevel level,           // Use Enum directly
+        String email,
+        String bio,
+        String password,
+        String profileImageUrl,
+        String photoCoverUrl,
+        User.UserRole role,
+        User.UserVerification verificationStatus,
+        User.UserLevel level,
         int experiencePoints,
         // --- Calculated/Aggregated Data (Optional, depends on use case) ---
         Long articleCount,

@@ -16,6 +16,7 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
     @Query("SELECT a FROM Article a JOIN a.tags t WHERE t.name IN :tags GROUP BY a HAVING COUNT(t) = :tagCount")
     List<Article> findByAllTags(@Param("tags") List<String> tags, @Param("tagCount") long tagCount);
 
+    List<Article> findByTags_NameIgnoreCase(String tagName);
 }
 
 

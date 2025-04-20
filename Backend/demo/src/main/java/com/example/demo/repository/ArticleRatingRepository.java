@@ -17,4 +17,6 @@ public interface ArticleRatingRepository extends JpaRepository<ArticleRating, Lo
     // find total number of ratings for a specific article
     @Query("SELECT COUNT(r) FROM ArticleRating r WHERE r.article.id = :articleId")
     Long countByArticleId(@Param("articleId") Long articleId);
+
+    Optional<ArticleRating> findByUserIdAndArticleId(Long userId, Long articleId);
 }

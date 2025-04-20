@@ -36,4 +36,11 @@ public interface QuizService {
      */
     QuizDTO getQuizForTaking(Long quizId); // Renamed to be specific
 
+    // --- Quiz Operations ---
+
+    QuizDTO addOrUpdateQuizForLesson(Long lessonId, QuizDTO quizDTO, Long adminUserId); // Adds or updates a quiz for a lesson (admin function)
+    QuizDTO getQuizByLessonId(Long lessonId);
+    void deleteQuizByLessonId(Long lessonId, Long adminUserId); // Deletes a quiz by lesson ID (admin function)
+
+
 }

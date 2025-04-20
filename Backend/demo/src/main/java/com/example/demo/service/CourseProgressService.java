@@ -1,6 +1,9 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.CourseProgressDTO;
+import com.example.demo.model.Lesson;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 public interface CourseProgressService {
@@ -46,6 +49,5 @@ public interface CourseProgressService {
      * @return Updated CourseProgressDTO
      */
     CourseProgressDTO setCurrentLesson(Long userId, Long courseId, Long lessonId);
-
 }
 

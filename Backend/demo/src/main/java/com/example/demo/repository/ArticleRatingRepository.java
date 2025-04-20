@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
+import java.util.Set;
 
 public interface ArticleRatingRepository extends JpaRepository<ArticleRating, Long> {
     Optional<ArticleRating> findByArticleIdAndUserId(Long articleId, Long userId);
@@ -17,4 +18,10 @@ public interface ArticleRatingRepository extends JpaRepository<ArticleRating, Lo
     // find total number of ratings for a specific article
     @Query("SELECT COUNT(r) FROM ArticleRating r WHERE r.article.id = :articleId")
     Long countByArticleId(@Param("articleId") Long articleId);
+
+    Optional<ArticleRating> findByUserIdAndArticleId(Long userId, Long articleId);
+
+
+    @Query("SELECT ar.article.id FROM ArticleRating ar WHERE ar.user.id = :userId AND ar.rating >= :minRating")
+    Set<Long> findHighlyRatedArticleIdsByUserId(@Param("userId") Long userId, @Param("minRating") int minRating);
 }

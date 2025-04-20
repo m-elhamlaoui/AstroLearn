@@ -30,5 +30,5 @@ public class QuizCompletion {
     private Quiz quiz;
 
     private int score;
-    private LocalDateTime completionDate;
+    private LocalDateTime completionDate = LocalDateTime.now();
 }

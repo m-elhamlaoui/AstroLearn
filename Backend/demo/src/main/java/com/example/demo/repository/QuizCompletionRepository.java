@@ -4,6 +4,7 @@ import com.example.demo.model.QuizCompletion;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface QuizCompletionRepository extends JpaRepository<QuizCompletion, Long> {
 
@@ -11,4 +12,6 @@ public interface QuizCompletionRepository extends JpaRepository<QuizCompletion, 
     boolean existsByUserIdAndQuizId(Long userId, Long quizId);
 
     List<QuizCompletion> findByUserId(Long userId);
+    // Add this method to find a quiz completion by user ID and quiz ID
+    Optional<QuizCompletion> findByUserIdAndQuizId(Long userId, Long quizId);
 }

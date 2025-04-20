@@ -3,6 +3,8 @@ package com.example.demo.service;
 import com.example.demo.dto.ArticleDTO;
 import com.example.demo.dto.CommentDTO;
 import com.example.demo.dto.ArticleRatingDTO;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.Set;
 

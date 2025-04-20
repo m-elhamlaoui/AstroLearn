@@ -29,8 +29,6 @@ public class CourseServiceImpl implements CourseService {
     private final CourseRepository courseRepository;
     private final ModuleRepository moduleRepository;
     private final LessonRepository lessonRepository;
-    private final QuizRepository quizRepository;
-    private final QuizQuestionRepository quizQuestionRepository;
     private final EntityMapper entityMapper;
 
     // --- Course Methods ---
@@ -207,85 +205,5 @@ public class CourseServiceImpl implements CourseService {
         return lessonRepository.findByModuleId(moduleId).stream()
                 .map(entityMapper::toDTO) // Explicitly map Lesson to LessonDTO
                 .collect(Collectors.toList());
-    }
-
-
-
-    // --- Quiz Methods ---
-    @Override
-    public QuizDTO addOrUpdateQuizForLesson(Long lessonId, QuizDTO quizDTO /*, Long adminUserId */) {
-        // TODO: Add security check: Ensure performing user is ADMIN
-        System.out.println("Placeholder: Security check needed for adding/updating quiz for lesson " + lessonId);
-
-        Lesson lesson = lessonRepository.findById(lessonId)
-                .orElseThrow(() -> new ResourceNotFoundException("Lesson", "id", lessonId));
-
-        Quiz quiz;
-        Optional<Quiz> existingQuizOpt = quizRepository.findByLessonId(lessonId); // Assumes findByLessonId exists
-
-        if (existingQuizOpt.isPresent()) {
-            quiz = existingQuizOpt.get();
-            quiz.setTitle(quizDTO.title());
-            quiz.setExperienceReward(quizDTO.experienceReward());
-            // Efficiently replace questions: delete existing, then add new
-            quizQuestionRepository.deleteAll(quiz.getQuestions()); // Or let orphanRemoval handle if configured
-            quiz.getQuestions().clear();
-        } else {
-            quiz = new Quiz();
-            quiz.setLesson(lesson);
-            quiz.setTitle(quizDTO.title());
-            quiz.setExperienceReward(quizDTO.experienceReward());
-        }
-
-        Quiz savedQuiz = quizRepository.save(quiz); // Save quiz first
-
-        // Add questions
-        if (quizDTO.questions() != null) {
-            List<QuizQuestion> questions = quizDTO.questions().stream()
-                    .map(qDto -> {
-                        QuizQuestion question = entityMapper.toEntity(qDto);
-                        question.setQuiz(savedQuiz); // Link to saved quiz
-                        return question;
-                    }).collect(Collectors.toList());
-            quizQuestionRepository.saveAll(questions); // Save questions
-            savedQuiz.setQuestions(questions); // Update collection in memory
-        } else {
-            savedQuiz.setQuestions(Collections.emptyList());
-        }
-
-        // Link quiz back to lesson if new
-        if (existingQuizOpt.isEmpty()) {
-            lesson.setQuiz(savedQuiz);
-            lessonRepository.save(lesson);
-        }
-
-        return entityMapper.toDTO(savedQuiz);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public QuizDTO getQuizByLessonId(Long lessonId) {
-        if (!lessonRepository.existsById(lessonId)) {
-            throw new ResourceNotFoundException("Lesson", "id", lessonId);
-        }
-        Quiz quiz = quizRepository.findByLessonId(lessonId) // Assumes findByLessonId exists
-                .orElseThrow(() -> new ResourceNotFoundException("Quiz for Lesson", "lessonId", lessonId));
-        return entityMapper.toDTO(quiz);
-    }
-
-    @Override
-    public void deleteQuizByLessonId(Long lessonId /*, Long adminUserId */) {
-        // TODO: Add security check: Ensure performing user is ADMIN
-        System.out.println("Placeholder: Security check needed for deleting quiz for lesson " + lessonId);
-
-        Lesson lesson = lessonRepository.findById(lessonId)
-                .orElseThrow(() -> new ResourceNotFoundException("Lesson", "id", lessonId));
-
-        Quiz quiz = quizRepository.findByLessonId(lessonId) // Assumes findByLessonId exists
-                .orElseThrow(() -> new ResourceNotFoundException("Quiz for Lesson", "lessonId", lessonId));
-
-        lesson.setQuiz(null); // Unlink first
-        lessonRepository.save(lesson);
-        quizRepository.delete(quiz); // Cascade handles questions
     }
 }

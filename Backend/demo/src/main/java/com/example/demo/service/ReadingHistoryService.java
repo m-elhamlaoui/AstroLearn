@@ -16,18 +16,16 @@ public interface ReadingHistoryService {
     ReadingHistoryDTO logReadingTime(Long userId, Long articleId, int timeSpentIncrement);
 
     /*
-     * Gets the reading history for a specific user and article.
-     * @param userId User ID
-     * @param articleId Article ID
-     * @return ReadingHistoryDTO
-     * @throws ResourceNotFoundException if history not found
-     */
-    ReadingHistoryDTO getReadingHistory(Long userId, Long articleId);
-
-    /*
-     * Gets all reading history entries for a user.
+     * Gets the most recently read articles for a user.
      * @param userId User ID
      * @return List of ReadingHistoryDTOs
      */
-    List<ReadingHistoryDTO> getReadingHistoryForUser(Long userId);
+    List<ReadingHistoryDTO> getRecentlyReadArticles(Long userId);
+
+    /*
+     * Gets the IDs of articles marked as read by a user.
+     * @param userId User ID
+     * @return List of article IDs
+     */
+    List<Long> getReadArticleIds(Long userId);
 }

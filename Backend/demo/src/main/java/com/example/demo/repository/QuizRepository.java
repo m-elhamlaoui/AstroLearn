@@ -10,7 +10,7 @@ import java.util.Optional;
 
 // QuizRepository.java
 public interface QuizRepository extends JpaRepository<Quiz, Long> {
-    List<Quiz> findByLessonId(Long lessonId);
+    Optional<Quiz> findByLessonId(Long lessonId);
 
     // This method retrieves a quiz with it associated questions
     @EntityGraph(attributePaths = {"questions"})

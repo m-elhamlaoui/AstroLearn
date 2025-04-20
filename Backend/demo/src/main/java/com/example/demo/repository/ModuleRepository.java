@@ -8,4 +8,5 @@ import java.util.List;
 public interface ModuleRepository extends JpaRepository<com.example.demo.model.Module, Long> {
     @EntityGraph(attributePaths = {"lessons"})
     List<com.example.demo.model.Module> findByCourseId(Long courseId);
+
 }

@@ -1,8 +1,6 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.CourseDTO;
-import com.example.demo.dto.ModuleDTO;
-import com.example.demo.dto.LessonDTO;
 import com.example.demo.service.CourseService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -52,31 +50,4 @@ public class CourseController {
         return ResponseEntity.noContent().build();
     }
 
-    // Add a module to a course
-    @PostMapping("/{courseId}/modules")
-    public ResponseEntity<ModuleDTO> addModuleToCourse(@PathVariable Long courseId, @RequestBody ModuleDTO moduleDTO) {
-        ModuleDTO createdModule = courseService.addModuleToCourse(courseId, moduleDTO);
-        return ResponseEntity.ok(createdModule);
-    }
-
-    // Get modules by course ID
-    @GetMapping("/{courseId}/modules")
-    public ResponseEntity<List<ModuleDTO>> getModulesByCourseId(@PathVariable Long courseId) {
-        List<ModuleDTO> modules = courseService.getModulesByCourseId(courseId);
-        return ResponseEntity.ok(modules);
-    }
-
-    // Add a lesson to a module
-    @PostMapping("/modules/{moduleId}/lessons")
-    public ResponseEntity<LessonDTO> addLessonToModule(@PathVariable Long moduleId, @RequestBody LessonDTO lessonDTO) {
-        LessonDTO createdLesson = courseService.addLessonToModule(moduleId, lessonDTO);
-        return ResponseEntity.ok(createdLesson);
-    }
-
-    // Get lessons by module ID
-    @GetMapping("/modules/{moduleId}/lessons")
-    public ResponseEntity<List<LessonDTO>> getLessonsByModuleId(@PathVariable Long moduleId) {
-        List<LessonDTO> lessons = courseService.getLessonsByModuleId(moduleId);
-        return ResponseEntity.ok(lessons);
-    }
 }

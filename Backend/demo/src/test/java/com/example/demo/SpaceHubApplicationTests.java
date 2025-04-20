@@ -8,6 +8,7 @@ class SpaceHubApplicationTests {
 
 	@Test
 	void contextLoads() {
+		System.out.println("Spring context loaded successfully!");
 	}
 
 }

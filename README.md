@@ -1,4 +1,4 @@
-## Topic:  Collaborative Space Exploration Hub
+g## Topic:  Collaborative Space Exploration Hub
 
 ### **Project Overview**  
 This project is a user-driven platform where space enthusiasts can engage with space exploration content by posting articles, accessing space-related courses, staying updated with upcoming missions, and interacting with an AI chatbot. Advanced recommendation algorithms and AI-based content moderation ensure high-quality and reliable content.  
@@ -44,7 +44,7 @@ This project is a user-driven platform where space enthusiasts can engage with s
 - **React** for dynamic UI components.  
 - **Next.js** for efficient routing and SSR (Server-Side Rendering).  
 
-#### **Backend:**  
+#### **Backend:*
 - **Spring Boot** for REST API development and business logic.  
 
 #### **Database:**  
@@ -53,7 +53,8 @@ This project is a user-driven platform where space enthusiasts can engage with s
 #### **DevOps & Deployment:**  
 - **Docker** for containerization.  
 - **Kubernetes** for scalable deployment.
-
+- **Jenkins** for CI/CD
+- **Prometheus** and **Grafana** for monitoring
 #### **Optional: Cloud-Native Development**
 The platform can be deployed using cloud-native technologies to ensure:
 - Scalability for handling high traffic.

@@ -1,4 +1,4 @@
-g## Topic:  Collaborative Space Exploration Hub
+## Topic:  Collaborative Space Exploration Hub
 
 ### **Project Overview**  
 This project is a user-driven platform where space enthusiasts can engage with space exploration content by posting articles, accessing space-related courses, staying updated with upcoming missions, and interacting with an AI chatbot. Advanced recommendation algorithms and AI-based content moderation ensure high-quality and reliable content.  

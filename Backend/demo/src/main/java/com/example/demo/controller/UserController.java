@@ -54,29 +54,30 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/experience")
-    public ResponseEntity<Void> addExperiencePoints(@PathVariable Long id, @RequestParam int points) {
+    @PutMapping("/{id}/{points}/experience")
+    public ResponseEntity<Void> addExperiencePoints(@PathVariable Long id, @PathVariable int points) {
         userService.addExperiencePoints(id, points);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/verification/request")
+    @PutMapping("/{id}/verification/request")
     public ResponseEntity<Void> requestVerification(@PathVariable Long id) {
         userService.requestVerification(id);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{adminId}/verification/approve/{userId}")
+    @PutMapping("/{adminId}/verification/approve/{userId}")
     public ResponseEntity<Void> approveVerification(@PathVariable Long adminId, @PathVariable Long userId) {
         userService.approveVerification(adminId, userId);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{adminId}/verification/reject/{userId}")
+    @PutMapping("/{adminId}/verification/reject/{userId}")
     public ResponseEntity<Void> rejectVerification(@PathVariable Long adminId, @PathVariable Long userId) {
         userService.rejectVerification(adminId, userId);
         return ResponseEntity.noContent().build();
     }
+
 
     @GetMapping("/verification-status")
     public ResponseEntity<List<UserDTO>> getUsersByVerificationStatus(@RequestParam User.UserVerification status) {

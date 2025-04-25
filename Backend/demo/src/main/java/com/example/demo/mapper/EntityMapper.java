@@ -92,6 +92,7 @@ public interface EntityMapper {
     @Mapping(target = "user", ignore = true) // Handled by service
     @Mapping(target = "course", ignore = true) // Handled by service
     @Mapping(target = "currentLesson", ignore = true) // Handled by service
+
         // completionPercentage and completed are often calculated fields, map if needed from DTO
     CourseProgress toEntity(CourseProgressDTO courseProgressDTO);
 
@@ -189,7 +190,6 @@ public interface EntityMapper {
     UserDTO toDTO(User user);
 
 
-    @Mapping(target = "password", ignore = true) // Handle password hashing/updates in service
     @Mapping(target = "articles", ignore = true) // Handled by service/cascade
     @Mapping(target = "courseProgress", ignore = true) // Handled by service/cascade
     @Mapping(target = "ratings", ignore = true) // Handled by service/cascade

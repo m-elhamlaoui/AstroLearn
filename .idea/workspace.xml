@@ -5,16 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b00e34ea-3573-4e35-8441-572d66fbeaad" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Backend/demo/src/main/java/com/example/demo/mapper/EntityMapper.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Backend/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/.idea/compiler.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Backend/demo/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/demo/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Backend/demo/src/main/java/com/example/demo/dto/CourseDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/demo/src/main/java/com/example/demo/dto/CourseDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Backend/demo/src/main/java/com/example/demo/dto/LessonDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/demo/src/main/java/com/example/demo/dto/LessonDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Backend/demo/src/main/java/com/example/demo/dto/QuizDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/demo/src/main/java/com/example/demo/dto/QuizDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Backend/demo/src/main/java/com/example/demo/model/Lesson.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/demo/src/main/java/com/example/demo/model/Lesson.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Backend/demo/src/main/java/com/example/demo/model/Module.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/demo/src/main/java/com/example/demo/model/Module.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Backend/demo/src/main/java/com/example/demo/repository/ModuleRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/demo/src/main/java/com/example/demo/repository/ModuleRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,6 +16,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;DouaeBakkali269&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/m-elhamlaoui/AstroLearn.git&quot;,
+    &quot;accountId&quot;: &quot;7d16759d-ad4b-4035-8c52-f93c10ab2a11&quot;
+  }
+}</component>
   <component name="KubernetesApiPersistence">{}</component>
   <component name="KubernetesApiProvider">{
   &quot;isMigrated&quot;: true
@@ -37,22 +41,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Docker.docker-compose.yml: Compose Deployment.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "douae",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/Usuario/OneDrive/Desktop/development-platform-aya-douae-hamza-omar/Backend",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Docker.docker-compose.yml: Compose Deployment.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;douae&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Usuario/AstroLearn&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration default="true" type="docker-deploy" factoryName="docker-compose.yml" temporary="true">
       <deployment type="docker-compose.yml">
@@ -95,6 +99,8 @@
       <workItem from="1744246835700" duration="182000" />
       <workItem from="1744250500782" duration="103000" />
       <workItem from="1744250730662" duration="83000" />
+      <workItem from="1745619153460" duration="227000" />
+      <workItem from="1745621550643" duration="696000" />
     </task>
     <servers />
   </component>

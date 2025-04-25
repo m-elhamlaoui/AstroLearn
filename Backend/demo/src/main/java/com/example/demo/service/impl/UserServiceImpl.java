@@ -7,6 +7,7 @@ import com.example.demo.model.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +23,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final EntityMapper entityMapper;
-//    private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional(readOnly = true)
@@ -68,8 +69,7 @@ public class UserServiceImpl implements UserService {
 
         // 2. Map DTO to Entity
         User user = entityMapper.toEntity(userDTO);
-//        user.setPassword(passwordEncoder.encode(userDTO.password()));
-        user.setUsername(userDTO.username());
+        user.setPassword(passwordEncoder.encode(userDTO.password()));
 
         // add the other field existing in the user model without commenting them
         user.setUsername(userDTO.username());
@@ -107,8 +107,7 @@ public class UserServiceImpl implements UserService {
 
         // 4. Handle special fields
         if (userDTO.password() != null && !userDTO.password().isEmpty()) {
-//            existingUser.setPassword(passwordEncoder.encode(userDTO.password()));
-            existingUser.setPassword(userDTO.password());
+            existingUser.setPassword(passwordEncoder.encode(userDTO.password()));
         }
         if (userDTO.email() != null && !userDTO.email().equals(existingUser.getEmail())) {
             existingUser.setEmail(userDTO.email());
@@ -161,8 +160,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void approveVerification(Long adminUserId, Long targetUserId) {
-        User admin = findUserAndCheckAdmin(adminUserId);
+    public void approveVerification(Long targetUserId) {
         User targetUser = findUserAndCheckPending(targetUserId);
 
         targetUser.setVerificationStatus(User.UserVerification.VERIFIED);
@@ -171,8 +169,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void rejectVerification(Long adminUserId, Long targetUserId) {
-        User admin = findUserAndCheckAdmin(adminUserId);
+    public void rejectVerification(Long targetUserId) {
         User targetUser = findUserAndCheckPending(targetUserId);
 
         targetUser.setVerificationStatus(User.UserVerification.UNVERIFIED); // Or a specific REJECTED status if needed

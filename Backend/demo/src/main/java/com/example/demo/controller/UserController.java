@@ -5,10 +5,12 @@ import com.example.demo.model.User;
 import com.example.demo.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin("*")
 @RestController
 @RequestMapping("/users")
 @AllArgsConstructor
@@ -33,6 +35,7 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserByEmail(email));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<UserDTO>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
@@ -66,15 +69,18 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{adminId}/verification/approve/{userId}")
-    public ResponseEntity<Void> approveVerification(@PathVariable Long adminId, @PathVariable Long userId) {
-        userService.approveVerification(adminId, userId);
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/verification/approve/{userId}")
+    public ResponseEntity<Void> approveVerification(@PathVariable Long userId) {
+        userService.approveVerification(userId);
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{adminId}/verification/reject/{userId}")
-    public ResponseEntity<Void> rejectVerification(@PathVariable Long adminId, @PathVariable Long userId) {
-        userService.rejectVerification(adminId, userId);
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/verification/reject/{userId}")
+    public ResponseEntity<Void> rejectVerification(@PathVariable Long userId) {
+        userService.rejectVerification(userId);
         return ResponseEntity.noContent().build();
     }
 

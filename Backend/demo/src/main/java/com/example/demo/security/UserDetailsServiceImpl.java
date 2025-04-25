@@ -20,15 +20,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
   // Field injection is not recommended
     public final UserRepository userRepository;
-
     @Override
     @Transactional
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + username));
+    public UserDetails loadUserByUsername(String input) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(input)
+                .or(() -> userRepository.findByUsername(input))
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with email/username: " + input));
 
         return UserDetailsImpl.build(user);
     }
-
 
 }

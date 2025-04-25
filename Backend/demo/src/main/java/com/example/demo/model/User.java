@@ -23,13 +23,12 @@ public class User {
     @EqualsAndHashCode.Include // Base equals/hashCode only on ID
     private Long id;
 
-    @NotBlank
+
     @Column(unique = true)
     private String username;
 
     private String password;
 
-    @Email
     @NotBlank
     @Column(unique = true)
     private String email;
@@ -41,11 +40,9 @@ public class User {
     private String photoCoverUrl;
 
     @Enumerated(EnumType.STRING)
-    @NotNull
     private UserRole role = UserRole.USER; // Default role
 
     @Enumerated(EnumType.STRING)
-    @NotNull
     private UserVerification verificationStatus = UserVerification.UNVERIFIED; // Default status
 
     // --- Relationships with Cascade Deletion & Orphan Removal ---
@@ -97,7 +94,6 @@ public class User {
     private int experiencePoints = 0;
 
     @Enumerated(EnumType.STRING)
-    @NotNull
     private UserLevel level = UserLevel.NOVICE;
 
 

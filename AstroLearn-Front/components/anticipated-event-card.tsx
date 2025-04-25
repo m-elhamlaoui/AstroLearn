@@ -1,0 +1,67 @@
+import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Calendar, MapPin } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
+import { format } from "date-fns"
+
+interface AnticipatedEventCardProps {
+  event: any
+}
+
+export function AnticipatedEventCard({ event }: AnticipatedEventCardProps) {
+  const eventDate = new Date(event.date)
+
+  // Get color based on importance
+  const getImportanceColor = (importance: number) => {
+    if (importance >= 90) return "bg-red-500"
+    if (importance >= 80) return "bg-orange-500"
+    if (importance >= 70) return "bg-yellow-500"
+    if (importance >= 60) return "bg-green-500"
+    if (importance >= 50) return "bg-blue-500"
+    return "bg-indigo-500"
+  }
+
+  const importanceColor = getImportanceColor(event.importance)
+
+  return (
+    <Card className="bg-gray-900 border-gray-700 overflow-hidden rounded-xl hover:shadow-lg hover:shadow-indigo-900/20 transition-all duration-300 h-full flex flex-col">
+      {/* Event Image */}
+      <div className="relative h-40">
+        <Image src={event.image || "/placeholder.svg"} alt={event.title} fill className="object-cover" />
+        <div className="absolute top-2 right-2">
+          <Badge className={`${importanceColor} text-white`}>{event.importance}% Anticipated</Badge>
+        </div>
+      </div>
+
+      {/* Event Content */}
+      <div className="p-4 flex-1 flex flex-col">
+        <Link href={`/missions/events/${event.id}`} className="block flex-1">
+          <h3 className="text-lg font-bold mb-2 hover:text-indigo-400 transition-colors">{event.title}</h3>
+        </Link>
+
+        <div className="flex flex-wrap gap-2 mb-2 text-xs text-gray-400">
+          <div className="flex items-center gap-1">
+            <Calendar className="h-3 w-3" />
+            {format(eventDate, "MMM d, yyyy")}
+          </div>
+          <div className="flex items-center gap-1">
+            <MapPin className="h-3 w-3" />
+            {event.location}
+          </div>
+        </div>
+
+        <p className="text-gray-400 text-sm mb-3 line-clamp-2">{event.description}</p>
+
+        <div className="mt-auto">
+          <Link
+            href={`/missions/events/${event.id}`}
+            className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
+          >
+            View Details →
+          </Link>
+        </div>
+      </div>
+    </Card>
+  )
+}

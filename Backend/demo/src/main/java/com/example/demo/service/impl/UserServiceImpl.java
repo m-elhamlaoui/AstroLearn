@@ -5,12 +5,15 @@ import com.example.demo.exception.*;
 import com.example.demo.mapper.EntityMapper;
 import com.example.demo.model.User;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.service.EmailService;
 import com.example.demo.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,11 +22,14 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor // Constructor injection via Lombok
 @Transactional // Make methods transactional by default
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final EntityMapper entityMapper;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
+
 
     @Override
     @Transactional(readOnly = true)
@@ -51,10 +57,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserDTO> getAllUsers() {
-        return userRepository.findAll().stream()
-                .map(entityMapper::toDTO)
-                .collect(Collectors.toList());
+    public Page<UserDTO> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable)
+                .map(entityMapper::toDTO);
     }
 
     @Override
@@ -128,6 +133,16 @@ public class UserServiceImpl implements UserService {
         userRepository.delete(user); // Cascading deletion defined in User entity handles related data
     }
 
+    @Override
+    public Page<UserDTO> searchUsersByUsername(String searchTerm, Pageable pageable) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            return Page.empty(pageable); // Return empty if search term is blank
+        }
+        // Call the repository method
+        Page<User> userPage = userRepository.findByUsernameContainingIgnoreCase(searchTerm.trim(), pageable);
+        // Map the results to DTOs
+        return userPage.map(entityMapper::toDTO); //
+    }
 
     @Override
     public void addExperiencePoints(Long userId, int points) {
@@ -156,7 +171,14 @@ public class UserServiceImpl implements UserService {
 
         user.setVerificationStatus(User.UserVerification.PENDING);
         userRepository.save(user);
-        // TODO: Optionally notify admins about the new request
+
+        try {
+            emailService.sendVerificationRequestNotificationToAdmins(user);
+        } catch (Exception e) {
+            // Log email sending failure but don't fail the main operation
+            log.error("Failed to trigger verification request email for user {}: {}", userId, e.getMessage());
+        }
+
     }
 
     @Override
@@ -165,16 +187,28 @@ public class UserServiceImpl implements UserService {
 
         targetUser.setVerificationStatus(User.UserVerification.VERIFIED);
         userRepository.save(targetUser);
-        // TODO: Optionally notify the target user about approval
+
+        // <<< Send email notification to user >>>
+        try {
+            emailService.sendVerificationApprovedNotification(targetUser);
+        } catch (Exception e) {
+            log.error("Failed to trigger verification approved email for user {}: {}", targetUserId, e.getMessage());
+        }
     }
 
     @Override
-    public void rejectVerification(Long targetUserId) {
+    public void rejectVerification(Long targetUserId, String reason) {
         User targetUser = findUserAndCheckPending(targetUserId);
 
         targetUser.setVerificationStatus(User.UserVerification.UNVERIFIED); // Or a specific REJECTED status if needed
         userRepository.save(targetUser);
-        // TODO: Optionally notify the target user about rejection (maybe include reason)
+
+        // <<< Send email notification to user >>>
+        try {
+            emailService.sendVerificationRejectedNotification(targetUser, reason); // Pass reason
+        } catch (Exception e) {
+            log.error("Failed to trigger verification rejected email for user {}: {}", targetUserId, e.getMessage());
+        }
     }
 
     @Override

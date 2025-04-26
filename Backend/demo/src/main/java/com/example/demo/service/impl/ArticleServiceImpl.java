@@ -1,9 +1,6 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.dto.ArticleDTO;
-import com.example.demo.dto.ArticleVoteRequestDTO;
-import com.example.demo.dto.CommentDTO;
-import com.example.demo.dto.ArticleRatingDTO;
+import com.example.demo.dto.*;
 import com.example.demo.exception.*;
 import com.example.demo.mapper.EntityMapper;
 import com.example.demo.model.*;
@@ -13,6 +10,10 @@ import com.example.demo.service.ArticleService;
 import com.example.demo.service.RecommendationService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,14 +72,25 @@ public class ArticleServiceImpl implements ArticleService {
         return entityMapper.toDTO(article);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ArticleDTO> getAllArticles(Pageable pageable) {
+        return articleRepository.findAll(pageable)
+                .map(entityMapper::toDTO);
+    }
+
     @Transactional(readOnly = true)
     @Override
-    public List<ArticleDTO> getAllArticles() {
-        List<Article> articles = articleRepository.findAll();
-        return articles.stream()
-                .map(entityMapper::toDTO)
-                .collect(Collectors.toList());
+    public Page<ArticleDTO> getAllArticlesSorted(Pageable pageable) {
+        // Sort by score in descending order, then by createdAt in descending order
+        Sort sort = Sort.by(Sort.Direction.DESC, "score", "createdAt");
+        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
+        // Fetch paginated and sorted articles
+        return articleRepository.findAll(pageable)
+                .map(entityMapper::toDTO);
     }
+
 
     @Override
     public ArticleDTO updateArticle(Long id, ArticleDTO articleDTO, Long userId) {
@@ -112,6 +124,7 @@ public class ArticleServiceImpl implements ArticleService {
         checkArticlePermissions(article, userId, "delete");
         articleRepository.delete(article); // Cascade should handle comments, ratings etc.
     }
+
 
 
     // --- Comments Implementation ---

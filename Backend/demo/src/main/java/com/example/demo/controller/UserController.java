@@ -4,6 +4,8 @@ import com.example.demo.dto.UserDTO;
 import com.example.demo.model.User;
 import com.example.demo.service.UserService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -35,10 +37,9 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserByEmail(email));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<List<UserDTO>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    public ResponseEntity<Page<UserDTO>> getAllUsers(Pageable pageable) {
+        return ResponseEntity.ok(userService.getAllUsers(pageable));
     }
 
     @PostMapping
@@ -55,6 +56,15 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/search/username/{username}")
+    public ResponseEntity<Page<UserDTO>> searchUsers(
+            @PathVariable("username") String usernameQuery, // Parameter from URL (?username=test)
+            Pageable pageable // Spring automatically populates this (e.g., ?page=0&size=10&sort=username,asc)
+    ) {
+        Page<UserDTO> results = userService.searchUsersByUsername(usernameQuery, pageable);
+        return ResponseEntity.ok(results);
     }
 
     @PutMapping("/{id}/{points}/experience")
@@ -79,8 +89,8 @@ public class UserController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/verification/reject/{userId}")
-    public ResponseEntity<Void> rejectVerification(@PathVariable Long userId) {
-        userService.rejectVerification(userId);
+    public ResponseEntity<Void> rejectVerification(@PathVariable Long userId, @RequestParam(required = false) String reason) {
+        userService.rejectVerification(userId, reason);
         return ResponseEntity.noContent().build();
     }
 

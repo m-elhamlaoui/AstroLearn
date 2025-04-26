@@ -1,3 +1,4 @@
+```mermaid
 flowchart TD
  subgraph subGraph0["Step 1: Identify Positive Interactions"]
         B_DB1[("ReadingHistoryRepo: findReadArticleIdsByUserId")]
@@ -55,3 +56,4 @@ flowchart TD
     FB1_DB --> FB2
     FB2 --> K
     K --> Z["End: Return List of ArticleDTO"]
+```mermaid

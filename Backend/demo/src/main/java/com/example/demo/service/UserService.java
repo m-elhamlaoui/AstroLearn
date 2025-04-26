@@ -35,7 +35,7 @@ public interface UserService {
      // @throws UnauthorizedException if the adminUserId does not belong to an ADMIN.
      // @throws VerificationException if the target user is not in PENDING state.
     void approveVerification(Long targetUserId);
-    void rejectVerification( Long targetUserId);
+    void rejectVerification( Long targetUserId, String reason);
 
     List<UserDTO> getUsersByVerificationStatus(User.UserVerification status);
 

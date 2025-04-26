@@ -17,6 +17,9 @@ public interface ArticleService {
     List<ArticleDTO> getAllArticles();
 
 
+    @Transactional(readOnly = true)
+    List<ArticleDTO> getAllArticlesSorted();
+
     /*
      * @throws ResourceNotFoundException if article not found
      * @throws UnauthorizedException if user is not author

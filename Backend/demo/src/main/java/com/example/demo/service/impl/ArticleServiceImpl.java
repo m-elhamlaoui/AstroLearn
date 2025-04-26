@@ -1,9 +1,6 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.dto.ArticleDTO;
-import com.example.demo.dto.ArticleVoteRequestDTO;
-import com.example.demo.dto.CommentDTO;
-import com.example.demo.dto.ArticleRatingDTO;
+import com.example.demo.dto.*;
 import com.example.demo.exception.*;
 import com.example.demo.mapper.EntityMapper;
 import com.example.demo.model.*;
@@ -72,18 +69,29 @@ public class ArticleServiceImpl implements ArticleService {
         return entityMapper.toDTO(article);
     }
 
-@Override
-@Transactional(readOnly = true)
-public List<ArticleDTO> getAllArticles() {
-    // Sort by score in descending order, then by createdAt in descending order
-    Sort sort = Sort.by(Sort.Direction.DESC, "score", "createdAt");
-    List<Article> articles = articleRepository.findAll(sort);
+    @Override
+    @Transactional(readOnly = true)
+    public List<ArticleDTO> getAllArticles() {
+        return articleRepository.findAll().stream()
+                .map(entityMapper::toDTO)
+                .collect(Collectors.toList());
+    }
 
-    // Map the articles to DTOs
-    return articles.stream()
-            .map(entityMapper::toDTO)
-            .collect(Collectors.toList());
-}
+    @Transactional(readOnly = true)
+    @Override
+    public List<ArticleDTO> getAllArticlesSorted() {
+        // Sort by score in descending order, then by createdAt in descending order
+        Sort sort = Sort.by(Sort.Direction.DESC, "score", "createdAt");
+        List<Article> articles = articleRepository.findAll(sort);
+
+        // Map the articles to DTOs
+        return articles.stream()
+                .map(entityMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+
+
 
     @Override
     public ArticleDTO updateArticle(Long id, ArticleDTO articleDTO, Long userId) {

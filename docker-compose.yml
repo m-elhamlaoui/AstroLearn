@@ -26,7 +26,7 @@ services:
     ports:
       - "8088:8088"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://devopsify-postgres:5432/space_db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://devopsify-postgres:5432/db2
       - SPRING_DATASOURCE_USERNAME=user
       - SPRING_DATASOURCE_PASSWORD=password
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
@@ -44,7 +44,7 @@ services:
     container_name: si-postgres
     restart: always
     environment:
-      POSTGRES_DB: space_db
+      POSTGRES_DB: db2
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
     ports:

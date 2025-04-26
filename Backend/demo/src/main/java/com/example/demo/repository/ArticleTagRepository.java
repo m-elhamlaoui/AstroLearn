@@ -12,8 +12,5 @@ public interface ArticleTagRepository extends JpaRepository<ArticleTag, Long> {
     Optional<ArticleTag> findByName(String name);
     List<ArticleTag> findByNameContainingIgnoreCase(String name);
 
-    @Query("SELECT t.name, COUNT(a) FROM ArticleTag t JOIN t.articles a GROUP BY t.name ORDER BY COUNT(a) DESC")
-    List<Object[]> findPopularTags();
-
     Optional<ArticleTag> findByNameIgnoreCase(String name);
 }

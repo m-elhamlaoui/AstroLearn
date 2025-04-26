@@ -65,11 +65,15 @@ public class Article {
     // - "tag_id" is the foreign key referencing the ArticleTag entity.
     // The Set<ArticleTag> ensures no duplicate tags are associated with an Article.
 
-    @ManyToMany
-    @JoinTable(
-            name = "article_tags",
-            joinColumns = @JoinColumn(name = "article_id"),
-            inverseJoinColumns = @JoinColumn(name = "tag_id"))
+//    @ManyToMany
+//    @JoinTable(
+//            name = "article_tags",
+//            joinColumns = @JoinColumn(name = "article_id"),
+//            inverseJoinColumns = @JoinColumn(name = "tag_id"))
+//    private Set<ArticleTag> tags = new HashSet<>();
+
+    //One to many relationship with ArticleTag
+    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL)
     private Set<ArticleTag> tags = new HashSet<>();
 
 

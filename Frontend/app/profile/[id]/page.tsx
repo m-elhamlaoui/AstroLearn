@@ -94,8 +94,6 @@ const getBadgeLevel = (xp: number) => {
 // Define the type for the user data
 type UserData = Awaited<ReturnType<typeof getUserById>>
 
-"use client" // <-- Move "use client" directive here
-
 // Client Component to handle state and UI
 function ProfileClient({ initialUser }: { initialUser: UserData }) {
   const [activeTab, setActiveTab] = useState("published")

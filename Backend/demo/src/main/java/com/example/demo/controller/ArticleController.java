@@ -72,7 +72,6 @@ public class ArticleController {
 
 
 
-
     // Using POST for voting action
     @PostMapping("/{id}/vote/user/{userId}") // Or get userId from @AuthenticationPrincipal
     public ResponseEntity<ArticleDTO> voteArticle(

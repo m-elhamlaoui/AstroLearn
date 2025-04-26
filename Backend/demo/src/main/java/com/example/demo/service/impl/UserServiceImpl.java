@@ -7,6 +7,8 @@ import com.example.demo.model.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -128,6 +130,16 @@ public class UserServiceImpl implements UserService {
         userRepository.delete(user); // Cascading deletion defined in User entity handles related data
     }
 
+    @Override
+    public Page<UserDTO> searchUsersByUsername(String searchTerm, Pageable pageable) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            return Page.empty(pageable); // Return empty if search term is blank
+        }
+        // Call the repository method
+        Page<User> userPage = userRepository.findByUsernameContainingIgnoreCase(searchTerm.trim(), pageable);
+        // Map the results to DTOs
+        return userPage.map(entityMapper::toDTO); //
+    }
 
     @Override
     public void addExperiencePoints(Long userId, int points) {

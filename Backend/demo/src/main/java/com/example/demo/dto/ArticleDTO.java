@@ -1,6 +1,7 @@
 package com.example.demo.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 public record ArticleDTO(
@@ -8,7 +9,7 @@ public record ArticleDTO(
         String title,
         String summary,
         String content,
-        String imageUrl,
+        List<String> imageUrl,
         LocalDateTime createdAt,
 
         // --- Relationships ---

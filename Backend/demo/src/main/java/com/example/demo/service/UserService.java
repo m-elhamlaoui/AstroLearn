@@ -2,6 +2,9 @@ package com.example.demo.service;
 
 import com.example.demo.dto.UserDTO;
 import com.example.demo.model.User; // Keep using model enums here
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 
 public interface UserService {
@@ -18,7 +21,8 @@ public interface UserService {
     List<UserDTO> getAllUsers();
     UserDTO updateUser(Long id, UserDTO userDTO);
     void deleteUser(Long id);      // Handles cascading deletion based on entity relationships (orphanRemoval=true).
-
+    // Method to search users
+    Page<UserDTO> searchUsersByUsername(String searchTerm, Pageable pageable);
 
     // Adds experience points to a user and potentially updates their level.
     void addExperiencePoints(Long userId, int points);

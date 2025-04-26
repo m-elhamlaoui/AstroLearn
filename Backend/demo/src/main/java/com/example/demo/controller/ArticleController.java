@@ -19,8 +19,8 @@ public class ArticleController {
     private final ArticleService articleService;
 
 
-    @PostMapping
-    public ResponseEntity<ArticleDTO> createArticle(@RequestBody ArticleDTO articleDTO, @RequestParam Long authorId) {
+    @PostMapping("/{authorId}")
+    public ResponseEntity<ArticleDTO> createArticle(@RequestBody ArticleDTO articleDTO, @PathVariable Long authorId) {
         return ResponseEntity.ok(articleService.createArticle(articleDTO, authorId));
     }
 
@@ -34,29 +34,43 @@ public class ArticleController {
         return ResponseEntity.ok(articleService.getAllArticles());
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ArticleDTO> updateArticle(@PathVariable Long id, @RequestBody ArticleDTO articleDTO, @RequestParam Long userId) {
+    @PutMapping("/{id}/user/{userId}")
+    public ResponseEntity<ArticleDTO> updateArticle(@PathVariable Long id, @PathVariable Long userId, @RequestBody ArticleDTO articleDTO) {
         return ResponseEntity.ok(articleService.updateArticle(id, articleDTO, userId));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteArticle(@PathVariable Long id, @RequestParam Long userId) {
+    @DeleteMapping("/{id}/user/{userId}")
+    public ResponseEntity<Void> deleteArticle(@PathVariable Long id, @PathVariable Long userId) {
         articleService.deleteArticle(id, userId);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/comments")
-    public ResponseEntity<CommentDTO> addComment(@PathVariable Long id, @RequestBody CommentDTO commentDTO, @RequestParam Long userId) {
+    @PostMapping("/{id}/comments/user/{userId}")
+    public ResponseEntity<CommentDTO> addComment(@PathVariable Long id, @RequestBody CommentDTO commentDTO, @PathVariable Long userId) {
         return ResponseEntity.ok(articleService.addComment(id, commentDTO, userId));
     }
+
 
     @GetMapping("/{id}/comments")
     public ResponseEntity<List<CommentDTO>> getCommentsByArticleId(@PathVariable Long id) {
         return ResponseEntity.ok(articleService.getCommentsByArticleId(id));
     }
 
-    @PostMapping("/{id}/rate")
-    public ResponseEntity<ArticleRatingDTO> rateArticle(@PathVariable Long id, @RequestBody ArticleRatingDTO ratingDTO, @RequestParam Long userId) {
+    @DeleteMapping("/comments/{commentId}/user/{userId}")
+    public ResponseEntity<Void> deleteComment(@PathVariable Long commentId, @PathVariable Long userId) {
+        articleService.deleteComment(commentId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // get all comments by userId
+    @GetMapping("/comments/user/{userId}")
+    public ResponseEntity<List<CommentDTO>> getCommentsByUserId(@PathVariable Long userId) {
+        return ResponseEntity.ok(articleService.getCommentsByUserId(userId));
+    }
+
+
+    @PutMapping("/{id}/rate/user/{userId}")
+    public ResponseEntity<ArticleRatingDTO> rateArticle(@PathVariable Long id, @RequestBody ArticleRatingDTO ratingDTO, @PathVariable Long userId) {
         return ResponseEntity.ok(articleService.rateArticle(id, ratingDTO, userId));
     }
 
@@ -65,7 +79,7 @@ public class ArticleController {
         return ResponseEntity.ok(articleService.getAverageRating(id));
     }
 
-    @PostMapping("/{id}/tags")
+    @PutMapping("/{id}/tags")
     public ResponseEntity<ArticleDTO> addTagsToArticle(@PathVariable Long id, @RequestBody Set<String> tagNames) {
         return ResponseEntity.ok(articleService.addTagsToArticle(id, tagNames));
     }
@@ -80,8 +94,8 @@ public class ArticleController {
         return ResponseEntity.ok(articleService.getArticlesByTag(tagName));
     }
 
-    @GetMapping("/recommendations")
-    public ResponseEntity<List<ArticleDTO>> getRecommendedArticles(@RequestParam Long userId) {
+    @GetMapping("/recommendations/{userId}")
+    public ResponseEntity<List<ArticleDTO>> getRecommendedArticles(@PathVariable Long userId) {
         return ResponseEntity.ok(articleService.getRecommendedArticles(userId));
     }
 }

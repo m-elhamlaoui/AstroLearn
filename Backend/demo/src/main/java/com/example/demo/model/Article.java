@@ -79,7 +79,6 @@ public class Article {
     @OneToMany(mappedBy = "article", cascade = CascadeType.ALL)
     private Set<ArticleTag> tags = new HashSet<>();
 
-
 }
 
 

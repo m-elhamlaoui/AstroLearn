@@ -87,7 +87,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         // NOTE: Ensure the Repository method sorts by score DESC, createdAt DESC
         Pageable pageable = PageRequest.of(0, count * 2); // Fetch more to allow filtering; limit is applied later
 
-        // ** IMPORTANT: Ensure this repository method exists and sorts correctly **
+
         List<Article> candidateArticles = articleRepository.findByTagsAndExcludeIdsAndAuthorOrderByScore(
                 preferredTags,
                 positiveInteractionArticleIds, // Exclude positively interacted articles

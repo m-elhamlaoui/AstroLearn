@@ -4,6 +4,8 @@ import com.example.demo.dto.ArticleDTO;
 import com.example.demo.dto.ArticleVoteRequestDTO;
 import com.example.demo.dto.CommentDTO;
 import com.example.demo.dto.ArticleRatingDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -14,8 +16,11 @@ public interface ArticleService {
 
     ArticleDTO createArticle(ArticleDTO articleDTO, Long authorId);
     ArticleDTO getArticleById(Long id);
-    List<ArticleDTO> getAllArticles();
+    Page<ArticleDTO> getAllArticles(Pageable pageable);
 
+
+    @Transactional(readOnly = true)
+    Page<ArticleDTO> getAllArticlesSorted(Pageable pageable);
 
     /*
      * @throws ResourceNotFoundException if article not found

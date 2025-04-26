@@ -7,6 +7,8 @@ import com.example.demo.dto.ArticleRatingDTO;
 import com.example.demo.service.ArticleService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,8 +34,13 @@ public class ArticleController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ArticleDTO>> getAllArticles() {
-        return ResponseEntity.ok(articleService.getAllArticles());
+    public ResponseEntity<Page<ArticleDTO>> getAllArticles(Pageable pageable) {
+        return ResponseEntity.ok(articleService.getAllArticles(pageable));
+    }
+
+    @GetMapping("/sorted")
+    public ResponseEntity<Page<ArticleDTO>> getAllArticlesSorted(Pageable pageable) {
+        return ResponseEntity.ok(articleService.getAllArticlesSorted(pageable));
     }
 
     @PutMapping("/{id}/user/{userId}")
@@ -69,7 +76,6 @@ public class ArticleController {
     public ResponseEntity<List<CommentDTO>> getCommentsByUserId(@PathVariable Long userId) {
         return ResponseEntity.ok(articleService.getCommentsByUserId(userId));
     }
-
 
 
 

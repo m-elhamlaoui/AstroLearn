@@ -37,7 +37,7 @@ public class Article {
     @NotBlank
     private String content;
 
-    private String imageUrl;
+    private List<String> imageUrls;
 
 
     @ManyToOne

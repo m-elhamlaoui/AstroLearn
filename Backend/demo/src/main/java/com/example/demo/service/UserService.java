@@ -18,7 +18,7 @@ public interface UserService {
     UserDTO getUserById(Long id);
     UserDTO getUserByUsername(String username);
     UserDTO getUserByEmail(String email);
-    List<UserDTO> getAllUsers();
+    Page<UserDTO> getAllUsers(Pageable pageable);
     UserDTO updateUser(Long id, UserDTO userDTO);
     void deleteUser(Long id);      // Handles cascading deletion based on entity relationships (orphanRemoval=true).
     // Method to search users

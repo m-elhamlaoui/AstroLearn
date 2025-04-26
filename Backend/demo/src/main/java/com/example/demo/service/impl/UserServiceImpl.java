@@ -57,10 +57,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserDTO> getAllUsers() {
-        return userRepository.findAll().stream()
-                .map(entityMapper::toDTO)
-                .collect(Collectors.toList());
+    public Page<UserDTO> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable)
+                .map(entityMapper::toDTO);
     }
 
     @Override

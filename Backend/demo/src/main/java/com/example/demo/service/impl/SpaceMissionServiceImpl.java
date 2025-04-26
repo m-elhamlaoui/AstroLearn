@@ -7,6 +7,8 @@ import com.example.demo.model.*;
 import com.example.demo.repository.*;
 import com.example.demo.service.SpaceMissionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -52,10 +54,9 @@ public class SpaceMissionServiceImpl implements SpaceMissionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<SpaceMissionDTO> getAllMissions() {
-        return spaceMissionRepository.findAll().stream()
-                .map(entityMapper::toDTO)
-                .collect(Collectors.toList());
+    public Page<SpaceMissionDTO> getAllMissions(Pageable pageable) {
+        return spaceMissionRepository.findAll(pageable)
+                .map(entityMapper::toDTO);
     }
 
     @Override

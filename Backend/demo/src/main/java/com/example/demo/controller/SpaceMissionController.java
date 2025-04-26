@@ -3,6 +3,8 @@ package com.example.demo.controller;
 import com.example.demo.dto.SpaceMissionDTO;
 import com.example.demo.service.SpaceMissionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,8 +33,8 @@ public class SpaceMissionController {
 
     // Get all missions
     @GetMapping
-    public ResponseEntity<List<SpaceMissionDTO>> getAllMissions() {
-        List<SpaceMissionDTO> missions = spaceMissionService.getAllMissions();
+    public ResponseEntity<Page<SpaceMissionDTO>> getAllMissions(Pageable pageable) {
+        Page<SpaceMissionDTO> missions = spaceMissionService.getAllMissions(pageable);
         return ResponseEntity.ok(missions);
     }
 

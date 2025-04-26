@@ -34,13 +34,8 @@ public class AuthenticationController {
 
 
     private final AuthenticationManager authenticationManager;
-
-
     private final UserRepository userRepository;
-
-
     private final PasswordEncoder encoder;
-
     private final JwtUtils jwtUtils;
 
 

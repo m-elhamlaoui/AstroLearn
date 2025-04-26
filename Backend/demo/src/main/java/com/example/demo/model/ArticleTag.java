@@ -26,6 +26,13 @@ public class ArticleTag {
     @Column(unique = true)
     private String name;
 
-    @ManyToMany(mappedBy = "tags")
-    private Set<Article> articles = new HashSet<>();
+
+    // Many-to-one relationship with Article
+    @ManyToOne
+    @JoinColumn(name = "article_id")
+    private Article article;
+
+    public ArticleTag(String name) {
+        this.name = name;
+    }
 }

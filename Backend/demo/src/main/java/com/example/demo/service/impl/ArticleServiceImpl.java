@@ -46,12 +46,15 @@ public class ArticleServiceImpl implements ArticleService {
         article.setCreatedAt(LocalDateTime.now());
         article.setAverageRating(0.0);
         article.setCommentCount(0L);
+
+        // save article to avoid the null article_id while saving the tags
+        Article article_saved = articleRepository.save(article);
+
         // Handle tags if provided during creation
         if (articleDTO.tags() != null && !articleDTO.tags().isEmpty()) {
             Set<ArticleTag> tags = findOrCreateTags(articleDTO.tags());
-            article.setTags(tags);
+            article_saved.setTags(tags);
         }
-
 
         Article savedArticle = articleRepository.save(article);
         return entityMapper.toDTO(savedArticle);
@@ -107,7 +110,7 @@ public class ArticleServiceImpl implements ArticleService {
         articleRepository.delete(article); // Cascade should handle comments, ratings etc.
     }
 
-    
+
     // --- Comments Implementation ---
     @Override
     public CommentDTO addComment(Long articleId, CommentDTO commentDTO, Long userId) {
@@ -198,8 +201,6 @@ public class ArticleServiceImpl implements ArticleService {
         Article article = articleRepository.findById(articleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Article", "id", articleId));
 
-        // TODO: Security check if needed (e.g., only author/admin can add tags)
-
         Set<ArticleTag> tags = findOrCreateTags(tagNames);
         article.getTags().addAll(tags); // Add the new tags
 
@@ -251,6 +252,16 @@ public class ArticleServiceImpl implements ArticleService {
         return recommendationService.getArticleRecommendationsForUser(userId, 10); // Example count
     }
 
+    @Override
+public List<CommentDTO> getCommentsByUserId(Long userId) {
+    if (!userRepository.existsById(userId)) {
+        throw new ResourceNotFoundException("User", "id", userId);
+    }
+    List<Comment> comments = commentRepository.findByUserId(userId);
+    return comments.stream()
+            .map(entityMapper::toDTO)
+            .collect(Collectors.toList());
+}
 
     // --- Helper Methods ---
     private Set<ArticleTag> findOrCreateTags(Set<String> tagNames) {
@@ -261,7 +272,7 @@ public class ArticleServiceImpl implements ArticleService {
                 .map(String::trim)
                 .map(String::toLowerCase) // Normalize tag names
                 .map(name -> articleTagRepository.findByNameIgnoreCase(name)
-                        .orElseGet(() -> articleTagRepository.save(new ArticleTag(null, name, Collections.emptySet())))) // Create if not exists
+                        .orElseGet(() -> articleTagRepository.save(new ArticleTag(name)))) // Create if not exists
                 .collect(Collectors.toSet());
     }
 

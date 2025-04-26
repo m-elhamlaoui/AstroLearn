@@ -19,11 +19,23 @@ public interface EntityMapper {
 
     @Mapping(target = "authorId", source = "author.id")
     @Mapping(target = "authorUsername", source = "author.username")
-    @Mapping(target = "tags", source = "tags", qualifiedByName = "tagsToTagNames")
-        // averageRating and commentCount are mapped implicitly via @Formula fields
+    @Mapping(target = "tags", source = "tags", qualifiedByName = "mapTagsToStrings")
     ArticleDTO toDTO(Article article);
 
+    @Named("mapTagsToStrings")
+    default Set<String> mapTagsToStrings(Set<ArticleTag> tags) {
+        if (tags == null) {
+            return Collections.emptySet();
+        }
+        return tags.stream()
+                .map(ArticleTag::getName) // Assuming ArticleTag has a getName() method
+                .collect(Collectors.toSet());
+    }
+
+
     @Mapping(target = "author", ignore = true) // Handled by service
+    // ignore the id
+    @Mapping(target = "id", ignore = true) // Never update ID
     @Mapping(target = "comments", ignore = true) // Handled by service/cascade
     @Mapping(target = "ratings", ignore = true) // Handled by service/cascade
     @Mapping(target = "tags", ignore = true) // Handled by service
@@ -31,14 +43,6 @@ public interface EntityMapper {
     @Mapping(target = "commentCount", ignore = true) // Read-only calculated field
     Article toEntity(ArticleDTO articleDTO);
 
-    // Helper for Tags
-    @Named("tagsToTagNames")
-    default Set<String> tagsToTagNames(Set<ArticleTag> tags) {
-        if (tags == null) {
-            return Collections.emptySet();
-        }
-        return tags.stream().map(ArticleTag::getName).collect(Collectors.toSet());
-    }
 
     // ==================== ArticleRating Mappings ====================
 
@@ -54,7 +58,7 @@ public interface EntityMapper {
 
     ArticleTagDTO toDTO(ArticleTag articleTag);
 
-    @Mapping(target = "articles", ignore = true) // Avoid mapping back-reference
+
     ArticleTag toEntity(ArticleTagDTO articleTagDTO);
 
 

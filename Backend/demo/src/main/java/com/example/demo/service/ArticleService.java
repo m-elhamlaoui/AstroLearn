@@ -63,5 +63,7 @@ public interface ArticleService {
 
     //   Gets recommended articles for a specific user.
     List<ArticleDTO> getRecommendedArticles(Long userId);
+
+    List<CommentDTO> getCommentsByUserId(Long userId);
 }
 

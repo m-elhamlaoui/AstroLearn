@@ -10,6 +10,9 @@ import com.example.demo.service.ArticleService;
 import com.example.demo.service.RecommendationService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,26 +74,22 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ArticleDTO> getAllArticles() {
-        return articleRepository.findAll().stream()
-                .map(entityMapper::toDTO)
-                .collect(Collectors.toList());
+    public Page<ArticleDTO> getAllArticles(Pageable pageable) {
+        return articleRepository.findAll(pageable)
+                .map(entityMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
     @Override
-    public List<ArticleDTO> getAllArticlesSorted() {
+    public Page<ArticleDTO> getAllArticlesSorted(Pageable pageable) {
         // Sort by score in descending order, then by createdAt in descending order
         Sort sort = Sort.by(Sort.Direction.DESC, "score", "createdAt");
-        List<Article> articles = articleRepository.findAll(sort);
+        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
 
-        // Map the articles to DTOs
-        return articles.stream()
-                .map(entityMapper::toDTO)
-                .collect(Collectors.toList());
+        // Fetch paginated and sorted articles
+        return articleRepository.findAll(pageable)
+                .map(entityMapper::toDTO);
     }
-
-
 
 
     @Override
@@ -125,6 +124,7 @@ public class ArticleServiceImpl implements ArticleService {
         checkArticlePermissions(article, userId, "delete");
         articleRepository.delete(article); // Cascade should handle comments, ratings etc.
     }
+
 
 
     // --- Comments Implementation ---

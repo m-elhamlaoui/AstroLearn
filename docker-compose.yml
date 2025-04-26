@@ -1,6 +1,21 @@
 services:
 
+  # Next.js & React Frontend Service
+  space-hub-frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: space-hub-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - space-hub-backend
+    
+    networks:
+      - si-network
 
+    
   # Spring Boot Backend Service (NEW)
   space-hub-backend:
     build:

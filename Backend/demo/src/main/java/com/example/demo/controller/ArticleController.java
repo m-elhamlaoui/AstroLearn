@@ -36,6 +36,11 @@ public class ArticleController {
         return ResponseEntity.ok(articleService.getAllArticles());
     }
 
+    @GetMapping("/sorted")
+    public ResponseEntity<List<ArticleDTO>> getAllArticlesSorted() {
+        return ResponseEntity.ok(articleService.getAllArticlesSorted());
+    }
+
     @PutMapping("/{id}/user/{userId}")
     public ResponseEntity<ArticleDTO> updateArticle(@PathVariable Long id, @PathVariable Long userId, @RequestBody ArticleDTO articleDTO) {
         return ResponseEntity.ok(articleService.updateArticle(id, articleDTO, userId));

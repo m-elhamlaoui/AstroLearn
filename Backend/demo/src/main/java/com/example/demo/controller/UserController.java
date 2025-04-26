@@ -37,7 +37,6 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserByEmail(email));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<UserDTO>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
@@ -90,8 +89,8 @@ public class UserController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/verification/reject/{userId}")
-    public ResponseEntity<Void> rejectVerification(@PathVariable Long userId) {
-        userService.rejectVerification(userId);
+    public ResponseEntity<Void> rejectVerification(@PathVariable Long userId, @RequestParam(required = false) String reason) {
+        userService.rejectVerification(userId, reason);
         return ResponseEntity.noContent().build();
     }
 

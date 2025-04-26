@@ -37,22 +37,15 @@ public interface EntityMapper {
     // ignore the id
     @Mapping(target = "id", ignore = true) // Never update ID
     @Mapping(target = "comments", ignore = true) // Handled by service/cascade
-    @Mapping(target = "ratings", ignore = true) // Handled by service/cascade
+    @Mapping(target = "votes", ignore = true)   // Renamed from ratings, Handled by service
     @Mapping(target = "tags", ignore = true) // Handled by service
-    @Mapping(target = "averageRating", ignore = true) // Read-only calculated field
+    @Mapping(target = "score", ignore = true) // Handled by service
     @Mapping(target = "commentCount", ignore = true) // Read-only calculated field
     Article toEntity(ArticleDTO articleDTO);
 
 
     // ==================== ArticleRating Mappings ====================
 
-    @Mapping(target = "userId", source = "user.id")
-    @Mapping(target = "articleId", source = "article.id")
-    ArticleRatingDTO toDTO(ArticleRating articleRating);
-
-    @Mapping(target = "user", ignore = true) // Handled by service
-    @Mapping(target = "article", ignore = true) // Handled by service
-    ArticleRating toEntity(ArticleRatingDTO articleRatingDTO);
 
     // ==================== ArticleTag Mappings ====================
 
@@ -196,7 +189,7 @@ public interface EntityMapper {
 
     @Mapping(target = "articles", ignore = true) // Handled by service/cascade
     @Mapping(target = "courseProgress", ignore = true) // Handled by service/cascade
-    @Mapping(target = "ratings", ignore = true) // Handled by service/cascade
+    @Mapping(target = "votes", ignore = true) // Handled by service/cascade
     @Mapping(target = "comments", ignore = true) // Handled by service/cascade
     @Mapping(target = "readingHistory", ignore = true) // Handled by service/cascade
     @Mapping(target = "quizCompletions", ignore = true) // Handled by service/cascade
@@ -253,9 +246,9 @@ public interface EntityMapper {
     @Mapping(target = "id", ignore = true) // Never update ID
     @Mapping(target = "author", ignore = true)
     @Mapping(target = "comments", ignore = true)
-    @Mapping(target = "ratings", ignore = true)
+    @Mapping(target = "votes", ignore = true)
     @Mapping(target = "tags", ignore = true)
-    @Mapping(target = "averageRating", ignore = true)
+    @Mapping(target = "score", ignore = true)
     @Mapping(target = "commentCount", ignore = true)
     @Mapping(target = "createdAt", ignore = true) // Typically shouldn't be updated
     void updateArticleFromDto(ArticleDTO dto, @MappingTarget Article entity);
@@ -266,7 +259,7 @@ public interface EntityMapper {
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "articles", ignore = true)
     @Mapping(target = "courseProgress", ignore = true)
-    @Mapping(target = "ratings", ignore = true)
+    @Mapping(target = "votes", ignore = true)
     @Mapping(target = "comments", ignore = true)
     @Mapping(target = "readingHistory", ignore = true)
     @Mapping(target = "quizCompletions", ignore = true)

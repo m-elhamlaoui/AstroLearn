@@ -13,6 +13,7 @@ import com.example.demo.service.ArticleService;
 import com.example.demo.service.RecommendationService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,14 +72,18 @@ public class ArticleServiceImpl implements ArticleService {
         return entityMapper.toDTO(article);
     }
 
-    @Transactional(readOnly = true)
-    @Override
-    public List<ArticleDTO> getAllArticles() {
-        List<Article> articles = articleRepository.findAll();
-        return articles.stream()
-                .map(entityMapper::toDTO)
-                .collect(Collectors.toList());
-    }
+@Override
+@Transactional(readOnly = true)
+public List<ArticleDTO> getAllArticles() {
+    // Sort by score in descending order, then by createdAt in descending order
+    Sort sort = Sort.by(Sort.Direction.DESC, "score", "createdAt");
+    List<Article> articles = articleRepository.findAll(sort);
+
+    // Map the articles to DTOs
+    return articles.stream()
+            .map(entityMapper::toDTO)
+            .collect(Collectors.toList());
+}
 
     @Override
     public ArticleDTO updateArticle(Long id, ArticleDTO articleDTO, Long userId) {

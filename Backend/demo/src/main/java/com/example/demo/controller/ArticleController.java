@@ -103,4 +103,6 @@ public class ArticleController {
     public ResponseEntity<List<ArticleDTO>> getRecommendedArticles(@PathVariable Long userId) {
         return ResponseEntity.ok(articleService.getRecommendedArticles(userId));
     }
+
+
 }

@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.ArticleDTO;
+import com.example.demo.dto.ArticleVoteRequestDTO;
 import com.example.demo.dto.CommentDTO;
 import com.example.demo.dto.ArticleRatingDTO;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,9 +44,7 @@ public interface ArticleService {
 
     // --- Ratings ---
 
-    ArticleRatingDTO rateArticle(Long articleId, ArticleRatingDTO ratingDTO, Long userId);
-    Double getAverageRating(Long articleId);
-
+     ArticleDTO voteArticle(Long articleId, Long userId, ArticleVoteRequestDTO voteRequest); // New method
     // --- Tags ---
 
     /*

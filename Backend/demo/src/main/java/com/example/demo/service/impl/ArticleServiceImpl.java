@@ -1,6 +1,7 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.dto.ArticleDTO;
+import com.example.demo.dto.ArticleVoteRequestDTO;
 import com.example.demo.dto.CommentDTO;
 import com.example.demo.dto.ArticleRatingDTO;
 import com.example.demo.exception.*;
@@ -10,6 +11,7 @@ import com.example.demo.repository.*; // Import all needed repos
 import com.example.demo.service.ArticleService;
 //import com.example.demo.service.RecommendationService; // For recommendations
 import com.example.demo.service.RecommendationService;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,10 +32,11 @@ public class ArticleServiceImpl implements ArticleService {
     private final ArticleRepository articleRepository;
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
-    private final ArticleRatingRepository articleRatingRepository;
     private final ArticleTagRepository articleTagRepository;
     private final EntityMapper entityMapper;
+    private final EntityManager entityManager; // <<< Inject EntityManager
     private final RecommendationService recommendationService;
+    private final ArticleVoteRepository articleVoteRepository;
 
 
     @Override
@@ -44,7 +47,7 @@ public class ArticleServiceImpl implements ArticleService {
         Article article = entityMapper.toEntity(articleDTO);
         article.setAuthor(author);
         article.setCreatedAt(LocalDateTime.now());
-        article.setAverageRating(0.0);
+        article.setScore(0);
         article.setCommentCount(0L);
 
         // save article to avoid the null article_id while saving the tags
@@ -151,48 +154,46 @@ public class ArticleServiceImpl implements ArticleService {
         commentRepository.delete(comment);
     }
 
-
-    // --- Ratings Implementation ---
+    // --- Voting Implementation ---
     @Override
-    public ArticleRatingDTO rateArticle(Long articleId, ArticleRatingDTO ratingDTO, Long userId) {
+    public ArticleDTO voteArticle(Long articleId, Long userId, ArticleVoteRequestDTO voteRequest) {
         Article article = articleRepository.findById(articleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Article", "id", articleId));
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
-        // Find existing rating or create a new one
-        Optional<ArticleRating> existingRatingOpt = articleRatingRepository.findByUserIdAndArticleId(userId, articleId);
+        Optional<ArticleVote> existingVoteOpt = articleVoteRepository.findByUserIdAndArticleId(userId, articleId);
 
-        ArticleRating rating;
-        if (existingRatingOpt.isPresent()) {
-            rating = existingRatingOpt.get();
-            // Update existing rating
-            rating.setRating(ratingDTO.rating());
+        int newVoteValue = voteRequest.voteType().getValue(); // +1 for UP, -1 for DOWN
+
+        if (existingVoteOpt.isPresent()) {
+            ArticleVote existingVote = existingVoteOpt.get();
+            // User clicked the same button again (e.g., upvoted when already upvoted) -> remove vote
+            if (existingVote.getValue() == newVoteValue) {
+                articleVoteRepository.delete(existingVote);
+            }
+            // User changed their vote (e.g., was upvote, now downvote) -> update vote
+            else {
+                existingVote.setValue(newVoteValue);
+                articleVoteRepository.save(existingVote);
+            }
         } else {
-            // Create new rating
-            rating = new ArticleRating(); // Don't use mapper for partial DTO -> Entity creation here
-            rating.setArticle(article);
-            rating.setUser(user);
-            rating.setRating(ratingDTO.rating());
+            // No existing vote -> create new vote
+            ArticleVote newVote = new ArticleVote();
+            newVote.setArticle(article);
+            newVote.setUser(user);
+            newVote.setValue(newVoteValue);
+            articleVoteRepository.save(newVote);
         }
 
-        ArticleRating savedRating = articleRatingRepository.save(rating);
+        // 3. Flush changes (optional, refresh often implies flush) and Refresh the managed Article entity
+        // entityManager.flush(); // Often not needed before refresh, but can be explicit
+        entityManager.refresh(article); // <<< Force reload state from DB, recalculating @Formula
 
-        // Note: The averageRating on ArticleDTO relies on the @Formula field.
-        // No need to manually recalculate here unless you remove the @Formula.
-
-        return entityMapper.toDTO(savedRating);
+        // 4. Map the *refreshed* article to DTO
+        return entityMapper.toDTO(article); // Now 'article' has the updated score/counts
     }
 
-
-    @Override
-    @Transactional(readOnly = true)
-    public Double getAverageRating(Long articleId) {
-        Article article = articleRepository.findById(articleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Article", "id", articleId));
-        // Rely on the @Formula field calculated by Hibernate/JPA
-        return article.getAverageRating() != null ? article.getAverageRating() : 0.0;
-    }
 
 
     // --- Tags Implementation ---

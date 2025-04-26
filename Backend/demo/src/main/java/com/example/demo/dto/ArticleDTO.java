@@ -15,7 +15,8 @@ public record ArticleDTO(
         Long authorId,           // ID of the User who wrote it
         String authorUsername,   // Convenient display field
 
-        Double averageRating,
+
+        int score,
         Long commentCount,
 
         Set<String> tags

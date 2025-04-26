@@ -57,7 +57,7 @@ public class User {
 
     // Ratings are user-specific and deleted with the user
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ArticleRating> ratings = new ArrayList<>();
+    private List<ArticleVote> votes = new ArrayList<>();
 
     // Comments are user-specific and deleted with the user
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)

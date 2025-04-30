@@ -16,7 +16,8 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
     Page<Article> findAll(Pageable pageable);
 
 
-    List<Article> findByTags_NameIgnoreCase(String tagName);
+    @Query("SELECT a FROM Article a JOIN a.tags t WHERE LOWER(t.tagName.name) = LOWER(:tagName)")
+    List<Article> findByTags_NameIgnoreCase(@Param("tagName") String tagName);
 
 
     // Updated Query: Use 'score' instead of 'averageRating'
@@ -28,16 +29,16 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
             Pageable pageable); // Renamed method for clarity
 
     // Used for finding candidates based on preferred tags
-    @Query("SELECT DISTINCT a FROM Article a JOIN FETCH a.author JOIN a.tags t " +
-            "WHERE t.name IN :tagNames " +
-            "AND a.id NOT IN :excludedArticleIds " +
-            "AND a.author.id <> :authorId " +
-            "ORDER BY a.score DESC, a.createdAt DESC") // Ensure sorting
-    List<Article> findByTagsAndExcludeIdsAndAuthorOrderByScore(
-            @Param("tagNames") Set<String> tagNames,
-            @Param("excludedArticleIds") Set<Long> excludedArticleIds,
-            @Param("authorId") Long authorId,
-            Pageable pageable); // Pageable applies limit
+@Query("SELECT DISTINCT a FROM Article a JOIN FETCH a.author JOIN a.tags t " +
+        "WHERE t.tagName.name IN :tagNames " +
+        "AND a.id NOT IN :excludedArticleIds " +
+        "AND a.author.id <> :authorId " +
+        "ORDER BY a.score DESC, a.createdAt DESC") // Ensure sorting
+List<Article> findByTagsAndExcludeIdsAndAuthorOrderByScore(
+        @Param("tagNames") Set<String> tagNames,
+        @Param("excludedArticleIds") Set<Long> excludedArticleIds,
+        @Param("authorId") Long authorId,
+        Pageable pageable); // Pageable applies limit
 
 
 

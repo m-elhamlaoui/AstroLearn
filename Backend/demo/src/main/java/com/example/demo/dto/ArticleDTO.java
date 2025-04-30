@@ -9,7 +9,7 @@ public record ArticleDTO(
         String title,
         String summary,
         String content,
-        List<String> imageUrl,
+        List<String> imageUrls,
         LocalDateTime createdAt,
 
         // --- Relationships ---

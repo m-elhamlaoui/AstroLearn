@@ -1,0 +1,168 @@
+package com.example.demo.e2e;
+
+import com.example.demo.dto.ArticleDTO;
+import com.example.demo.dto.ArticleVoteRequestDTO;
+import com.example.demo.model.VoteType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
+
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+public class ArticleE2ETest extends BaseE2ETest {
+
+    private Long articleId;
+
+    @BeforeEach
+    void setUp() throws Exception {
+        setUpTestUser();
+        createTestArticle();
+    }
+
+    private void createTestArticle() throws Exception {
+        // Create a test article
+        LocalDateTime now = LocalDateTime.now();
+        Set<String> tags = new HashSet<>();
+        tags.add("astronomy");
+
+        ArticleDTO articleDTO = new ArticleDTO(
+            null,
+            "Test Article for E2E",
+            "Summary",
+            "Content",
+            "image.jpg",
+            now,
+            userId,
+            "testuser",
+            0,
+            0L,
+            tags
+        );
+
+        String articleJson = objectMapper.writeValueAsString(articleDTO);
+
+        String response = mockMvc.perform(post("/api/articles")
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(articleJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.title").value("Test Article for E2E"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        ArticleDTO savedArticle = objectMapper.readValue(response, ArticleDTO.class);
+        articleId = savedArticle.id();
+    }
+
+    @Test
+    void shouldGetArticleById() throws Exception {
+        // When & Then
+        mockMvc.perform(get("/api/articles/" + articleId)
+                .header("Authorization", "Bearer " + authToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(articleId))
+                .andExpect(jsonPath("$.title").value("Test Article for E2E"));
+    }
+
+    @Test
+    void shouldUpdateArticle() throws Exception {
+        // Given
+        LocalDateTime now = LocalDateTime.now();
+        Set<String> tags = new HashSet<>();
+        tags.add("astronomy");
+        tags.add("space");
+
+        ArticleDTO updatedArticleDTO = new ArticleDTO(
+            articleId,
+            "Updated Article Title",
+            "Updated Summary",
+            "Updated Content",
+            "updated-image.jpg",
+            now,
+            userId,
+            "testuser",
+            0,
+            0L,
+            tags
+        );
+
+        String articleJson = objectMapper.writeValueAsString(updatedArticleDTO);
+
+        // When & Then
+        mockMvc.perform(put("/api/articles/" + articleId)
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(articleJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Updated Article Title"))
+                .andExpect(jsonPath("$.summary").value("Updated Summary"));
+    }
+
+    @Test
+    void shouldVoteOnArticle() throws Exception {
+        // Given
+        ArticleVoteRequestDTO voteRequest = new ArticleVoteRequestDTO(VoteType.UP);
+        String voteJson = objectMapper.writeValueAsString(voteRequest);
+
+        // When & Then
+        mockMvc.perform(post("/api/articles/" + articleId + "/vote")
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(voteJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.score").value(1));
+    }
+
+    @Test
+    void shouldAddCommentToArticle() throws Exception {
+        // Given
+        String commentJson = "{\"content\": \"This is a test comment\"}";
+
+        // When & Then
+        mockMvc.perform(post("/api/articles/" + articleId + "/comments")
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(commentJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").value("This is a test comment"));
+    }
+
+    @Test
+    void shouldGetArticleComments() throws Exception {
+        // Given - Add a comment first
+        String commentJson = "{\"content\": \"Comment for retrieval test\"}";
+        mockMvc.perform(post("/api/articles/" + articleId + "/comments")
+                .header("Authorization", "Bearer " + authToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(commentJson))
+                .andExpect(status().isOk());
+
+        // When & Then
+        mockMvc.perform(get("/api/articles/" + articleId + "/comments")
+                .header("Authorization", "Bearer " + authToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].content").value("Comment for retrieval test"));
+    }
+
+    @Test
+    void shouldDeleteArticle() throws Exception {
+        // When & Then
+        mockMvc.perform(delete("/api/articles/" + articleId)
+                .header("Authorization", "Bearer " + authToken))
+                .andExpect(status().isOk());
+
+        // Verify article is deleted
+        mockMvc.perform(get("/api/articles/" + articleId)
+                .header("Authorization", "Bearer " + authToken))
+                .andExpect(status().isNotFound());
+    }
+} 

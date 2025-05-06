@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import axios from "axios"
 import { MinimalNavigation } from "@/components/minimal-navigation"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -16,6 +17,14 @@ import { useToast } from "@/components/ui/use-toast"
 
 // API client service
 const API_BASE_URL = "http://localhost:8088";
+
+// Create axios instance with base configuration
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  }
+});
 
 // Types based on backend DTOs
 interface UserDTO {
@@ -83,9 +92,8 @@ const userAPI = {
   // Fetch user by ID
   async getUserById(id: string): Promise<UserDTO> {
     try {
-      const response = await fetch(`${API_BASE_URL}/users/${id}`);
-      if (!response.ok) throw new Error(`Failed to fetch user: ${response.status}`);
-      return await response.json();
+      const response = await api.get(`/users/${id}`);
+      return response.data;
     } catch (error) {
       console.error("Error fetching user:", error);
       throw error;
@@ -95,9 +103,8 @@ const userAPI = {
   // Fetch user by username
   async getUserByUsername(username: string): Promise<UserDTO> {
     try {
-      const response = await fetch(`${API_BASE_URL}/users/username/${username}`);
-      if (!response.ok) throw new Error(`Failed to fetch user: ${response.status}`);
-      return await response.json();
+      const response = await api.get(`/users/username/${username}`);
+      return response.data;
     } catch (error) {
       console.error("Error fetching user by username:", error);
       throw error;
@@ -107,15 +114,8 @@ const userAPI = {
   // Update user
   async updateUser(id: number, userData: Partial<UserDTO>): Promise<UserDTO> {
     try {
-      const response = await fetch(`${API_BASE_URL}/users/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
-      if (!response.ok) throw new Error(`Failed to update user: ${response.status}`);
-      return await response.json();
+      const response = await api.put(`/users/${id}`, userData);
+      return response.data;
     } catch (error) {
       console.error("Error updating user:", error);
       throw error;
@@ -125,10 +125,7 @@ const userAPI = {
   // Request verification
   async requestVerification(id: number): Promise<void> {
     try {
-      const response = await fetch(`${API_BASE_URL}/users/${id}/verification/request`, {
-        method: 'PUT',
-      });
-      if (!response.ok) throw new Error(`Failed to request verification: ${response.status}`);
+      await api.put(`/users/${id}/verification/request`);
     } catch (error) {
       console.error("Error requesting verification:", error);
       throw error;
@@ -144,13 +141,11 @@ const articleAPI = {
     // For now, we'll use a mock implementation
     try {
       // In a real implementation, this would be something like:
-      // const response = await fetch(`${API_BASE_URL}/articles/author/${authorId}`);
+      // const response = await api.get(`/articles/author/${authorId}`);
       // For now, we'll use getAllArticles() and filter client-side
-      const response = await fetch(`${API_BASE_URL}/articles`);
-      if (!response.ok) throw new Error(`Failed to fetch articles: ${response.status}`);
-      const data = await response.json();
+      const response = await api.get('/articles');
       // Filter articles by author ID
-      return data.content.filter((article: ArticleDTO) => article.authorId === authorId);
+      return response.data.content.filter((article: ArticleDTO) => article.authorId === authorId);
     } catch (error) {
       console.error("Error fetching articles:", error);
       throw error;
@@ -160,15 +155,8 @@ const articleAPI = {
   // Create a new article
   async createArticle(article: Partial<ArticleDTO>, authorId: number): Promise<ArticleDTO> {
     try {
-      const response = await fetch(`${API_BASE_URL}/articles/${authorId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(article),
-      });
-      if (!response.ok) throw new Error(`Failed to create article: ${response.status}`);
-      return await response.json();
+      const response = await api.post(`/articles/${authorId}`, article);
+      return response.data;
     } catch (error) {
       console.error("Error creating article:", error);
       throw error;
@@ -178,15 +166,8 @@ const articleAPI = {
   // Update an article
   async updateArticle(id: number, userId: number, article: Partial<ArticleDTO>): Promise<ArticleDTO> {
     try {
-      const response = await fetch(`${API_BASE_URL}/articles/${id}/user/${userId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(article),
-      });
-      if (!response.ok) throw new Error(`Failed to update article: ${response.status}`);
-      return await response.json();
+      const response = await api.put(`/articles/${id}/user/${userId}`, article);
+      return response.data;
     } catch (error) {
       console.error("Error updating article:", error);
       throw error;
@@ -196,10 +177,7 @@ const articleAPI = {
   // Delete an article
   async deleteArticle(id: number, userId: number): Promise<void> {
     try {
-      const response = await fetch(`${API_BASE_URL}/articles/${id}/user/${userId}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error(`Failed to delete article: ${response.status}`);
+      await api.delete(`/articles/${id}/user/${userId}`);
     } catch (error) {
       console.error("Error deleting article:", error);
       throw error;
@@ -209,15 +187,10 @@ const articleAPI = {
   // Vote on an article
   async voteArticle(articleId: number, userId: number, voteValue: number): Promise<ArticleDTO> {
     try {
-      const response = await fetch(`${API_BASE_URL}/articles/${articleId}/vote/user/${userId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ voteType: voteValue > 0 ? "UPVOTE" : "DOWNVOTE" }),
+      const response = await api.post(`/articles/${articleId}/vote/user/${userId}`, {
+        voteType: voteValue > 0 ? "UPVOTE" : "DOWNVOTE"
       });
-      if (!response.ok) throw new Error(`Failed to vote on article: ${response.status}`);
-      return await response.json();
+      return response.data;
     } catch (error) {
       console.error("Error voting on article:", error);
       throw error;

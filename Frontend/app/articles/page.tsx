@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import axios from "axios"
 import { ArticleCard } from "@/components/article-card"
 import { MinimalNavigation } from "@/components/minimal-navigation"
 import { ArticleSearchBar } from "@/components/article-search-bar"
@@ -10,14 +11,15 @@ import { Button } from "@/components/ui/button"
 const API_URL = "http://localhost:8088"
 
 export const fetchArticles = async () => {
-  const response = await fetch(`${API_URL}/articles`)
-  const data = await response.json()
-  return data.content // because it's a Spring Page
+  const response = await axios.get(`${API_URL}/articles`)
+  return response.data.content // because it's a Spring Page
 }
 
 export const searchArticles = async (query: string) => {
-  const response = await fetch(`${API_URL}/articles/search?query=${encodeURIComponent(query)}`)
-  return response.json()
+  const response = await axios.get(`${API_URL}/articles/search`, {
+    params: { query }
+  })
+  return response.data
 }
 
 export default function ArticlesPage() {

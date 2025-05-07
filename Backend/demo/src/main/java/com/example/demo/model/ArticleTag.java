@@ -35,7 +35,5 @@ public class ArticleTag {
         this.article = article;
         this.tagName = tagName;
     }
-
-
 }
 

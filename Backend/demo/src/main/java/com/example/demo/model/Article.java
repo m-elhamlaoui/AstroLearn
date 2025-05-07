@@ -34,6 +34,7 @@ public class Article {
     private String Summary;
 
     @Lob
+    @Column(columnDefinition = "TEXT")
     @NotBlank
     private String content;
 

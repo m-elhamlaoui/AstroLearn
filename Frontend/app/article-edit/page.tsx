@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-
+import axios from "axios"
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
@@ -21,22 +21,52 @@ import {
   ListOrdered,
   CheckCircle2,
   Loader2,
+  Tag as TagIcon,
+  X,
 } from "lucide-react"
+
+interface ArticleDTO {
+  id?: number
+  title: string
+  summary: string
+  content: string
+  imageUrls: string[]
+  createdAt?: string
+  authorId?: number
+  authorUsername?: string
+  score?: number
+  commentCount?: number
+  tags: Set<string>
+}
+
+interface ArticleTagDTO {
+  id?: number
+  name: string
+}
+
+// API base URL - replace with your actual backend URL
+const API_BASE_URL = "http://localhost:8080"
 
 export default function ArticleEditPage() {
   const router = useRouter()
   const [title, setTitle] = useState("")
+  const [summary, setSummary] = useState("")
   const [content, setContent] = useState("")
   const [coverImage, setCoverImage] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currentCheck, setCurrentCheck] = useState(0)
+  const [tags, setTags] = useState<Set<string>>(new Set())
+  const [newTag, setNewTag] = useState("")
   const editorRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  // Mock user ID - in a real app, this would come from authentication
+  const currentUserId = 1
 
   const checks = [
-    "Checking content relevance...",
-    "Analyzing for plagiarism...",
-    "Verifying scientific accuracy...",
+    "Validating article content...",
+    "Processing tags...",
+    "Optimizing images...",
     "Finalizing and publishing...",
   ]
 
@@ -64,6 +94,24 @@ export default function ArticleEditPage() {
     fileInputRef.current?.click()
   }
 
+  // Handle tag addition
+  const handleAddTag = () => {
+    if (newTag.trim()) {
+      const updatedTags = new Set(tags)
+      updatedTags.add(newTag.trim())
+      setTags(updatedTags)
+      setNewTag("")
+    }
+  }
+
+  // Handle tag removal
+  const handleRemoveTag = (tagToRemove: string) => {
+    const updatedTags = new Set(tags)
+    updatedTags.delete(tagToRemove)
+    setTags(updatedTags)
+  }
+
+  // Handle form submission
   const handleSubmit = async () => {
     if (!title.trim() || !content.trim()) {
       alert("Please provide both a title and content for your article")
@@ -72,19 +120,54 @@ export default function ArticleEditPage() {
 
     setIsSubmitting(true)
 
-    // Simulate AI checks with timeouts
-    for (let i = 0; i < checks.length; i++) {
-      setCurrentCheck(i)
-      // Wait for 1.5 seconds between each check
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-    }
+    try {
+      // Prepare the article data
+      const articleData: ArticleDTO = {
+        title: title.trim(),
+        summary: summary.trim(),
+        content: content.trim(),
+        imageUrls: coverImage ? [coverImage] : [],
+        tags: tags
+      }
 
-    // Simulate posting the article
-    setTimeout(() => {
+      // Start simulated check animation
+      for (let i = 0; i < checks.length - 1; i++) {
+        setCurrentCheck(i)
+        // Wait between each check
+        await new Promise((resolve) => setTimeout(resolve, 800))
+      }
+
+      // Send the article to the backend
+      const response = await axios.post(
+        `${API_BASE_URL}/articles/${currentUserId}`,
+        articleData
+      )
+
+      // Final check animation
+      setCurrentCheck(checks.length - 1)
+      await new Promise((resolve) => setTimeout(resolve, 800))
+
+      // Handle successful submission
+      if (response.data && response.data.id) {
+        // If tags were set, update the article with tags
+        // Note: This step might not be needed if the backend handles tags in the initial POST
+        // But we're adding it based on the separate endpoint in ArticleController
+        if (tags.size > 0) {
+          await axios.put(
+            `${API_BASE_URL}/articles/${response.data.id}/tags`, 
+            Array.from(tags)
+          )
+        }
+
+        // Redirect to article view or profile
+        router.push(`/profile/${currentUserId}`)
+      }
+    } catch (error) {
+      console.error("Error submitting article:", error)
+      alert("Failed to submit your article. Please try again.")
+    } finally {
       setIsSubmitting(false)
-      // Redirect to profile page
-      router.push("/profile/1") // Assuming user ID is 1
-    }, 1000)
+    }
   }
 
   useEffect(() => {
@@ -149,6 +232,19 @@ export default function ArticleEditPage() {
             </div>
 
             <div className="mb-6">
+              <label htmlFor="summary" className="block text-sm font-medium mb-2">
+                Summary
+              </label>
+              <Input
+                id="summary"
+                value={summary}
+                onChange={(e) => setSummary(e.target.value)}
+                placeholder="Brief summary of your article..."
+                className="bg-gray-900 border-gray-700 text-white"
+              />
+            </div>
+
+            <div className="mb-6">
               <label className="block text-sm font-medium mb-2">Cover Image</label>
               <div
                 className="relative h-64 bg-gray-900 border border-dashed border-gray-700 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden"
@@ -160,6 +256,7 @@ export default function ArticleEditPage() {
                   <div className="text-center">
                     <ImageIcon className="mx-auto h-12 w-12 text-gray-500" />
                     <p className="mt-2 text-sm text-gray-500">Click to upload a cover image</p>
+                    <p className="mt-1 text-xs text-gray-600">This will be stored as the first image URL</p>
                   </div>
                 )}
                 <input
@@ -261,6 +358,44 @@ export default function ArticleEditPage() {
               </div>
             </div>
 
+            {/* Tags section */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium mb-2">Tags</label>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {Array.from(tags).map((tag) => (
+                  <div 
+                    key={tag}
+                    className="flex items-center bg-blue-900/30 text-blue-400 px-3 py-1 rounded-full"
+                  >
+                    <span className="mr-1">{tag}</span>
+                    <button 
+                      onClick={() => handleRemoveTag(tag)}
+                      className="text-blue-400 hover:text-blue-300"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  placeholder="Add a tag..."
+                  className="bg-gray-900 border-gray-700 text-white"
+                  onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+                />
+                <Button 
+                  onClick={handleAddTag}
+                  variant="outline"
+                  className="border-gray-700 text-gray-300"
+                >
+                  <TagIcon className="h-4 w-4 mr-1" />
+                  Add
+                </Button>
+              </div>
+            </div>
+
             <div className="flex justify-end">
               <Button variant="outline" className="mr-2" onClick={() => router.back()}>
                 Cancel
@@ -278,3 +413,5 @@ export default function ArticleEditPage() {
     </div>
   )
 }
+
+

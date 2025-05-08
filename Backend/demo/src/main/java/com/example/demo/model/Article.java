@@ -37,7 +37,7 @@ public class Article {
     @NotBlank
     private String content;
 
-    private String imageUrl;
+    private List<String> imageUrls;
 
 
     @ManyToOne
@@ -50,11 +50,14 @@ public class Article {
     @OneToMany(mappedBy = "article", cascade = CascadeType.ALL)
     private List<Comment> comments = new ArrayList<>();
 
-    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL)
-    private List<ArticleRating> ratings = new ArrayList<>();
+    // --- Replaced Ratings with Votes ---
+    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ArticleVote> votes = new HashSet<>(); // Changed to Set<ArticleVote>
 
-    @Formula("(SELECT COALESCE(AVG(ar.rating), 0.0) FROM article_ratings ar WHERE ar.article_id = id)")
-    private Double averageRating; // Match DTO field
+    // --- Replaced averageRating with score/counts ---
+    @Formula("(SELECT COALESCE(SUM(av.value), 0) FROM article_votes av WHERE av.article_id = id)")
+    private int score; // Total score (Upvotes - Downvotes)
+
 
     @Formula("(SELECT COUNT(*) FROM comments c WHERE c.article_id = id)")
     private Long commentCount; // Match DTO field
@@ -65,13 +68,16 @@ public class Article {
     // - "tag_id" is the foreign key referencing the ArticleTag entity.
     // The Set<ArticleTag> ensures no duplicate tags are associated with an Article.
 
-    @ManyToMany
-    @JoinTable(
-            name = "article_tags",
-            joinColumns = @JoinColumn(name = "article_id"),
-            inverseJoinColumns = @JoinColumn(name = "tag_id"))
-    private Set<ArticleTag> tags = new HashSet<>();
+//    @ManyToMany
+//    @JoinTable(
+//            name = "article_tags",
+//            joinColumns = @JoinColumn(name = "article_id"),
+//            inverseJoinColumns = @JoinColumn(name = "tag_id"))
+//    private Set<ArticleTag> tags = new HashSet<>();
 
+    //One to many relationship with ArticleTag
+    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL)
+    private Set<ArticleTag> tags = new HashSet<>();
 
 }
 

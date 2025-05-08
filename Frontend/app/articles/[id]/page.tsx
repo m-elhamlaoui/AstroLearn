@@ -10,6 +10,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { formatDistanceToNow, format } from "date-fns"
 import { ArticleComment } from "@/components/article-comment"
+import { BloomingStars } from "@/components/blooming-stars"
 
 // This would be fetched from the backend in production
 const getArticleById = (id: string) => {
@@ -173,12 +174,15 @@ export default function ArticlePage({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-black text-white">
+    <div className="flex min-h-screen bg-black text-white relative">
+      {/* Background Animation */}
+      <BloomingStars />
+      
       {/* Minimal Navigation */}
       <MinimalNavigation />
 
       {/* Main Content */}
-      <main className="flex-1 p-6 ml-12 transition-all duration-300">
+      <main className="flex-1 p-6 ml-12 transition-all duration-300 relative z-10">
         <div className="container mx-auto max-w-4xl">
           {/* Back Button */}
           <Link href="/articles" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6">

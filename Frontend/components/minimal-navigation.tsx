@@ -3,13 +3,14 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { Home, BookOpen, Calendar, MessageSquare, User, ChevronRight, GraduationCap } from "lucide-react"
+import Link from "next/link"
 
 export function MinimalNavigation() {
-  const [expanded, setExpanded] = useState(false)
-  const pathname = usePathname()
+  const [expanded, setExpanded] = useState(false);
+  const pathname = usePathname();
 
   // Determine if the current path matches a nav item
   const isActive = (path: string) => {
@@ -27,7 +28,7 @@ export function MinimalNavigation() {
 
   return (
     <nav
-      className={`fixed left-0 top-1/2 -translate-y-1/2 bg-gray-800/80 backdrop-blur-md transition-all duration-300 z-50 ${
+      className={`hidden md:block fixed left-0 top-1/2 -translate-y-1/2 bg-gray-800/80 backdrop-blur-md transition-all duration-300 z-[9999] ${ // Added hidden md:block
         expanded ? "w-48 rounded-r-xl" : "w-2 rounded-r-md"
       }`}
       onMouseEnter={handleMouseEnter}
@@ -83,7 +84,7 @@ export function MinimalNavigation() {
           </li>
           <li>
             <NavItem
-              href="/profile/me"
+              href="/profile/1"
               icon={<User size={20} />}
               label="Profile"
               active={isActive("/profile")}
@@ -106,7 +107,7 @@ interface NavItemProps {
 
 function NavItem({ href, icon, label, active, expanded }: NavItemProps) {
   return (
-    <Link href={href} className="w-full">
+    <Link href={href} className="w-full block">
       <div
         className={`flex items-center px-3 py-2 rounded-full transition-all duration-300 ${
           active ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white" : "text-gray-400 hover:text-white"
@@ -120,5 +121,5 @@ function NavItem({ href, icon, label, active, expanded }: NavItemProps) {
         </span>
       </div>
     </Link>
-  )
+  );
 }

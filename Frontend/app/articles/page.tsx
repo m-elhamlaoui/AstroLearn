@@ -41,7 +41,22 @@ interface ArticleDTO {
   score: number;
   commentCount: number; // Not directly used in ArticleCard
   tags: string[];
+  currentUserVote?: number | null; // Add the new field (optional for safety)
 }
+
+// Update frontend Article interface
+interface Article {
+  id: number; 
+  title: string;
+  summary: string;
+  image: string; // From imageUrls[0]
+  author: Author;
+  publishDate: string; // From createdAt
+  votes: number; // From score
+  tags: string[];
+  currentUserVote?: number | null; // Add the new field
+}
+
 
 export default function ArticlesPage() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -63,7 +78,7 @@ export default function ArticlesPage() {
         const fetchedArticlesDTO = response.data.content || [] // Ensure it's an array
 
         // Transform DTOs to the Article interface expected by the frontend
-        const transformedArticles: Article[] = fetchedArticlesDTO.map((dto) => ({
+        const transformedArticles: Article[] = fetchedArticlesDTO.map((dto: ArticleDTO) => ({
           id: dto.id,
           title: dto.title,
           summary: dto.summary,
@@ -76,6 +91,7 @@ export default function ArticlesPage() {
           publishDate: dto.createdAt, // Assuming createdAt is a string like "2023-11-15T14:30:00Z"
           votes: dto.score,
           tags: dto.tags || [],
+          currentUserVote: dto.currentUserVote, // Map the new field
         }))
 
         setAllArticles(transformedArticles)

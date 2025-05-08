@@ -44,6 +44,7 @@ interface Article {
   readTime?: number; // Not in DTO, might be calculated or omitted
   votes: number; // from score
   tags: string[];
+  currentUserVote?: number | null; // Add the new field
 }
 
 // Backend DTOs (for reference during transformation)
@@ -59,6 +60,7 @@ interface ArticleDTO {
   score: number;
   commentCount: number;
   tags: string[];
+  currentUserVote?: number | null; // Add the new field
 }
 
 interface CommentDTO {
@@ -76,7 +78,7 @@ export default function ArticlePage({ params }: { params: { id: string } }) {
   const [comments, setComments] = useState<Comment[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  
+
   const [userVote, setUserVote] = useState<"up" | "down" | null>(null) // For article voting UI
   const [newComment, setNewComment] = useState("")
 
@@ -109,9 +111,12 @@ export default function ArticlePage({ params }: { params: { id: string } }) {
           publishDate: dto.createdAt,
           votes: dto.score,
           tags: dto.tags || [],
+          currentUserVote: dto.currentUserVote, // Map the new field
           // readTime: calculateReadTime(dto.content), // Implement if needed
         }
         setArticle(transformedArticle)
+        // Set initial user vote status based on fetched data
+        setUserVote(dto.currentUserVote === 1 ? "up" : dto.currentUserVote === -1 ? "down" : null);
         // Set initial votes for UI based on fetched article
         // setVotes(transformedArticle.votes) // This state is now part of 'article' state
 
@@ -141,13 +146,14 @@ export default function ArticlePage({ params }: { params: { id: string } }) {
     fetchArticleData()
   }, [params.id])
 
-  // Handle article voting
+  // Handle article voting (Simpler version before optimistic updates)
   const handleVote = async (voteType: "up" | "down") => {
     if (!article) return;
     // Placeholder userId, replace with actual authenticated user ID
     const userId = 1 
     try {
-      const response = await axiosInstance.post<ArticleDTO>(`/articles/${article.id}/vote/user/${userId}`, { voteType })
+      // Ensure voteType is uppercase for the backend
+      const response = await axiosInstance.post<ArticleDTO>(`/articles/${article.id}/vote/user/${userId}`, { voteType: voteType.toUpperCase() }) 
       setArticle(prevArticle => prevArticle ? { ...prevArticle, votes: response.data.score } : null)
       setUserVote(voteType) // Update UI to reflect user's current vote
     } catch (err) {

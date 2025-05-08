@@ -1,6 +1,5 @@
 package com.example.demo.controller;
 
-
 import com.example.demo.model.User;
 import com.example.demo.payloadRequest.LoginRequest;
 import com.example.demo.payloadRequest.SignupRequest;
@@ -32,19 +31,15 @@ import java.util.stream.Collectors;
 
 public class AuthenticationController {
 
-
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final PasswordEncoder encoder;
     private final JwtUtils jwtUtils;
 
-
-
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
-        );
+                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         String jwt = jwtUtils.generateJwtToken(userDetails);
@@ -68,13 +63,21 @@ public class AuthenticationController {
                         .body(new MessageResponse("Error: email exists already!"));
             }
 
+            if (userRepository.findByUsername(signUpRequest.getUsername()).isPresent()) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(new MessageResponse("Error: username exists already!"));
+            }
+
             // Create new user's account
             User user = new User();
             user.setPassword(encoder.encode(signUpRequest.getPassword()));
             user.setRole(User.UserRole.valueOf(signUpRequest.getRole()));
             user.setEmail(signUpRequest.getEmail());
             user.setUsername(signUpRequest.getUsername());
-
+            user.setVerificationStatus(User.UserVerification.UNVERIFIED);
+            user.setLevel(User.UserLevel.NOVICE);
+            user.setExperiencePoints(0);
 
             // Save the user to the users table
             userRepository.save(user);
@@ -82,7 +85,8 @@ public class AuthenticationController {
             return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse("An error occurred during registration."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new MessageResponse("An error occurred during registration."));
         }
     }
 

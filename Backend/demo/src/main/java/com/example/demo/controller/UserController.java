@@ -2,10 +2,13 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.UserDTO;
 import com.example.demo.model.User;
+import com.example.demo.security.UserDetailsImpl;
 import com.example.demo.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,7 +21,12 @@ public class UserController {
 
     private final UserService userService;
 
-
+    @GetMapping("/me")
+    public ResponseEntity<UserDTO> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        return ResponseEntity.ok(userService.getUserById(userDetails.getId()));
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
@@ -69,7 +77,6 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/verification/approve/{userId}")
     public ResponseEntity<Void> approveVerification(@PathVariable Long userId) {
@@ -83,7 +90,6 @@ public class UserController {
         userService.rejectVerification(userId);
         return ResponseEntity.noContent().build();
     }
-
 
     @GetMapping("/verification-status")
     public ResponseEntity<List<UserDTO>> getUsersByVerificationStatus(@RequestParam User.UserVerification status) {

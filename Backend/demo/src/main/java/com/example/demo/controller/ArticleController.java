@@ -1,9 +1,11 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.ArticleDTO;
+import com.example.demo.dto.ArticleVoteRequestDTO;
 import com.example.demo.dto.CommentDTO;
 import com.example.demo.dto.ArticleRatingDTO;
 import com.example.demo.service.ArticleService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -69,14 +71,17 @@ public class ArticleController {
     }
 
 
-    @PutMapping("/{id}/rate/user/{userId}")
-    public ResponseEntity<ArticleRatingDTO> rateArticle(@PathVariable Long id, @RequestBody ArticleRatingDTO ratingDTO, @PathVariable Long userId) {
-        return ResponseEntity.ok(articleService.rateArticle(id, ratingDTO, userId));
-    }
 
-    @GetMapping("/{id}/average-rating")
-    public ResponseEntity<Double> getAverageRating(@PathVariable Long id) {
-        return ResponseEntity.ok(articleService.getAverageRating(id));
+
+    // Using POST for voting action
+    @PostMapping("/{id}/vote/user/{userId}") // Or get userId from @AuthenticationPrincipal
+    public ResponseEntity<ArticleDTO> voteArticle(
+            @PathVariable Long id,
+            @PathVariable Long userId, // Ideally get this from security context
+            @Valid @RequestBody ArticleVoteRequestDTO voteRequest) {
+        // Long actualUserId = getUserIdFromPrincipal(userDetails); // Use authenticated user ID
+        ArticleDTO updatedArticle = articleService.voteArticle(id, userId, voteRequest);
+        return ResponseEntity.ok(updatedArticle);
     }
 
     @PutMapping("/{id}/tags")

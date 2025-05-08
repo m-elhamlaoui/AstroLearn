@@ -2,17 +2,28 @@
 
 import { useState } from "react"
 import { MinimalNavigation } from "@/components/minimal-navigation"
-import { CalendarMonthView } from "@/components/calendar-month-view"
-import { CalendarDayView } from "@/components/calendar-day-view"
-import { CalendarYearView } from "@/components/calendar-year-view"
+import { CalendarView } from "@/components/calendar-view"
 import { NextEventCard } from "@/components/next-event-card"
 import { AnticipatedEventCard } from "@/components/anticipated-event-card"
 import { CalendarSearchBar } from "@/components/calendar-search-bar"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, Search, Calendar as CalendarIcon } from "lucide-react"
+import { BloomingStars } from "@/components/blooming-stars"
+
+interface Event {
+  id: number;
+  title: string;
+  description: string;
+  date: string;
+  agency: string;
+  location: string;
+  importance: number;
+  image: string;
+  tags: string[];
+}
 
 // Sample data - would be fetched from backend in production
-const sampleEvents = [
+const sampleEvents: Event[] = [
   {
     id: 1,
     title: "Artemis III Moon Landing",
@@ -149,7 +160,7 @@ const sampleEvents = [
 ]
 
 // Get the next closest event (first upcoming event)
-const getNextClosestEvent = (events) => {
+const getNextClosestEvent = (events: Event[]): Event | undefined => {
   const now = new Date()
   return events
     .filter((event) => new Date(event.date) > now)
@@ -157,7 +168,7 @@ const getNextClosestEvent = (events) => {
 }
 
 // Get the most anticipated events (top 8 by importance, excluding the next closest)
-const getMostAnticipatedEvents = (events, nextEventId, limit = 8) => {
+const getMostAnticipatedEvents = (events: Event[], nextEventId: number | undefined, limit = 8): Event[] => {
   const now = new Date()
   return events
     .filter((event) => new Date(event.date) > now && event.id !== nextEventId)
@@ -165,9 +176,11 @@ const getMostAnticipatedEvents = (events, nextEventId, limit = 8) => {
     .slice(0, limit)
 }
 
+type ViewMode = "year" | "month" | "day";
+
 export default function MissionsPage() {
-  const [viewMode, setViewMode] = useState("year") // "year", "month", or "day"
-  const [selectedMonth, setSelectedMonth] = useState(null)
+  const [viewMode, setViewMode] = useState<ViewMode>("year") // "year", "month", or "day"
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
 
   // Get next closest event
@@ -177,7 +190,7 @@ export default function MissionsPage() {
   const anticipatedEvents = getMostAnticipatedEvents(sampleEvents, nextEvent?.id)
 
   // Handle month selection from year view
-  const handleSelectMonth = (month) => {
+  const handleSelectMonth = (month: number) => {
     setSelectedMonth(month)
     setViewMode("day")
   }
@@ -204,12 +217,15 @@ export default function MissionsPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-black text-white">
+    <div className="flex min-h-screen bg-black text-white relative">
+      {/* Blooming Stars Animation */}
+      <BloomingStars />
+      
       {/* Minimal Navigation */}
       <MinimalNavigation />
 
       {/* Main Content */}
-      <main className="flex-1 p-6 ml-12 transition-all duration-300">
+      <main className="flex-1 p-6 ml-12 transition-all duration-300 relative z-10">
         <div className="container mx-auto">
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
@@ -223,6 +239,7 @@ export default function MissionsPage() {
                     className="text-gray-400 hover:text-white"
                   >
                     <ChevronLeft className="h-5 w-5" />
+                    <span className="sr-only">Back</span>
                   </Button>
                   <h1 className="text-3xl font-bold">{getViewTitle()}</h1>
                 </div>
@@ -236,35 +253,36 @@ export default function MissionsPage() {
               {viewMode === "year" && (
                 <Button
                   variant="outline"
+                  size="icon"
                   onClick={() => setViewMode("month")}
-                  className="border-gray-700 text-gray-300 hover:bg-gray-800"
+                  className="h-10 w-10 rounded-full bg-gray-800/50 border-gray-700 hover:bg-indigo-900/50 hover:border-indigo-600 text-gray-300 hover:text-indigo-400 backdrop-blur-sm"
                 >
-                  <CalendarIcon className="h-5 w-5 mr-2" />
-                  Monthly View
+                  <CalendarIcon className="h-5 w-5" />
+                  <span className="sr-only">Monthly View</span>
                 </Button>
               )}
 
               {/* Search Button */}
               <Button
                 variant="outline"
+                size="icon"
                 onClick={() => setIsSearchOpen(true)}
-                className="border-gray-700 text-gray-300 hover:bg-gray-800"
+                className="h-10 w-10 rounded-full bg-gray-800/50 border-gray-700 hover:bg-indigo-900/50 hover:border-indigo-600 text-gray-300 hover:text-indigo-400 backdrop-blur-sm"
               >
-                <Search className="h-5 w-5 mr-2" />
-                Search Missions
+                <Search className="h-5 w-5" />
+                <span className="sr-only">Search Missions</span>
               </Button>
             </div>
           </div>
 
           {/* Calendar View */}
-          <div className="bg-gray-900 rounded-xl p-6 mb-10">
-            {viewMode === "day" && selectedMonth ? (
-              <CalendarDayView month={selectedMonth} events={sampleEvents} />
-            ) : viewMode === "month" ? (
-              <CalendarMonthView events={sampleEvents} onSelectMonth={handleSelectMonth} />
-            ) : (
-              <CalendarYearView events={sampleEvents} onSelectMonth={handleSelectMonth} />
-            )}
+          <div className="bg-transparent rounded-xl mb-10">
+            <CalendarView
+              events={sampleEvents}
+              initialViewMode={viewMode}
+              initialMonth={selectedMonth ?? undefined}
+              onViewModeChange={setViewMode}
+            />
           </div>
 
           {/* Next Closest Event */}

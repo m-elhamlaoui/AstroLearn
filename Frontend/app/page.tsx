@@ -1,18 +1,17 @@
-import { StarryBackground } from "@/components/starry-background"
-import { ShootingStars } from "@/components/shooting-stars"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ArrowRight, Calendar, BookOpen, MessageSquare, FileText, Sparkles } from "lucide-react"
 import Link from "next/link"
+import { AuthButtons } from "@/components/auth/auth-buttons"
+import { BloomingStars } from "@/components/blooming-stars"
 
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-black text-white">
-      {/* Hero Section with Starry Background */}
+      {/* Hero Section with Blooming Stars Background */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <StarryBackground />
-          <ShootingStars />
+          <BloomingStars />
         </div>
 
         <div className="container relative z-10 px-4 mx-auto text-center">
@@ -38,6 +37,7 @@ export default function HomePage() {
                 Try AI Chatbot
               </Button>
             </Link>
+            <AuthButtons />
           </div>
         </div>
       </section>
@@ -345,8 +345,16 @@ export default function HomePage() {
   )
 }
 
+import React from "react";
+
 // Component for feature cards
-function FeatureCard({ icon, title, description, link }) {
+interface FeatureCardProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  link: string;
+}
+function FeatureCard({ icon, title, description, link }: FeatureCardProps) {
   return (
     <Link href={link}>
       <Card className="bg-gray-800 border-gray-700 p-6 rounded-xl hover:bg-gray-750 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-900/20 group h-full">
@@ -359,7 +367,14 @@ function FeatureCard({ icon, title, description, link }) {
 }
 
 // Component for article cards
-function ArticleCard({ title, excerpt, author, date, link }) {
+interface ArticleCardProps {
+  title: string;
+  excerpt: string;
+  author: string;
+  date: string;
+  link: string;
+}
+function ArticleCard({ title, excerpt, author, date, link }: ArticleCardProps) {
   return (
     <Link href={link}>
       <Card className="bg-gray-800 border-gray-700 overflow-hidden rounded-xl hover:shadow-lg hover:shadow-indigo-900/20 transition-all duration-300 h-full">
@@ -383,7 +398,14 @@ function ArticleCard({ title, excerpt, author, date, link }) {
 }
 
 // Component for mission cards
-function MissionCard({ title, agency, date, description, link }) {
+interface MissionCardProps {
+  title: string;
+  agency: string;
+  date: string;
+  description: string;
+  link: string;
+}
+function MissionCard({ title, agency, date, description, link }: MissionCardProps) {
   return (
     <Link href={link}>
       <Card className="bg-gray-800 border-gray-700 p-6 rounded-xl hover:shadow-lg hover:shadow-indigo-900/20 transition-all duration-300 h-full">
@@ -399,7 +421,14 @@ function MissionCard({ title, agency, date, description, link }) {
 }
 
 // Component for course cards
-function CourseCard({ title, level, duration, description, link }) {
+interface CourseCardProps {
+  title: string;
+  level: string;
+  duration: string;
+  description: string;
+  link: string;
+}
+function CourseCard({ title, level, duration, description, link }: CourseCardProps) {
   return (
     <Link href={link}>
       <Card className="bg-gray-800 border-gray-700 overflow-hidden rounded-xl hover:shadow-lg hover:shadow-indigo-900/20 transition-all duration-300 h-full">

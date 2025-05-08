@@ -22,6 +22,7 @@ import {
   CheckCircle2,
   Loader2,
 } from "lucide-react"
+import { BloomingStars } from "@/components/blooming-stars"
 
 export default function ArticleEditPage() {
   const router = useRouter()
@@ -94,10 +95,13 @@ export default function ArticleEditPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white relative">
+      {/* Background Animation */}
+      <BloomingStars />
+      
       <MinimalNavigation />
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto px-4 py-8 max-w-4xl relative z-10">
         <h1 className="text-3xl font-bold mb-8 text-center">Create New Article</h1>
 
         {isSubmitting ? (

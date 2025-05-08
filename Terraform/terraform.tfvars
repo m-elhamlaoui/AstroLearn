@@ -1,0 +1,5 @@
+key_pair_name = "Astrolearn-terraform"
+access_key = "AKIAVRGZUA63XMDEZCAU"
+secret_key = "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"
+region = "us-east-1" 
+instance_type = "t2.micro" 

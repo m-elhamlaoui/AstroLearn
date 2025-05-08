@@ -1,17 +1,28 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useState, useEffect } from "react"; // Import hooks
 import { FileText, Calendar, MessageSquare, BookOpen, User, Settings, LogOut } from "lucide-react"
 
 export function SideNavigation() {
   const pathname = usePathname()
+  const [userId, setUserId] = useState<string | null>(null);
 
+  useEffect(() => {
+    // Fetch userId from localStorage on the client side
+    const storedUserId = localStorage.getItem("userId"); // Assuming 'userId' is the key
+    if (storedUserId) {
+      setUserId(storedUserId);
+    }
+  }, []);
+
+  // Define nav items, making profile link dynamic
   const navItems = [
     { name: "Articles", href: "/articles", icon: FileText },
     { name: "Missions", href: "/missions", icon: Calendar },
     { name: "Chatbot", href: "/chatbot", icon: MessageSquare },
     { name: "Courses", href: "/courses", icon: BookOpen },
-    { name: "Profile", href: "/profile", icon: User },
+    { name: "Profile", href: userId ? `/profile/${userId}` : "/profile/me", icon: User }, // Dynamic link
     { name: "Settings", href: "/settings", icon: Settings },
   ]
 
@@ -30,7 +41,10 @@ export function SideNavigation() {
       <nav className="flex-1">
         <ul className="space-y-2">
           {navItems.map((item) => {
-            const isActive = pathname === item.href
+            // Adjust active check for profile link
+            const isActive = item.name === "Profile" 
+              ? pathname.startsWith("/profile") 
+              : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
             return (
               <li key={item.name}>

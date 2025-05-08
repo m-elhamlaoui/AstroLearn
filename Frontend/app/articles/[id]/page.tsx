@@ -1,7 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import axios from "axios"
+import { useState } from "react"
 import { MinimalNavigation } from "@/components/minimal-navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -9,263 +8,181 @@ import { Textarea } from "@/components/ui/textarea"
 import { ArrowUp, ArrowDown, Calendar, Clock, Tag, ArrowLeft, Send } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { formatDistanceToNow, format, parseISO } from "date-fns"
+import { formatDistanceToNow, format } from "date-fns"
+import { ArticleComment } from "@/components/article-comment"
+import { BloomingStars } from "@/components/blooming-stars"
 
-// API base URL - in production, this would come from environment variables
-const API_BASE_URL = "http://localhost:8080/api"
+// This would be fetched from the backend in production
+const getArticleById = (id: string) => {
+  // Sample article data
+  return {
+    id: Number.parseInt(id),
+    title: "The Future of Mars Colonization",
+    content: `
+      <p>Mars has captivated human imagination for centuries, but only in recent decades has technology advanced enough to make colonization seem possible. SpaceX, NASA, and other space agencies around the world are developing plans to send humans to the Red Planet, with the ultimate goal of establishing permanent settlements.</p>
+      
+      <h2>Challenges of Mars Colonization</h2>
+      
+      <p>The journey to Mars presents numerous challenges:</p>
+      
+      <ul>
+        <li><strong>Radiation Exposure:</strong> Without Earth's protective magnetic field, Mars colonists would be exposed to harmful cosmic radiation.</li>
+        <li><strong>Low Gravity:</strong> Mars has about 38% of Earth's gravity, which could lead to muscle atrophy and bone density loss over time.</li>
+        <li><strong>Limited Resources:</strong> Colonists would need to develop systems for producing food, water, and oxygen using limited Martian resources.</li>
+        <li><strong>Psychological Isolation:</strong> The psychological impact of living millions of miles away from Earth, with limited communication and no possibility of quick return, poses significant mental health challenges.</li>
+      </ul>
+      
+      <h2>Technological Solutions</h2>
+      
+      <p>Despite these challenges, technological innovations are paving the way for potential colonization:</p>
+      
+      <ul>
+        <li><strong>In-Situ Resource Utilization (ISRU):</strong> Technologies that can extract water from Martian soil and produce oxygen from the CO2-rich atmosphere.</li>
+        <li><strong>3D Printing:</strong> Structures could be built using Martian regolith, reducing the need to transport building materials from Earth.</li>
+        <li><strong>Advanced Life Support Systems:</strong> Closed-loop systems that recycle water, air, and waste to sustain human life indefinitely.</li>
+      </ul>
+      
+      <h2>Timeline for Mars Colonization</h2>
+      
+      <p>Most experts agree on a phased approach to Mars colonization:</p>
+      
+      <ol>
+        <li><strong>Robotic Precursors (Present-2030):</strong> Continued exploration with rovers and the first sample return missions.</li>
+        <li><strong>First Human Landing (2030s):</strong> Short-duration missions focused on exploration and testing technologies.</li>
+        <li><strong>Research Outpost (2040s):</strong> Establishment of a permanent research base with rotating crews.</li>
+        <li><strong>Self-Sustaining Colony (2050s and beyond):</strong> Growth into a settlement that could survive without regular resupply from Earth.</li>
+      </ol>
+      
+      <p>The colonization of Mars represents one of humanity's greatest potential achievements. While the challenges are immense, the technological progress we've made in recent years suggests that humans may indeed become a multi-planetary species within this century.</p>
+    `,
+    image: "/placeholder.svg?height=500&width=1000",
+    author: {
+      id: 101,
+      name: "Elena Rodriguez",
+      profileImage: "/placeholder.svg?height=50&width=50",
+      bio: "Astrophysicist and space exploration enthusiast with a focus on Mars habitability studies.",
+    },
+    publishDate: "2023-11-15T14:30:00Z",
+    readTime: 8, // minutes
+    votes: 128,
+    tags: ["Mars", "Colonization", "Space Travel", "SpaceX", "NASA"],
+    comments: [
+      {
+        id: 1,
+        author: {
+          id: 102,
+          name: "Marcus Chen",
+          profileImage: "/placeholder.svg?height=50&width=50",
+        },
+        content: "Great article! I wonder how we'll solve the radiation problem for long-term habitation.",
+        publishDate: "2023-11-16T10:15:00Z",
+        votes: 24,
+      },
+      {
+        id: 2,
+        author: {
+          id: 103,
+          name: "Sophia Williams",
+          profileImage: "/placeholder.svg?height=50&width=50",
+        },
+        content:
+          "The psychological aspects of Mars colonization are often overlooked. I'd love to see more research on how humans adapt to such isolated environments over years.",
+        publishDate: "2023-11-17T08:45:00Z",
+        votes: 18,
+      },
+      {
+        id: 3,
+        author: {
+          id: 104,
+          name: "David Kim",
+          profileImage: "/placeholder.svg?height=50&width=50",
+        },
+        content:
+          "I think the timeline is too optimistic. We're still struggling with many basic technologies needed for Mars habitation.",
+        publishDate: "2023-11-18T14:20:00Z",
+        votes: -3,
+      },
+    ],
+  }
+}
 
 export default function ArticlePage({ params }: { params: { id: string } }) {
-  const [article, setArticle] = useState(null)
-  const [comments, setComments] = useState([])
-  const [author, setAuthor] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [votes, setVotes] = useState(0)
-  const [userVote, setUserVote] = useState(null)
+  // In a real app, this would be a server component fetching data from the backend
+  const article = getArticleById(params.id)
+  const [votes, setVotes] = useState(article.votes)
+  const [userVote, setUserVote] = useState<"up" | "down" | null>(null)
+  const [comments, setComments] = useState(article.comments)
   const [newComment, setNewComment] = useState("")
 
-  // Fetch article and comments data
-  useEffect(() => {
-    const fetchArticleData = async () => {
-      try {
-        setLoading(true)
-        
-        // Fetch article details
-        const articleRes = await axios.get(`${API_BASE_URL}/articles/${params.id}`)
-        setArticle(articleRes.data)
-        setVotes(articleRes.data.score)
-        
-        // Fetch comments
-        const commentsRes = await axios.get(`${API_BASE_URL}/articles/${params.id}/comments`)
-        setComments(commentsRes.data)
-        
-        // Fetch author details
-        if (articleRes.data.authorId) {
-          const authorRes = await axios.get(`${API_BASE_URL}/users/${articleRes.data.authorId}`)
-          setAuthor(authorRes.data)
-        }
-        
-        setLoading(false)
-      } catch (err) {
-        console.error("Error fetching article data:", err)
-        setError("Failed to load article. Please try again later.")
-        setLoading(false)
-      }
-    }
+  // Format dates
+  const formattedDate = format(new Date(article.publishDate), "MMMM d, yyyy")
+  const timeAgo = formatDistanceToNow(new Date(article.publishDate), { addSuffix: true })
 
-    fetchArticleData()
-  }, [params.id])
-
-  // Handle article voting
-  const handleArticleVote = async (voteType) => {
-    try {
-      // In a real implementation, you would get the user ID from authentication
-      const currentUserId = 1; // This would come from auth context
-      
-      // Prepare vote request
-      const voteRequest = {
-        voteValue: voteType === "up" ? 1 : -1,
-        // Any other fields required by your backend
-      }
-      
-      // Call API to vote on the article
-      await axios.post(
-        `${API_BASE_URL}/articles/${article.id}/vote/user/${currentUserId}`, 
-        voteRequest
-      )
-      
-      // Update local state
-      if (userVote === voteType) {
-        // User is removing their vote
-        setVotes(voteType === "up" ? votes - 1 : votes + 1)
-        setUserVote(null)
-      } else if (userVote === null) {
-        // User is adding a new vote
-        setVotes(voteType === "up" ? votes + 1 : votes - 1)
-        setUserVote(voteType)
-      } else {
-        // User is changing their vote (e.g., from up to down)
-        setVotes(voteType === "up" ? votes + 2 : votes - 2)
-        setUserVote(voteType)
-      }
-    } catch (err) {
-      console.error("Error voting on article:", err)
-      alert("Failed to register your vote. Please try again.")
+  // Handle voting
+  const handleVote = (voteType: "up" | "down") => {
+    if (userVote === voteType) {
+      // User is removing their vote
+      setVotes(voteType === "up" ? votes - 1 : votes + 1)
+      setUserVote(null)
+    } else if (userVote === null) {
+      // User is adding a new vote
+      setVotes(voteType === "up" ? votes + 1 : votes - 1)
+      setUserVote(voteType)
+    } else {
+      // User is changing their vote (e.g., from up to down)
+      setVotes(voteType === "up" ? votes + 2 : votes - 2)
+      setUserVote(voteType)
     }
   }
 
   // Handle comment submission
-  const handleSubmitComment = async () => {
+  const handleSubmitComment = () => {
     if (!newComment.trim()) return
 
-    try {
-      // Assuming we have a userId for the logged-in user
-      const currentUserId = 1; // This would come from auth context
-      
-      const commentData = {
-        content: newComment,
-        articleId: article.id
-      }
-
-      // Using the endpoint provided in your controller
-      const response = await axios.post(
-        `${API_BASE_URL}/articles/${article.id}/comments/user/${currentUserId}`, 
-        commentData
-      )
-      
-      // Add the new comment to the list
-      const newCommentObj = response.data;
-      setComments([...comments, newCommentObj])
-      setNewComment("")
-    } catch (err) {
-      console.error("Error posting comment:", err)
-      alert("Failed to post your comment. Please try again.")
-    }
-  }
-
-  // Comment component embedded directly in the ArticlePage
-  const Comment = ({ comment }) => {
-    const [commentUserVote, setCommentUserVote] = useState(null)
-    const [commentVotes, setCommentVotes] = useState(comment.score || 0)
-
-    // Format the date
-    const timeAgo = formatDistanceToNow(
-      typeof comment.createdAt === "string" ? parseISO(comment.createdAt) : new Date(comment.createdAt),
-      { addSuffix: true }
-    )
-
-    // Handle comment votes
-    const handleCommentVote = async (voteType) => {
-      try {
-        // In a real implementation, you would get the user ID from authentication
-        const currentUserId = 1; // This would come from auth context
-        
-        // Prepare vote request
-        const voteRequest = {
-          voteValue: voteType === "up" ? 1 : -1,
-        }
-        
-        // Make API call to vote on the comment
-        // This endpoint should match what's expected in your backend
-        await axios.post(
-          `${API_BASE_URL}/comments/${comment.id}/vote/user/${currentUserId}`, 
-          voteRequest
-        )
-        
-        // Update local state for immediate feedback
-        if (commentUserVote === voteType) {
-          // User is removing their vote
-          setCommentVotes(voteType === "up" ? commentVotes - 1 : commentVotes + 1)
-          setCommentUserVote(null)
-        } else if (commentUserVote === null) {
-          // User is adding a new vote
-          setCommentVotes(voteType === "up" ? commentVotes + 1 : commentVotes - 1)
-          setCommentUserVote(voteType)
-        } else {
-          // User is changing their vote (e.g., from up to down)
-          setCommentVotes(voteType === "up" ? commentVotes + 2 : commentVotes - 2)
-          setCommentUserVote(voteType)
-        }
-        
-        // Update the comment in the parent component's state
-        setComments(
-          comments.map((c) => {
-            if (c.id === comment.id) {
-              return { ...c, score: commentVotes }
-            }
-            return c
-          })
-        )
-      } catch (err) {
-        console.error("Error voting on comment:", err)
-        alert("Failed to register your vote. Please try again.")
-      }
+    // In a real app, this would call an API to add the comment
+    const newCommentObj = {
+      id: comments.length + 1,
+      author: {
+        id: 999, // Current user ID
+        name: "Current User", // Current user name
+        profileImage: "/placeholder.svg?height=50&width=50", // Current user profile image
+      },
+      content: newComment,
+      publishDate: new Date().toISOString(),
+      votes: 0,
     }
 
-    return (
-      <div className="flex gap-4">
-        {/* User avatar */}
-        <Avatar className="h-10 w-10">
-          <AvatarImage src={comment.authorProfileImage || "/placeholder.svg?height=50&width=50"} alt={comment.authorUsername} />
-          <AvatarFallback>{comment.authorUsername?.charAt(0)}</AvatarFallback>
-        </Avatar>
-
-        {/* Comment content */}
-        <div className="flex-1">
-          <div className="flex items-center justify-between mb-1">
-            <Link href={`/profile/${comment.userId}`} className="text-sm font-medium hover:underline">
-              {comment.authorUsername}
-            </Link>
-            <span className="text-xs text-gray-400">{timeAgo}</span>
-          </div>
-
-          <p className="text-gray-300 mb-2">{comment.content}</p>
-
-          {/* Voting controls */}
-          <div className="flex items-center">
-            <button
-              className={`p-1 text-gray-400 hover:text-white ${commentUserVote === "up" ? "text-green-500" : ""}`}
-              onClick={() => handleCommentVote("up")}
-              aria-label="Upvote comment"
-            >
-              <ArrowUp className="h-4 w-4" />
-            </button>
-
-            <span
-              className={`text-sm mx-1 ${
-                commentVotes > 0 ? "text-green-500" : commentVotes < 0 ? "text-red-500" : "text-gray-400"
-              }`}
-            >
-              {commentVotes}
-            </span>
-
-            <button
-              className={`p-1 text-gray-400 hover:text-white ${commentUserVote === "down" ? "text-red-500" : ""}`}
-              onClick={() => handleCommentVote("down")}
-              aria-label="Downvote comment"
-            >
-              <ArrowDown className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-    )
+    setComments([...comments, newCommentObj])
+    setNewComment("")
   }
 
-  // Loading state
-  if (loading) {
-    return (
-      <div className="flex min-h-screen bg-black text-white justify-center items-center">
-        <p>Loading article...</p>
-      </div>
+  // Handle comment voting
+  const handleCommentVote = (commentId: number, voteType: "up" | "down") => {
+    setComments(
+      comments.map((comment) => {
+        if (comment.id === commentId) {
+          // Simple implementation - in a real app, you'd track user's previous votes
+          if (voteType === "up") {
+            return { ...comment, votes: comment.votes + 1 }
+          } else {
+            return { ...comment, votes: comment.votes - 1 }
+          }
+        }
+        return comment
+      }),
     )
   }
-
-  // Error state
-  if (error || !article) {
-    return (
-      <div className="flex min-h-screen bg-black text-white justify-center items-center">
-        <p>{error || "Article not found"}</p>
-      </div>
-    )
-  }
-
-  // Format dates
-  const formattedDate = format(parseISO(article.createdAt), "MMMM d, yyyy")
-  const timeAgo = formatDistanceToNow(parseISO(article.createdAt), { addSuffix: true })
-
-  // Default image if none provided
-  const articleImage = article.imageUrls && article.imageUrls.length > 0 
-    ? article.imageUrls[0] 
-    : "/placeholder.svg?height=500&width=1000"
 
   return (
-    <div className="flex min-h-screen bg-black text-white">
+    <div className="flex min-h-screen bg-black text-white relative">
+      {/* Background Animation */}
+      <BloomingStars />
+      
       {/* Minimal Navigation */}
       <MinimalNavigation />
 
       {/* Main Content */}
-      <main className="flex-1 p-6 ml-12 transition-all duration-300">
+      <main className="flex-1 p-6 ml-12 transition-all duration-300 relative z-10">
         <div className="container mx-auto max-w-4xl">
           {/* Back Button */}
           <Link href="/articles" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6">
@@ -280,18 +197,15 @@ export default function ArticlePage({ params }: { params: { id: string } }) {
             {/* Author and Meta Information */}
             <div className="flex flex-wrap items-center gap-6 mb-6">
               <Link
-                href={`/profile/${article.authorId}`}
+                href={`/profile/${article.author.id}`}
                 className="flex items-center gap-3 hover:opacity-80 transition-opacity"
               >
                 <Avatar className="h-10 w-10 border-2 border-white">
-                  <AvatarImage 
-                    src={author?.profileImageUrl || "/placeholder.svg?height=50&width=50"} 
-                    alt={author?.username || article.authorUsername} 
-                  />
-                  <AvatarFallback>{(author?.username || article.authorUsername)?.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={article.author.profileImage || "/placeholder.svg"} alt={article.author.name} />
+                  <AvatarFallback>{article.author.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <div className="text-sm font-medium text-white">{author?.username || article.authorUsername}</div>
+                  <div className="text-sm font-medium text-white">{article.author.name}</div>
                   <div className="text-xs text-gray-400">{timeAgo}</div>
                 </div>
               </Link>
@@ -301,16 +215,15 @@ export default function ArticlePage({ params }: { params: { id: string } }) {
                 <span className="text-xs">{formattedDate}</span>
               </div>
 
-              {/* Read time calculated based on content length */}
               <div className="flex items-center gap-2 text-gray-400">
                 <Clock className="h-4 w-4" />
-                <span className="text-xs">{Math.ceil(article.content.length / 1500)} min read</span>
+                <span className="text-xs">{article.readTime} min read</span>
               </div>
             </div>
 
             {/* Tags */}
             <div className="flex flex-wrap gap-2 mb-6">
-              {article.tags && article.tags.map((tag) => (
+              {article.tags.map((tag) => (
                 <Link
                   key={tag}
                   href={`/articles/tags/${tag.toLowerCase()}`}
@@ -327,7 +240,7 @@ export default function ArticlePage({ params }: { params: { id: string } }) {
 
           {/* Featured Image */}
           <div className="relative h-80 md:h-96 mb-8 rounded-xl overflow-hidden">
-            <Image src={articleImage} alt={article.title} fill className="object-cover" />
+            <Image src={article.image || "/placeholder.svg"} alt={article.title} fill className="object-cover" />
           </div>
 
           {/* Article Content */}
@@ -341,7 +254,7 @@ export default function ArticlePage({ params }: { params: { id: string } }) {
               <button
                 className={`p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors ${userVote === "up" ? "text-green-500" : ""}`}
                 aria-label="Upvote"
-                onClick={() => handleArticleVote("up")}
+                onClick={() => handleVote("up")}
               >
                 <ArrowUp className="h-6 w-6" />
               </button>
@@ -357,7 +270,7 @@ export default function ArticlePage({ params }: { params: { id: string } }) {
               <button
                 className={`p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors ${userVote === "down" ? "text-red-500" : ""}`}
                 aria-label="Downvote"
-                onClick={() => handleArticleVote("down")}
+                onClick={() => handleVote("down")}
               >
                 <ArrowDown className="h-6 w-6" />
               </button>
@@ -371,7 +284,7 @@ export default function ArticlePage({ params }: { params: { id: string } }) {
 
           {/* Comments Section */}
           <div className="mt-12">
-            <h2 className="text-2xl font-bold mb-6">Comments ({article.commentCount || comments.length})</h2>
+            <h2 className="text-2xl font-bold mb-6">Comments ({comments.length})</h2>
 
             {/* Add Comment Form */}
             <div className="mb-8">
@@ -400,7 +313,7 @@ export default function ArticlePage({ params }: { params: { id: string } }) {
             {/* Comments List */}
             <div className="space-y-6">
               {comments.map((comment) => (
-                <Comment key={comment.id} comment={comment} />
+                <ArticleComment key={comment.id} comment={comment} onVote={handleCommentVote} />
               ))}
             </div>
           </div>
@@ -409,39 +322,15 @@ export default function ArticlePage({ params }: { params: { id: string } }) {
           <div className="mt-12 p-6 bg-gray-900 rounded-xl">
             <div className="flex items-start gap-4">
               <Avatar className="h-16 w-16 border-2 border-white">
-                <AvatarImage 
-                  src={author?.profileImageUrl || "/placeholder.svg?height=50&width=50"} 
-                  alt={author?.username || article.authorUsername} 
-                />
-                <AvatarFallback>{(author?.username || article.authorUsername)?.charAt(0)}</AvatarFallback>
+                <AvatarImage src={article.author.profileImage || "/placeholder.svg"} alt={article.author.name} />
+                <AvatarFallback>{article.author.name.charAt(0)}</AvatarFallback>
               </Avatar>
 
               <div>
-                <h3 className="text-xl font-bold mb-2">About {author?.username || article.authorUsername}</h3>
-                <p className="text-gray-300 mb-4">
-                  {author?.bio || "This author hasn't added a bio yet."}
-                </p>
-                
-                {/* User stats */}
-                {author && (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4 text-sm">
-                    <div>
-                      <span className="block text-gray-400">Articles</span>
-                      <span className="font-semibold">{author.articleCount || 0}</span>
-                    </div>
-                    <div>
-                      <span className="block text-gray-400">Comments</span>
-                      <span className="font-semibold">{author.commentCount || 0}</span>
-                    </div>
-                    <div>
-                      <span className="block text-gray-400">Level</span>
-                      <span className="font-semibold">{author.level || "Beginner"}</span>
-                    </div>
-                  </div>
-                )}
-                
+                <h3 className="text-xl font-bold mb-2">About {article.author.name}</h3>
+                <p className="text-gray-300 mb-4">{article.author.bio}</p>
                 <Link
-                  href={`/profile/${article.authorId}`}
+                  href={`/profile/${article.author.id}`}
                   className="text-white hover:text-gray-300 transition-colors"
                 >
                   View Profile

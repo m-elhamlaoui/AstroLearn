@@ -115,6 +115,9 @@ export function CalendarSearchBar({ onClose, events }: CalendarSearchBarProps) {
               <X className="h-5 w-5" />
             </button>
           </div>
+          <div className="flex justify-center py-4">
+            <CalendarIcon className="h-6 w-6 text-white/70" />
+          </div>
 
           {/* Search results or suggestions */}
           <div className="max-h-[70vh] overflow-y-auto">

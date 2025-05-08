@@ -1,34 +1,38 @@
-#Use official node image as the build encv
-From node:18 as builder
+# Use official Node image as the build environment
+FROM node:18-alpine AS builder
 
-#Specify the working directory
-Workdir /app
+# Set working directory
+WORKDIR /app
 
-#copy package files to be able to install modules
-Copy package*.json ./
+# Copy package files first for better caching
+COPY package*.json ./
+COPY pnpm-lock.yaml ./
 
-#install Modules
-Run npm install --force
+# Install dependencies with legacy peer deps to handle React 19 compatibility
+RUN npm install --force
 
-#Copy the rest of the project
-Copy . .
+# Copy only necessary files for the build
+COPY . .
 
-#Build the project 
-Run npm run build
+# Build the Next.js app with standalone output
+RUN npm run build
 
-#Use a lighter image for production
-From node:18-alpine
+# Production image, copy standalone directory
+FROM node:18-alpine AS runner
 
-#Specify working Dir
-Workdir /app
+WORKDIR /app
 
-#Copy built app from builder
-Copy --from=builder /app ./
+ENV NODE_ENV=production
 
-#Expose port 3000 for the Next.js app to run on
-Expose 3000
+# Copy only necessary files from builder
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 
-#Start the FrontEnd
-CMD ["npm", "start"]
+# Expose port 3000
+EXPOSE 3000
+
+# Start the application
+CMD ["node", "server.js"]
 
 

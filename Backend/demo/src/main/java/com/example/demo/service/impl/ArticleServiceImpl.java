@@ -19,10 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,6 +35,7 @@ public class ArticleServiceImpl implements ArticleService {
     private final EntityManager entityManager; // <<< Inject EntityManager
     private final RecommendationService recommendationService;
     private final ArticleVoteRepository articleVoteRepository;
+    private final TagNameRepository tagNameRepository;
 
 
     @Override
@@ -52,15 +50,15 @@ public class ArticleServiceImpl implements ArticleService {
         article.setCommentCount(0L);
 
         // save article to avoid the null article_id while saving the tags
-        Article article_saved = articleRepository.save(article);
+        Article savedArticle = articleRepository.save(article);
 
         // Handle tags if provided during creation
         if (articleDTO.tags() != null && !articleDTO.tags().isEmpty()) {
-            Set<ArticleTag> tags = findOrCreateTags(articleDTO.tags());
-            article_saved.setTags(tags);
+            Set<ArticleTag> tags = findOrCreateTags(articleDTO.tags(), savedArticle);
+            savedArticle.setTags(tags);
+            savedArticle = articleRepository.save(savedArticle); // Save again after setting tags
         }
 
-        Article savedArticle = articleRepository.save(article);
         return entityMapper.toDTO(savedArticle);
     }
 
@@ -104,7 +102,7 @@ public class ArticleServiceImpl implements ArticleService {
 
         // Handle tag updates separately if needed (e.g., clearing and adding)
         if (articleDTO.tags() != null) { // Check if tags were provided in update DTO
-            Set<ArticleTag> tags = findOrCreateTags(articleDTO.tags());
+            Set<ArticleTag> tags = findOrCreateTags(articleDTO.tags(), existingArticle);
             existingArticle.setTags(tags); // Replace existing tags
         }
 
@@ -115,6 +113,7 @@ public class ArticleServiceImpl implements ArticleService {
         Article updatedArticle = articleRepository.save(existingArticle);
         return entityMapper.toDTO(updatedArticle);
     }
+
 
     @Override
     public void deleteArticle(Long id, Long userId) {
@@ -215,7 +214,7 @@ public class ArticleServiceImpl implements ArticleService {
         Article article = articleRepository.findById(articleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Article", "id", articleId));
 
-        Set<ArticleTag> tags = findOrCreateTags(tagNames);
+        Set<ArticleTag> tags = findOrCreateTags(tagNames, article);
         article.getTags().addAll(tags); // Add the new tags
 
         Article savedArticle = articleRepository.save(article);
@@ -234,7 +233,7 @@ public class ArticleServiceImpl implements ArticleService {
         }
 
         // Remove only the tags specified
-        article.getTags().removeIf(tag -> tagNames.contains(tag.getName()));
+        article.getTags().removeIf(tag -> tagNames.contains(tag.getTagName().getName()));
 
         Article savedArticle = articleRepository.save(article);
         return entityMapper.toDTO(savedArticle);
@@ -268,27 +267,44 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
 public List<CommentDTO> getCommentsByUserId(Long userId) {
-    if (!userRepository.existsById(userId)) {
-        throw new ResourceNotFoundException("User", "id", userId);
-    }
-    List<Comment> comments = commentRepository.findByUserId(userId);
-    return comments.stream()
-            .map(entityMapper::toDTO)
-            .collect(Collectors.toList());
-}
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("User", "id", userId);
+        }
+        List<Comment> comments = commentRepository.findByUserId(userId);
+        return comments.stream()
+                .map(entityMapper::toDTO)
+                .collect(Collectors.toList());
 
-    // --- Helper Methods ---
-    private Set<ArticleTag> findOrCreateTags(Set<String> tagNames) {
+    }
+
+
+    private Set<ArticleTag> findOrCreateTags(Set<String> tagNames, Article article) {
         if (tagNames == null || tagNames.isEmpty()) {
             return Collections.emptySet();
         }
-        return tagNames.stream()
-                .map(String::trim)
-                .map(String::toLowerCase) // Normalize tag names
-                .map(name -> articleTagRepository.findByNameIgnoreCase(name)
-                        .orElseGet(() -> articleTagRepository.save(new ArticleTag(name)))) // Create if not exists
-                .collect(Collectors.toSet());
+
+        Set<ArticleTag> result = new HashSet<>();
+
+        for (String name : tagNames) {
+            String cleanedName = name.trim().toLowerCase();
+            ArticleTag tag = findOrCreateTag(cleanedName, article);
+            result.add(tag);
+        }
+
+        return result;
     }
+
+
+    private ArticleTag findOrCreateTag(String tagName, Article article) {
+        TagName tag = tagNameRepository.findByNameIgnoreCase(tagName)
+                .orElseGet(() -> tagNameRepository.save(new TagName(tagName)));
+
+        return articleTagRepository.findByArticleAndTagName_NameIgnoreCase(article, tagName)
+                .orElseGet(() -> articleTagRepository.save(new ArticleTag(article, tag)));
+    }
+
+
+
 
     private void checkArticlePermissions(Article article, Long userId, String action) {
         // TODO: Implement security check using Spring Security

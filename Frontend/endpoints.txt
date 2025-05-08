@@ -1,0 +1,369 @@
+# Backend API Endpoints
+
+## ArticleController (`/articles`)
+
+- **POST /articles/{authorId}**
+  - Description: Create a new article.
+  - RequestBody: `ArticleDTO articleDTO`
+  - PathVariable: `Long authorId`
+  - Returns: `ArticleDTO`
+
+- **GET /articles/{id}**
+  - Description: Get an article by its ID.
+  - PathVariable: `Long id`
+  - Returns: `ArticleDTO`
+
+- **GET /articles**
+  - Description: Get all articles with pagination.
+  - Parameters: `Pageable pageable`
+  - Returns: `Page<ArticleDTO>`
+
+- **GET /articles/sorted**
+  - Description: Get all articles sorted, with pagination.
+  - Parameters: `Pageable pageable`
+  - Returns: `Page<ArticleDTO>`
+
+- **PUT /articles/{id}/user/{userId}**
+  - Description: Update an existing article.
+  - PathVariable: `Long id`, `Long userId`
+  - RequestBody: `ArticleDTO articleDTO`
+  - Returns: `ArticleDTO`
+
+- **DELETE /articles/{id}/user/{userId}**
+  - Description: Delete an article.
+  - PathVariable: `Long id`, `Long userId`
+  - Returns: `void`
+
+- **POST /articles/{id}/comments/user/{userId}**
+  - Description: Add a comment to an article.
+  - PathVariable: `Long id` (articleId), `Long userId`
+  - RequestBody: `CommentDTO commentDTO`
+  - Returns: `CommentDTO`
+
+- **GET /articles/{id}/comments**
+  - Description: Get all comments for a specific article.
+  - PathVariable: `Long id` (articleId)
+  - Returns: `List<CommentDTO>`
+
+- **DELETE /articles/comments/{commentId}/user/{userId}**
+  - Description: Delete a comment.
+  - PathVariable: `Long commentId`, `Long userId`
+  - Returns: `void`
+
+- **GET /articles/comments/user/{userId}**
+  - Description: Get all comments made by a specific user.
+  - PathVariable: `Long userId`
+  - Returns: `List<CommentDTO>`
+
+- **POST /articles/{id}/vote/user/{userId}**
+  - Description: Vote on an article (upvote/downvote).
+  - PathVariable: `Long id` (articleId), `Long userId`
+  - RequestBody: `ArticleVoteRequestDTO voteRequest`
+  - Returns: `ArticleDTO`
+
+- **PUT /articles/{id}/tags**
+  - Description: Add tags to an article.
+  - PathVariable: `Long id` (articleId)
+  - RequestBody: `Set<String> tagNames`
+  - Returns: `ArticleDTO`
+
+- **DELETE /articles/{id}/tags**
+  - Description: Remove tags from an article.
+  - PathVariable: `Long id` (articleId)
+  - RequestBody: `Set<String> tagNames`
+  - Returns: `ArticleDTO`
+
+- **GET /articles/tags/{tagName}**
+  - Description: Get articles by a specific tag.
+  - PathVariable: `String tagName`
+  - Returns: `List<ArticleDTO>`
+
+- **GET /articles/recommendations/{userId}**
+  - Description: Get recommended articles for a user.
+  - PathVariable: `Long userId`
+  - Returns: `List<ArticleDTO>`
+
+## AuthenticationController (`/auth`)
+
+- **POST /auth/signin**
+  - Description: Authenticate a user and return a JWT token.
+  - RequestBody: `LoginRequest loginRequest` (contains email and password)
+  - Returns: `JwtResponse` (contains token, user ID, roles, email)
+
+- **POST /auth/signup**
+  - Description: Register a new user.
+  - RequestBody: `SignupRequest signUpRequest` (contains email, password, username, role)
+  - Returns: `MessageResponse` (success or error message)
+
+## CourseController (`/courses`)
+
+- **POST /courses**
+  - Description: Create a new course.
+  - RequestBody: `CourseDTO courseDTO`
+  - Returns: `CourseDTO`
+
+- **GET /courses/{id}**
+  - Description: Get a course by its ID.
+  - PathVariable: `Long id`
+  - Returns: `CourseDTO`
+
+- **GET /courses**
+  - Description: Get all courses.
+  - Returns: `List<CourseDTO>`
+
+- **PUT /courses/{id}**
+  - Description: Update an existing course.
+  - PathVariable: `Long id`
+  - RequestBody: `CourseDTO courseDTO`
+  - Returns: `CourseDTO`
+
+- **DELETE /courses/{id}**
+  - Description: Delete a course.
+  - PathVariable: `Long id`
+  - Returns: `void`
+
+## CourseProgressController (`/course-progress`)
+
+- **GET /course-progress/{userId}/{courseId}**
+  - Description: Get or create course progress for a user and course.
+  - PathVariable: `Long userId`, `Long courseId`
+  - Returns: `CourseProgressDTO`
+
+- **POST /course-progress/{userId}/{courseId}/lessons/{lessonId}/complete**
+  - Description: Mark a lesson as completed for a user in a course.
+  - PathVariable: `Long userId`, `Long courseId`, `Long lessonId`
+  - Returns: `CourseProgressDTO`
+
+- **GET /course-progress/{userId}**
+  - Description: Get all course progresses for a specific user.
+  - PathVariable: `Long userId`
+  - Returns: `List<CourseProgressDTO>`
+
+- **GET /course-progress/{userId}/{courseId}/progress**
+  - Description: Get progress for a specific user and course.
+  - PathVariable: `Long userId`, `Long courseId`
+  - Returns: `CourseProgressDTO`
+
+- **POST /course-progress/{userId}/{courseId}/lessons/{lessonId}/current**
+  - Description: Set the current lesson for a user in a course.
+  - PathVariable: `Long userId`, `Long courseId`, `Long lessonId`
+  - Returns: `CourseProgressDTO`
+
+- **GET /course-progress/{userId}/{courseId}/current-lesson**
+  - Description: Get the ID of the current lesson for a user in a course.
+  - PathVariable: `Long userId`, `Long courseId`
+  - Returns: `Long` (currentLessonId)
+
+## LessonController (`/lessons`)
+
+- **POST /lessons/modules/{moduleId}**
+  - Description: Add a lesson to a specific module.
+  - PathVariable: `Long moduleId`
+  - RequestBody: `LessonDTO lessonDTO`
+  - Returns: `LessonDTO`
+
+- **GET /lessons/modules/{moduleId}**
+  - Description: Get all lessons for a specific module.
+  - PathVariable: `Long moduleId`
+  - Returns: `List<LessonDTO>`
+
+- **GET /lessons/{lessonId}**
+  - Description: Get a lesson by its ID.
+  - PathVariable: `Long lessonId`
+  - Returns: `LessonDTO`
+
+- **PUT /lessons/{lessonId}**
+  - Description: Update an existing lesson.
+  - PathVariable: `Long lessonId`
+  - RequestBody: `LessonDTO lessonDTO`
+  - Returns: `LessonDTO`
+
+- **DELETE /lessons/{lessonId}**
+  - Description: Delete a lesson.
+  - PathVariable: `Long lessonId`
+  - Returns: `void`
+
+## ModuleController (`/modules`)
+
+- **POST /modules/courses/{courseId}**
+  - Description: Add a module to a specific course.
+  - PathVariable: `Long courseId`
+  - RequestBody: `ModuleDTO moduleDTO`
+  - Returns: `ModuleDTO`
+
+- **GET /modules/courses/{courseId}**
+  - Description: Get all modules for a specific course.
+  - PathVariable: `Long courseId`
+  - Returns: `List<ModuleDTO>`
+
+- **GET /modules/{moduleId}**
+  - Description: Get a module by its ID.
+  - PathVariable: `Long moduleId`
+  - Returns: `ModuleDTO`
+
+- **PUT /modules/{moduleId}**
+  - Description: Update an existing module.
+  - PathVariable: `Long moduleId`
+  - RequestBody: `ModuleDTO moduleDTO`
+  - Returns: `ModuleDTO`
+
+- **DELETE /modules/{moduleId}**
+  - Description: Delete a module.
+  - PathVariable: `Long moduleId`
+  - Returns: `void`
+
+## QuizController (`/quizzes`)
+
+- **POST /quizzes/{quizId}/submit**
+  - Description: Submit answers for a quiz.
+  - PathVariable: `Long quizId`
+  - RequestParam: `Long userId`
+  - RequestBody: `QuizSubmissionDTO submissionDTO`
+  - Returns: `QuizCompletionDTO`
+
+- **GET /quizzes/{quizId}/completion**
+  - Description: Get the completion record for a quiz by a user.
+  - PathVariable: `Long quizId`
+  - RequestParam: `Long userId`
+  - Returns: `QuizCompletionDTO`
+
+- **GET /quizzes/{quizId}**
+  - Description: Get quiz details for a user to take.
+  - PathVariable: `Long quizId`
+  - Returns: `QuizDTO`
+
+- **POST /quizzes/lessons/{lessonId}**
+  - Description: Add or update a quiz for a specific lesson (admin).
+  - PathVariable: `Long lessonId`
+  - RequestParam: `Long adminUserId`
+  - RequestBody: `QuizDTO quizDTO`
+  - Returns: `QuizDTO`
+
+- **GET /quizzes/lessons/{lessonId}**
+  - Description: Get the quiz associated with a specific lesson.
+  - PathVariable: `Long lessonId`
+  - Returns: `QuizDTO`
+
+- **DELETE /quizzes/lessons/{lessonId}**
+  - Description: Delete the quiz associated with a specific lesson (admin).
+  - PathVariable: `Long lessonId`
+  - RequestParam: `Long adminUserId`
+  - Returns: `void`
+
+## ReadingHistoryController (`/reading-history`)
+
+- **POST /reading-history/log**
+  - Description: Log or update the time spent reading an article.
+  - RequestParam: `Long userId`, `Long articleId`, `int timeSpentIncrement`
+  - Returns: `ReadingHistoryDTO`
+
+- **GET /reading-history/recent**
+  - Description: Get recently read articles for a user.
+  - RequestParam: `Long userId`
+  - Returns: `List<ReadingHistoryDTO>`
+
+- **GET /reading-history/read-articles**
+  - Description: Get IDs of articles read by a user.
+  - RequestParam: `Long userId`
+  - Returns: `List<Long>` (list of article IDs)
+
+## SpaceMissionController (`/missions`)
+
+- **POST /missions**
+  - Description: Create a new space mission.
+  - RequestParam: `Long creatorUserId`
+  - RequestBody: `SpaceMissionDTO missionDTO`
+  - Returns: `SpaceMissionDTO`
+
+- **GET /missions/{id}**
+  - Description: Get a space mission by its ID.
+  - PathVariable: `Long id`
+  - Returns: `SpaceMissionDTO`
+
+- **GET /missions**
+  - Description: Get all space missions with pagination.
+  - Parameters: `Pageable pageable`
+  - Returns: `Page<SpaceMissionDTO>`
+
+- **PUT /missions/{id}**
+  - Description: Update an existing space mission.
+  - PathVariable: `Long id`
+  - RequestParam: `Long userId` (user performing the update)
+  - RequestBody: `SpaceMissionDTO missionDTO`
+  - Returns: `SpaceMissionDTO`
+
+- **DELETE /missions/{id}**
+  - Description: Delete a space mission.
+  - PathVariable: `Long id`
+  - RequestParam: `Long userId` (user performing the delete)
+  - Returns: `void`
+
+## UserController (`/users`)
+
+- **GET /users/{id}**
+  - Description: Get a user by their ID.
+  - PathVariable: `Long id`
+  - Returns: `UserDTO`
+
+- **GET /users/username/{username}**
+  - Description: Get a user by their username.
+  - PathVariable: `String username`
+  - Returns: `UserDTO`
+
+- **GET /users/email/{email}**
+  - Description: Get a user by their email.
+  - PathVariable: `String email`
+  - Returns: `UserDTO`
+
+- **GET /users**
+  - Description: Get all users with pagination.
+  - Parameters: `Pageable pageable`
+  - Returns: `Page<UserDTO>`
+
+- **POST /users**
+  - Description: Create a new user (typically admin functionality, signup is separate).
+  - RequestBody: `UserDTO userDTO`
+  - Returns: `UserDTO`
+
+- **PUT /users/{id}**
+  - Description: Update an existing user.
+  - PathVariable: `Long id`
+  - RequestBody: `UserDTO userDTO`
+  - Returns: `UserDTO`
+
+- **DELETE /users/{id}**
+  - Description: Delete a user.
+  - PathVariable: `Long id`
+  - Returns: `void`
+
+- **GET /users/search/username/{username}**
+  - Description: Search for users by username query with pagination.
+  - PathVariable: `String username` (query part)
+  - Parameters: `Pageable pageable`
+  - Returns: `Page<UserDTO>`
+
+- **PUT /users/{id}/{points}/experience**
+  - Description: Add experience points to a user.
+  - PathVariable: `Long id` (userId), `int points`
+  - Returns: `void`
+
+- **PUT /users/{id}/verification/request**
+  - Description: User requests verification for their account.
+  - PathVariable: `Long id` (userId)
+  - Returns: `void`
+
+- **PUT /users/verification/approve/{userId}**
+  - Description: Approve a user's verification request (Admin only).
+  - PathVariable: `Long userId`
+  - Returns: `void`
+
+- **PUT /users/verification/reject/{userId}**
+  - Description: Reject a user's verification request (Admin only).
+  - PathVariable: `Long userId`
+  - RequestParam: `String reason` (optional)
+  - Returns: `void`
+
+- **GET /users/verification-status**
+  - Description: Get users by their verification status.
+  - RequestParam: `User.UserVerification status` (e.g., PENDING, VERIFIED, REJECTED)
+  - Returns: `List<UserDTO>`

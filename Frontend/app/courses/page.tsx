@@ -4,7 +4,8 @@ import { useState, useEffect } from "react"
 import { MinimalNavigation } from "@/components/minimal-navigation"
 import { CourseCard } from "@/components/course-card"
 import { Button } from "@/components/ui/button"
-import { Search, ChevronRight } from "lucide-react"
+import { Search, ChevronRight, ArrowLeft } from "lucide-react"
+import { BloomingStars } from "@/components/blooming-stars"
 
 // Sample data - would be fetched from backend in production
 const sampleCourses = [
@@ -216,12 +217,15 @@ export default function CoursesPage() {
   )
 
   return (
-    <div className="flex min-h-screen bg-black text-white">
+    <div className="flex min-h-screen bg-black text-white relative">
+      {/* Blooming Stars Animation */}
+      <BloomingStars />
+      
       {/* Minimal Navigation */}
       <MinimalNavigation />
 
       {/* Main Content */}
-      <main className="flex-1 p-6 ml-12 transition-all duration-300">
+      <main className="flex-1 p-6 ml-12 transition-all duration-300 relative z-10">
         <div className="container mx-auto">
           {/* Header with Search Bar */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -229,12 +233,13 @@ export default function CoursesPage() {
               {selectedCategory ? (
                 <div className="flex items-center gap-2">
                   <Button
-                    variant="ghost"
-                    size="sm"
+                    variant="outline"
+                    size="icon"
                     onClick={() => setSelectedCategory(null)}
-                    className="text-gray-400 hover:text-white"
+                    className="h-8 w-8 rounded-full bg-gray-800/50 border-gray-700 hover:bg-indigo-900/50 hover:border-indigo-600 text-gray-300 hover:text-indigo-400 backdrop-blur-sm"
                   >
-                    ← All Categories
+                    <ArrowLeft className="h-4 w-4" />
+                    <span className="sr-only">All Categories</span>
                   </Button>
                   <h1 className="text-3xl font-bold">{selectedCategory}</h1>
                 </div>
@@ -243,24 +248,26 @@ export default function CoursesPage() {
               )}
             </div>
 
-            {/* Search Input */}
+            {/* Search Input with cleaner styling */}
             <div className="relative w-full md:w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Search courses..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-900 border border-gray-800 rounded-lg py-2 pl-10 pr-4 text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-white/20"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-                >
-                  ×
-                </button>
-              )}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <input
+                  type="text"
+                  placeholder="Search courses..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-full py-2 pl-10 pr-10 text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:border-indigo-500"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -276,19 +283,20 @@ export default function CoursesPage() {
                       onClick={() => setSelectedCategory(category)}
                       className="text-gray-400 hover:text-white flex items-center"
                     >
-                      Explore More <ChevronRight className="h-4 w-4 ml-1" />
+                      <span className="sr-only">Explore More</span>
+                      <ChevronRight className="h-5 w-5" />
                     </Button>
                   )}
                 </div>
 
-                <div className="relative">
-                  <div className="flex overflow-x-auto pb-4 space-x-4 scrollbar-hide">
-                    {courses.map((course) => (
-                      <div key={course.id} className="flex-none w-80">
-                        <CourseCard course={course} />
-                      </div>
-                    ))}
-                  </div>
+                {/* Responsive Course Grid/Flex */}
+                <div className="grid grid-cols-1 gap-6 md:flex md:overflow-x-auto md:pb-4 md:space-x-4 md:scrollbar-hide">
+                  {courses.map((course) => (
+                    // On medium screens and up, use flex-none and width; otherwise, let grid handle width
+                    <div key={course.id} className="md:flex-none md:w-80">
+                      <CourseCard course={course} />
+                    </div>
+                  ))}
                 </div>
               </div>
             ))
@@ -297,6 +305,7 @@ export default function CoursesPage() {
               <p className="text-gray-400 text-lg">No courses found matching your search criteria.</p>
               <Button
                 variant="outline"
+                size="sm"
                 onClick={() => {
                   setSearchQuery("")
                   setSelectedCategory(null)

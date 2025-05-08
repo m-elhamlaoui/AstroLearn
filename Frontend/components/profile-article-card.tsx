@@ -18,15 +18,17 @@ interface Article {
   tags: string[]
 }
 
-interface ArticleCardProps {
-  article: Article
-  isOwner?: boolean
-  onDelete?: (id: number) => void
+export interface ArticleCardProps { // Added export
+  article: Article;
+  showEditDelete?: boolean; // Renamed from isOwner and made optional
+  onDelete?: (id: number) => void;
+  interactionType?: "upvoted" | "downvoted"; // Added optional prop
 }
 
-export function ArticleCard({ article, isOwner = false, onDelete }: ArticleCardProps) {
-  const [votes, setVotes] = useState(article.votes)
-  const [userVote, setUserVote] = useState<"up" | "down" | null>(null)
+export function ArticleCard({ article, showEditDelete = false, onDelete, interactionType }: ArticleCardProps) {
+  const [votes, setVotes] = useState(article.votes);
+  // Initialize userVote based on interactionType if provided
+  const [userVote, setUserVote] = useState<"up" | "down" | null>(interactionType === "upvoted" ? "up" : interactionType === "downvoted" ? "down" : null);
 
   // Format the date to "X days/hours/minutes ago"
   const formattedDate = formatDistanceToNow(new Date(article.publishDate), { addSuffix: true })
@@ -79,7 +81,7 @@ export function ArticleCard({ article, isOwner = false, onDelete }: ArticleCardP
           </Link>
 
           {/* Three dots menu for article owner */}
-          {isOwner && (
+          {showEditDelete && (
             <DropdownMenu>
               <DropdownMenuTrigger className="p-1 rounded-full hover:bg-gray-800 transition-colors">
                 <MoreVertical className="h-5 w-5 text-gray-400" />

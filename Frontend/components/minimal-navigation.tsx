@@ -10,7 +10,17 @@ import Link from "next/link"
 
 export function MinimalNavigation() {
   const [expanded, setExpanded] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const pathname = usePathname();
+
+  useEffect(() => {
+    // Fetch userId from localStorage on the client side
+    const storedUserId = localStorage.getItem("userId"); // Assuming 'userId' is the key
+    if (storedUserId) {
+      setUserId(storedUserId);
+    }
+    // If no userId, the link will default to '/profile/me'
+  }, []);
 
   // Determine if the current path matches a nav item
   const isActive = (path: string) => {
@@ -84,10 +94,10 @@ export function MinimalNavigation() {
           </li>
           <li>
             <NavItem
-              href="/profile/1"
+              href={userId ? `/profile/${userId}` : "/profile/me"} // Dynamic link, fallback to /me
               icon={<User size={20} />}
               label="Profile"
-              active={isActive("/profile")}
+              active={isActive("/profile")} // Keep active state logic simple
               expanded={expanded}
             />
           </li>

@@ -184,11 +184,11 @@ export default function ArticleEditPage() {
       // For now, let's assume a placeholder authorId or that backend handles it.
       // The DTO expects authorId, so we might need to pass it or adjust backend.
       // Let's use a placeholder authorId '1' as per previous ArticleController.
-      // TODO: Replace '1' with actual authenticated user ID from auth context.
-      console.log("[Submit] Attempting to POST article data to /articles/1:", articleData)
-      const response = await axiosInstance.post(`/articles/1`, articleData) 
-      
-      console.log("[Submit] Article created successfully:", response.data)
+       // TODO: Replace '1' with actual authenticated user ID from auth context. // No longer needed, backend uses principal
+       console.log("[Submit] Attempting to POST article data to /articles:", articleData)
+       const response = await axiosInstance.post(`/articles`, articleData) // Use endpoint without authorId
+       
+       console.log("[Submit] Article created successfully:", response.data)
       // Redirect to the articles page or the new article page
       router.push("/articles") // Or router.push(`/articles/${response.data.id}`) if ID is returned
     } catch (error: any) {

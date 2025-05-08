@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import axiosInstance from "../../lib/axiosInstance" // Assuming axiosInstance is in lib
 import { ArticleCard } from "@/components/article-card"
 import { MinimalNavigation } from "@/components/minimal-navigation"
 import { ArticleSearchBar } from "@/components/article-search-bar"
@@ -9,119 +10,151 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { BloomingStars } from "@/components/blooming-stars"
 
-// Sample data - would be fetched from backend in production
-const sampleArticles = [
-  {
-    id: 1,
-    title: "The Future of Mars Colonization",
-    summary: "Exploring the challenges and possibilities of establishing human settlements on the Red Planet.",
-    image: "/placeholder.svg?height=300&width=500",
-    author: {
-      id: 101,
-      name: "Elena Rodriguez",
-      profileImage: "/placeholder.svg?height=50&width=50",
-    },
-    publishDate: "2023-11-15T14:30:00Z",
-    votes: 128,
-    tags: ["Mars", "Colonization", "Space Travel"],
-  },
-  {
-    id: 2,
-    title: "James Webb's Latest Discoveries",
-    summary: "A deep dive into the groundbreaking observations from NASA's most powerful space telescope.",
-    image: "/placeholder.svg?height=300&width=500",
-    author: {
-      id: 102,
-      name: "Marcus Chen",
-      profileImage: "/placeholder.svg?height=50&width=50",
-    },
-    publishDate: "2023-11-10T09:15:00Z",
-    votes: 245,
-    tags: ["James Webb", "Telescope", "Astronomy"],
-  },
-  {
-    id: 3,
-    title: "Understanding Black Holes",
-    summary: "A comprehensive guide to one of the universe's most mysterious phenomena.",
-    image: "/placeholder.svg?height=300&width=500",
-    author: {
-      id: 103,
-      name: "Sophia Williams",
-      profileImage: "/placeholder.svg?height=50&width=50",
-    },
-    publishDate: "2023-11-05T16:45:00Z",
-    votes: 189,
-    tags: ["Black Holes", "Astrophysics", "Space"],
-  },
-  {
-    id: 4,
-    title: "The Search for Exoplanets",
-    summary: "How astronomers are discovering and analyzing planets outside our solar system.",
-    image: "/placeholder.svg?height=300&width=500",
-    author: {
-      id: 104,
-      name: "David Kim",
-      profileImage: "/placeholder.svg?height=50&width=50",
-    },
-    publishDate: "2023-10-28T11:20:00Z",
-    votes: -12,
-    tags: ["Exoplanets", "Astronomy", "Space Exploration"],
-  },
-  {
-    id: 5,
-    title: "SpaceX Starship Development",
-    summary: "The latest updates on SpaceX's revolutionary spacecraft designed for Mars missions.",
-    image: "/placeholder.svg?height=300&width=500",
-    author: {
-      id: 105,
-      name: "Alex Johnson",
-      profileImage: "/placeholder.svg?height=50&width=50",
-    },
-    publishDate: "2023-10-22T13:10:00Z",
-    votes: 302,
-    tags: ["SpaceX", "Starship", "Mars"],
-  },
-  {
-    id: 6,
-    title: "The Artemis Program: Return to the Moon",
-    summary: "NASA's plan to land the first woman and next man on the lunar surface by 2025.",
-    image: "/placeholder.svg?height=300&width=500",
-    author: {
-      id: 106,
-      name: "Olivia Martinez",
-      profileImage: "/placeholder.svg?height=50&width=50",
-    },
-    publishDate: "2023-10-15T10:05:00Z",
-    votes: 178,
-    tags: ["Artemis", "Moon", "NASA"],
-  },
-]
+// Define interfaces for Article and Author based on DTO and component needs
+interface Author {
+  id: number; 
+  name: string;
+  profileImage: string;
+}
+
+interface Article {
+  id: number; 
+  title: string;
+  summary: string;
+  image: string; // From imageUrls[0]
+  author: Author;
+  publishDate: string; // From createdAt
+  votes: number; // From score
+  tags: string[];
+}
+
+// Backend DTO structure (for reference during transformation)
+interface ArticleDTO {
+  id: number;
+  title: string;
+  summary: string;
+  content: string; // Not directly used in ArticleCard but part of DTO
+  imageUrls: string[];
+  createdAt: string; // Assuming ISO string from backend
+  authorId: number;
+  authorUsername: string;
+  score: number;
+  commentCount: number; // Not directly used in ArticleCard
+  tags: string[];
+  currentUserVote?: number | null; // Add the new field (optional for safety)
+}
+
+// Update frontend Article interface
+interface Article {
+  id: number; 
+  title: string;
+  summary: string;
+  image: string; // From imageUrls[0]
+  author: Author;
+  publishDate: string; // From createdAt
+  votes: number; // From score
+  tags: string[];
+  currentUserVote?: number | null; // Add the new field
+}
+
 
 export default function ArticlesPage() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [filteredArticles, setFilteredArticles] = useState(sampleArticles)
+  const [allArticles, setAllArticles] = useState<Article[]>([])
+  const [filteredArticles, setFilteredArticles] = useState<Article[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchArticles = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        // Fetch articles from the backend
+        // The backend returns Page<ArticleDTO>, so response.data might be { content: ArticleDTO[], ... }
+        const response = await axiosInstance.get<{ content: ArticleDTO[] }>("/articles")
+        
+        const fetchedArticlesDTO = response.data.content || [] // Ensure it's an array
+
+        // Transform DTOs to the Article interface expected by the frontend
+        const transformedArticles: Article[] = fetchedArticlesDTO.map((dto: ArticleDTO) => ({
+          id: dto.id,
+          title: dto.title,
+          summary: dto.summary,
+          image: dto.imageUrls && dto.imageUrls.length > 0 ? dto.imageUrls[0] : "/placeholder.svg?height=300&width=500", // Use first image or placeholder
+          author: {
+            id: dto.authorId,
+            name: dto.authorUsername,
+            profileImage: "/placeholder.svg?height=50&width=50", // Placeholder for profile image
+          },
+          publishDate: dto.createdAt, // Assuming createdAt is a string like "2023-11-15T14:30:00Z"
+          votes: dto.score,
+          tags: dto.tags || [],
+          currentUserVote: dto.currentUserVote, // Map the new field
+        }))
+
+        setAllArticles(transformedArticles)
+        setFilteredArticles(transformedArticles)
+      } catch (err: any) {
+        console.error("Failed to fetch articles:", err)
+        setError(err.message || "Failed to load articles. Please try again later.")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchArticles()
+  }, [])
 
   // Handle search
   const handleSearch = (query: string) => {
     setSearchQuery(query)
 
     if (!query.trim()) {
-      setFilteredArticles(sampleArticles)
+      setFilteredArticles(allArticles) // Reset to all fetched articles
       return
     }
 
-    const filtered = sampleArticles.filter(
+    const filtered = allArticles.filter(
       (article) =>
         article.title.toLowerCase().includes(query.toLowerCase()) ||
         article.summary.toLowerCase().includes(query.toLowerCase()) ||
         article.author.name.toLowerCase().includes(query.toLowerCase()) ||
-        article.tags.some((tag) => tag.toLowerCase().includes(query.toLowerCase())),
+        (article.tags && article.tags.some((tag) => tag.toLowerCase().includes(query.toLowerCase()))),
     )
 
     setFilteredArticles(filtered)
   }
 
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-black text-white items-center justify-center">
+        <MinimalNavigation />
+        <p className="text-xl">Loading articles...</p>
+        {/* Optionally, add a spinner component here */}
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen bg-black text-white items-center justify-center p-6">
+        <MinimalNavigation />
+        <div className="text-center">
+          <p className="text-xl text-red-500">Error: {error}</p>
+          <Button
+            variant="outline"
+            onClick={() => window.location.reload()} // Simple reload, or could re-trigger fetchArticles
+            className="mt-4 border-gray-700 text-gray-300 hover:bg-gray-800"
+          >
+            Try Again
+          </Button>
+        </div>
+      </div>
+    )
+  }
+  
   return (
     <div className="flex min-h-screen bg-black text-white relative">
       {/* Blooming Stars Animation */}
@@ -168,14 +201,18 @@ export default function ArticlesPage() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-400 text-lg">No articles found matching your search criteria.</p>
-              <Button
-                variant="outline"
-                onClick={() => handleSearch("")}
-                className="mt-4 border-gray-700 text-gray-300 hover:bg-gray-800"
-              >
-                Clear Search
-              </Button>
+              <p className="text-gray-400 text-lg">
+                {searchQuery ? "No articles found matching your search criteria." : "No articles available at the moment."}
+              </p>
+              {searchQuery && (
+                 <Button
+                    variant="outline"
+                    onClick={() => handleSearch("")} // Clear search
+                    className="mt-4 border-gray-700 text-gray-300 hover:bg-gray-800"
+                  >
+                  Clear Search
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -183,7 +220,7 @@ export default function ArticlesPage() {
 
       {/* Search Overlay */}
       {isSearchOpen && (
-        <ArticleSearchBar onClose={() => setIsSearchOpen(false)} onSearch={handleSearch} articles={sampleArticles} />
+        <ArticleSearchBar onClose={() => setIsSearchOpen(false)} onSearch={handleSearch} articles={allArticles} />
       )}
     </div>
   )

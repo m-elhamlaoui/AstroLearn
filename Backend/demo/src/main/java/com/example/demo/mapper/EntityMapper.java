@@ -9,8 +9,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring",
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE, // Optional: Ignore null DTO fields during updates
+@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE, // Optional:
+                                                                                                               // Ignore
+                                                                                                               // null
+                                                                                                               // DTO
+                                                                                                               // fields
+                                                                                                               // during
+                                                                                                               // updates
         uses = { EntityMapper.class } // Allows the mapper to call itself for nested objects like QuizQuestion
 )
 public interface EntityMapper {
@@ -32,35 +37,23 @@ public interface EntityMapper {
                 .collect(Collectors.toSet());
     }
 
-
     @Mapping(target = "author", ignore = true) // Handled by service
     // ignore the id
     @Mapping(target = "id", ignore = true) // Never update ID
     @Mapping(target = "comments", ignore = true) // Handled by service/cascade
-    @Mapping(target = "ratings", ignore = true) // Handled by service/cascade
+    @Mapping(target = "votes", ignore = true) // Renamed from ratings, Handled by service
     @Mapping(target = "tags", ignore = true) // Handled by service
-    @Mapping(target = "averageRating", ignore = true) // Read-only calculated field
+    @Mapping(target = "score", ignore = true) // Handled by service
     @Mapping(target = "commentCount", ignore = true) // Read-only calculated field
     Article toEntity(ArticleDTO articleDTO);
 
-
     // ==================== ArticleRating Mappings ====================
-
-    @Mapping(target = "userId", source = "user.id")
-    @Mapping(target = "articleId", source = "article.id")
-    ArticleRatingDTO toDTO(ArticleRating articleRating);
-
-    @Mapping(target = "user", ignore = true) // Handled by service
-    @Mapping(target = "article", ignore = true) // Handled by service
-    ArticleRating toEntity(ArticleRatingDTO articleRatingDTO);
 
     // ==================== ArticleTag Mappings ====================
 
     ArticleTagDTO toDTO(ArticleTag articleTag);
 
-
     ArticleTag toEntity(ArticleTagDTO articleTagDTO);
-
 
     // ==================== Comment Mappings ====================
 
@@ -73,7 +66,6 @@ public interface EntityMapper {
     @Mapping(target = "article", ignore = true) // Handled by service
     Comment toEntity(CommentDTO commentDTO);
 
-
     // ==================== Course Mappings ====================
 
     @Mapping(target = "moduleIds", source = "modules", qualifiedByName = "modulesToModuleIds")
@@ -84,7 +76,6 @@ public interface EntityMapper {
     @Mapping(target = "progresses", ignore = true) // Managed separately
     @Mapping(target = "totalLessons", ignore = true) // Read-only calculated field
     Course toEntity(CourseDTO courseDTO);
-
 
     // ==================== CourseProgress Mappings ====================
 
@@ -97,15 +88,15 @@ public interface EntityMapper {
     @Mapping(target = "course", ignore = true) // Handled by service
     @Mapping(target = "currentLesson", ignore = true) // Handled by service
 
-        // completionPercentage and completed are often calculated fields, map if needed from DTO
+    // completionPercentage and completed are often calculated fields, map if needed
+    // from DTO
     CourseProgress toEntity(CourseProgressDTO courseProgressDTO);
-
 
     // ==================== Module Mappings ====================
 
     @Mapping(target = "courseId", source = "course.id")
     @Mapping(target = "lessonIds", source = "lessons", qualifiedByName = "lessonsToLessonIds")
-        // lessonCount is mapped implicitly via @Formula field
+    // lessonCount is mapped implicitly via @Formula field
     ModuleDTO toDTO(com.example.demo.model.Module module);
 
     @Mapping(target = "course", ignore = true) // Handled by service
@@ -123,7 +114,6 @@ public interface EntityMapper {
     @Mapping(target = "quiz", ignore = true) // Handled by service/cascade
     Lesson toEntity(LessonDTO lessonDTO);
 
-
     // ==================== Quiz Mappings ====================
 
     @Mapping(target = "lessonId", source = "lesson.id")
@@ -134,7 +124,6 @@ public interface EntityMapper {
     @Mapping(target = "lesson", ignore = true) // Handled by service
     @Mapping(target = "questions", ignore = true) // Handled by service/cascade
     Quiz toEntity(QuizDTO quizDTO);
-
 
     // ==================== QuizCompletion Mappings ====================
 
@@ -148,31 +137,31 @@ public interface EntityMapper {
     @Mapping(target = "quiz", ignore = true) // Handled by service
     QuizCompletion toEntity(QuizCompletionDTO quizCompletionDTO);
 
-
     // ==================== QuizQuestion Mappings ====================
 
-    // Note: quizId might not be needed in DTO if always nested, but included per your DTO def
-    // @Mapping(target = "quizId", source = "quiz.id") // Uncomment if QuizQuestionDTO needs quizId
-   // @Mapping(target = "correctOptionIndex", ignore = true) // IMPORTANT: Do not expose correct answer
+    // Note: quizId might not be needed in DTO if always nested, but included per
+    // your DTO def
+    // @Mapping(target = "quizId", source = "quiz.id") // Uncomment if
+    // QuizQuestionDTO needs quizId
+    // @Mapping(target = "correctOptionIndex", ignore = true) // IMPORTANT: Do not
+    // expose correct answer
     QuizQuestionDTO toDTO(QuizQuestion quizQuestion);
 
-    // @Mapping(target = "quiz", ignore = true) // Assuming QuizQuestion is part of Quiz creation/update
+    // @Mapping(target = "quiz", ignore = true) // Assuming QuizQuestion is part of
+    // Quiz creation/update
     QuizQuestion toEntity(QuizQuestionDTO quizQuestionDTO);
-
 
     // ==================== ReadingHistory Mappings ====================
 
     @Mapping(target = "userId", source = "user.id")
     @Mapping(target = "articleId", source = "article.id")
     @Mapping(target = "articleTitle", source = "article.title")
-    @Mapping(target = "isRead", expression = "java(readingHistory.getTimeSpentSeconds() > 0)") // Calculate isRead from timeSpentSeconds
     ReadingHistoryDTO toDTO(ReadingHistory readingHistory);
 
     @Mapping(target = "user", ignore = true) // Handled by service
     @Mapping(target = "article", ignore = true) // Handled by service
-        // isRead is calculated or set based on timeSpentSeconds, map if needed from DTO
+    // isRead is calculated or set based on timeSpentSeconds, map if needed from DTO
     ReadingHistory toEntity(ReadingHistoryDTO readingHistoryDTO);
-
 
     // ==================== SpaceMission Mappings ====================
 
@@ -183,20 +172,19 @@ public interface EntityMapper {
     @Mapping(target = "user", ignore = true) // Handled by service
     SpaceMission toEntity(SpaceMissionDTO spaceMissionDTO);
 
-
     // ==================== User Mappings ====================
-    // Note: Collections map to IDs. Add more ID lists to DTO if needed (e.g., articleIds, commentIds)
+    // Note: Collections map to IDs. Add more ID lists to DTO if needed (e.g.,
+    // articleIds, commentIds)
     // articleCount, commentCount, quizCompletionCount mapped implicitly by @Formula
-    @Mapping(target = "readingHistoryIds", source="readingHistory", qualifiedByName = "historiesToHistoryIds")
-    @Mapping(target = "courseProgressIds", source="courseProgress", qualifiedByName = "progressesToProgressIds")
-    @Mapping(target = "quizCompletionIds", source="quizCompletions", qualifiedByName = "completionsToCompletionIds")
-    @Mapping(target = "createdSpaceMissionIds", source="spaceMissions", qualifiedByName = "missionsToMissionIds")
+    @Mapping(target = "readingHistoryIds", source = "readingHistory", qualifiedByName = "historiesToHistoryIds")
+    @Mapping(target = "courseProgressIds", source = "courseProgress", qualifiedByName = "progressesToProgressIds")
+    @Mapping(target = "quizCompletionIds", source = "quizCompletions", qualifiedByName = "completionsToCompletionIds")
+    @Mapping(target = "createdSpaceMissionIds", source = "spaceMissions", qualifiedByName = "missionsToMissionIds")
     UserDTO toDTO(User user);
-
 
     @Mapping(target = "articles", ignore = true) // Handled by service/cascade
     @Mapping(target = "courseProgress", ignore = true) // Handled by service/cascade
-    @Mapping(target = "ratings", ignore = true) // Handled by service/cascade
+    @Mapping(target = "votes", ignore = true) // Handled by service/cascade
     @Mapping(target = "comments", ignore = true) // Handled by service/cascade
     @Mapping(target = "readingHistory", ignore = true) // Handled by service/cascade
     @Mapping(target = "quizCompletions", ignore = true) // Handled by service/cascade
@@ -208,42 +196,47 @@ public interface EntityMapper {
     @Mapping(target = "quizCompletionCount", ignore = true) // Read-only calculated field
     User toEntity(UserDTO userDTO);
 
-
     // --- Helper Methods for ID Extraction ---
 
     @Named("modulesToModuleIds")
     default List<Long> modulesToModuleIds(List<com.example.demo.model.Module> modules) {
-        if (modules == null) return Collections.emptyList();
+        if (modules == null)
+            return Collections.emptyList();
         return modules.stream().map(com.example.demo.model.Module::getId).collect(Collectors.toList());
     }
 
     @Named("lessonsToLessonIds")
     default List<Long> lessonsToLessonIds(List<Lesson> lessons) {
-        if (lessons == null) return Collections.emptyList();
+        if (lessons == null)
+            return Collections.emptyList();
         return lessons.stream().map(Lesson::getId).collect(Collectors.toList());
     }
 
     @Named("historiesToHistoryIds")
     default List<Long> historiesToHistoryIds(List<ReadingHistory> histories) {
-        if (histories == null) return Collections.emptyList();
+        if (histories == null)
+            return Collections.emptyList();
         return histories.stream().map(ReadingHistory::getId).collect(Collectors.toList());
     }
 
     @Named("progressesToProgressIds")
     default List<Long> progressesToProgressIds(List<CourseProgress> progresses) {
-        if (progresses == null) return Collections.emptyList();
+        if (progresses == null)
+            return Collections.emptyList();
         return progresses.stream().map(CourseProgress::getId).collect(Collectors.toList());
     }
 
     @Named("completionsToCompletionIds")
     default List<Long> completionsToCompletionIds(List<QuizCompletion> completions) {
-        if (completions == null) return Collections.emptyList();
+        if (completions == null)
+            return Collections.emptyList();
         return completions.stream().map(QuizCompletion::getId).collect(Collectors.toList());
     }
 
     @Named("missionsToMissionIds")
     default List<Long> missionsToMissionIds(List<SpaceMission> missions) {
-        if (missions == null) return Collections.emptyList();
+        if (missions == null)
+            return Collections.emptyList();
         return missions.stream().map(SpaceMission::getId).collect(Collectors.toList());
     }
 
@@ -253,9 +246,9 @@ public interface EntityMapper {
     @Mapping(target = "id", ignore = true) // Never update ID
     @Mapping(target = "author", ignore = true)
     @Mapping(target = "comments", ignore = true)
-    @Mapping(target = "ratings", ignore = true)
+    @Mapping(target = "votes", ignore = true)
     @Mapping(target = "tags", ignore = true)
-    @Mapping(target = "averageRating", ignore = true)
+    @Mapping(target = "score", ignore = true)
     @Mapping(target = "commentCount", ignore = true)
     @Mapping(target = "createdAt", ignore = true) // Typically shouldn't be updated
     void updateArticleFromDto(ArticleDTO dto, @MappingTarget Article entity);
@@ -266,7 +259,7 @@ public interface EntityMapper {
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "articles", ignore = true)
     @Mapping(target = "courseProgress", ignore = true)
-    @Mapping(target = "ratings", ignore = true)
+    @Mapping(target = "votes", ignore = true)
     @Mapping(target = "comments", ignore = true)
     @Mapping(target = "readingHistory", ignore = true)
     @Mapping(target = "quizCompletions", ignore = true)

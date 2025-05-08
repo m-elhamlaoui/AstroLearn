@@ -34,6 +34,7 @@ public class User {
     private String email;
 
     @Lob
+    @Column(name = "bio", columnDefinition = "TEXT")
     private String bio;
 
     private String profileImageUrl;

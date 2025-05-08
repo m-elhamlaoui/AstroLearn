@@ -34,6 +34,7 @@ public class Article {
     private String Summary;
 
     @Lob
+    @Column(columnDefinition = "TEXT")
     @NotBlank
     private String content;
 
@@ -76,7 +77,9 @@ public class Article {
 //    private Set<ArticleTag> tags = new HashSet<>();
 
     //One to many relationship with ArticleTag
-    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL
+
+    )
     private Set<ArticleTag> tags = new HashSet<>();
 
 }

@@ -19,6 +19,7 @@ public class Comment {
     private Long id;
 
     @Lob
+    @Column(name = "content", columnDefinition = "TEXT")
     @NotBlank
     private String content;
 

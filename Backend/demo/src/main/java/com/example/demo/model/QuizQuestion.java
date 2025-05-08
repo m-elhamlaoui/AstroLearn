@@ -24,6 +24,8 @@ public class QuizQuestion {
 
     @ElementCollection
     @CollectionTable(name = "question_options", joinColumns = @JoinColumn(name = "question_id"))
+    @OrderColumn(name = "options_order") // Or any name you like, e.g., "list_index"
+
     private List<String> options;
 
     private int correctOptionIndex;

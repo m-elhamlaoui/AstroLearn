@@ -27,6 +27,7 @@ public class SpaceMission {
     private LocalDateTime launchDate;
 
     @Lob
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     private String missionImage;

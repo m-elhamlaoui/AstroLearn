@@ -7,32 +7,33 @@ import java.util.HashSet;
 import java.util.Set;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
+@Setter
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 
 @Entity
 @Table(name = "article_tags")
+
 public class ArticleTag {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
-    @Column(unique = true)
-    private String name;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "tag_name_id")
+    private TagName tagName;
 
 
-    // Many-to-one relationship with Article
     @ManyToOne
     @JoinColumn(name = "article_id")
     private Article article;
 
-    public ArticleTag(String name) {
-        this.name = name;
+    public ArticleTag(Article article, TagName tagName) {
+        this.article = article;
+        this.tagName = tagName;
     }
 }
+

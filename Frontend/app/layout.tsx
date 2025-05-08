@@ -1,5 +1,6 @@
-import type { Metadata } from 'next'
-import './globals.css'
+import type { Metadata } from "next";
+import "./globals.css";
+import { MobileNavigation } from "@/components/mobile-navigation"; // Import MobileNavigation
 
 export const metadata: Metadata = {
   title: 'AstroLearn',
@@ -14,7 +15,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="relative"> {/* Added relative positioning for potential absolute elements inside */}
+        {children}
+        <MobileNavigation /> {/* Add MobileNavigation here */}
+      </body>
     </html>
-  )
+  );
 }

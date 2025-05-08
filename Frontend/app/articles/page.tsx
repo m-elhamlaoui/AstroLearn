@@ -4,8 +4,10 @@ import { useState } from "react"
 import { ArticleCard } from "@/components/article-card"
 import { MinimalNavigation } from "@/components/minimal-navigation"
 import { ArticleSearchBar } from "@/components/article-search-bar"
-import { Search } from "lucide-react"
+import { Search, PlusCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import { BloomingStars } from "@/components/blooming-stars"
 
 // Sample data - would be fetched from backend in production
 const sampleArticles = [
@@ -121,24 +123,40 @@ export default function ArticlesPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-black text-white">
+    <div className="flex min-h-screen bg-black text-white relative">
+      {/* Blooming Stars Animation */}
+      <BloomingStars />
+      
       {/* Minimal Navigation */}
       <MinimalNavigation />
 
       {/* Main Content */}
-      <main className="flex-1 p-6 ml-12 transition-all duration-300">
+      <main className="flex-1 p-6 ml-12 transition-all duration-300 relative z-10">
         <div className="container mx-auto">
-          {/* Header with Search Icon */}
+          {/* Header with Icon Buttons */}
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold">Explore Articles</h1>
-            <Button
-              onClick={() => setIsSearchOpen(true)}
-              variant="outline"
-              className="border-gray-700 text-gray-300 hover:bg-gray-800"
-            >
-              <Search className="h-5 w-5 mr-2" />
-              Search Articles
-            </Button>
+            <div className="flex space-x-3">
+              <Link href="/article-edit">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 rounded-full bg-gray-800/50 border-gray-700 hover:bg-indigo-900/50 hover:border-indigo-600 text-gray-300 hover:text-indigo-400 backdrop-blur-sm"
+                >
+                  <PlusCircle className="h-5 w-5" />
+                  <span className="sr-only">Create Article</span>
+                </Button>
+              </Link>
+              <Button
+                onClick={() => setIsSearchOpen(true)}
+                variant="outline"
+                size="icon"
+                className="h-10 w-10 rounded-full bg-gray-800/50 border-gray-700 hover:bg-indigo-900/50 hover:border-indigo-600 text-gray-300 hover:text-indigo-400 backdrop-blur-sm"
+              >
+                <Search className="h-5 w-5" />
+                <span className="sr-only">Search Articles</span>
+              </Button>
+            </div>
           </div>
 
           {/* Articles Grid */}

@@ -62,7 +62,8 @@
     "framer-motion": "latest",
     "@google/generative-ai": "^0.17.0",
     "cors": "^2.8.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "axios": "^1.6.0"
   },
   "devDependencies": {
     "@types/node": "^22",

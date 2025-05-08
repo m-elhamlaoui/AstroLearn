@@ -1,17 +1,16 @@
 package com.example.demo.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
+@Setter
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-
 @Entity
 @Table(name = "quizzes")
 public class Quiz {
@@ -21,10 +20,12 @@ public class Quiz {
 
     private String title;
 
+    @ToString.Exclude
     @OneToOne
     @JoinColumn(name = "lesson_id")
     private Lesson lesson;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL)
     private List<QuizQuestion> questions = new ArrayList<>();
 

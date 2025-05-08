@@ -1,6 +1,5 @@
 package com.example.demo.model;
 
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.NoArgsConstructor;
@@ -14,7 +13,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 
 @Table(name = "articles")
 @Getter
@@ -39,45 +37,43 @@ public class Article {
 
     private String imageUrl;
 
-
     @ManyToOne
     @JoinColumn(name = "author_id")
     private User author;
 
     private LocalDateTime createdAt;
 
-
     @OneToMany(mappedBy = "article", cascade = CascadeType.ALL)
     private List<Comment> comments = new ArrayList<>();
 
-    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL)
-    private List<ArticleRating> ratings = new ArrayList<>();
+    // --- Replaced Ratings with Votes ---
+    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ArticleVote> votes = new HashSet<>(); // Changed to Set<ArticleVote>
 
-    @Formula("(SELECT COALESCE(AVG(ar.rating), 0.0) FROM article_ratings ar WHERE ar.article_id = id)")
-    private Double averageRating; // Match DTO field
+    // --- Replaced averageRating with score/counts ---
+    @Formula("(SELECT COALESCE(SUM(av.vote_value), 0) FROM article_votes av WHERE av.article_id = id)")
+    private int score; // Total score (Upvotes - Downvotes)
 
     @Formula("(SELECT COUNT(*) FROM comments c WHERE c.article_id = id)")
     private Long commentCount; // Match DTO field
 
-    // Defines a many-to-many relationship between the Article and ArticleTag entities.
-    // The @JoinTable annotation specifies the join table "article_tags" that links the two entities.
+    // Defines a many-to-many relationship between the Article and ArticleTag
+    // entities.
+    // The @JoinTable annotation specifies the join table "article_tags" that links
+    // the two entities.
     // - "article_id" is the foreign key referencing the Article entity.
     // - "tag_id" is the foreign key referencing the ArticleTag entity.
     // The Set<ArticleTag> ensures no duplicate tags are associated with an Article.
 
-//    @ManyToMany
-//    @JoinTable(
-//            name = "article_tags",
-//            joinColumns = @JoinColumn(name = "article_id"),
-//            inverseJoinColumns = @JoinColumn(name = "tag_id"))
-//    private Set<ArticleTag> tags = new HashSet<>();
+    // @ManyToMany
+    // @JoinTable(
+    // name = "article_tags",
+    // joinColumns = @JoinColumn(name = "article_id"),
+    // inverseJoinColumns = @JoinColumn(name = "tag_id"))
+    // private Set<ArticleTag> tags = new HashSet<>();
 
-    //One to many relationship with ArticleTag
+    // One to many relationship with ArticleTag
     @OneToMany(mappedBy = "article", cascade = CascadeType.ALL)
     private Set<ArticleTag> tags = new HashSet<>();
 
-
 }
-
-
-

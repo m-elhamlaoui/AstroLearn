@@ -2,16 +2,13 @@ package com.example.demo.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import lombok.*;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-
-@Data
+@Getter
+@Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
-
 @Table(name = "lessons")
 @Entity
 public class Lesson {
@@ -27,10 +24,12 @@ public class Lesson {
 
     private String videoUrl;
 
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "module_id")
     private Module module;
 
+    @ToString.Exclude
     @OneToOne(mappedBy = "lesson", cascade = CascadeType.ALL)
     private Quiz quiz;
 }

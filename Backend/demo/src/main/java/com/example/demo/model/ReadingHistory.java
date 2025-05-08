@@ -1,4 +1,5 @@
 package com.example.demo.model;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.*;
@@ -8,7 +9,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -30,12 +30,21 @@ public class ReadingHistory {
     private Article article;
 
     private boolean isRead;
-    private int timeSpentSeconds; // in seconds
+    private int timeSpentSeconds;
     private LocalDateTime lastAccessed;
 
-    @PreUpdate
-    @PrePersist
-    public void updateIsRead() {
-        this.isRead = timeSpentSeconds > 30; // Mark as read if spent >30 seconds
+    public void setTimeSpentSeconds(int timeSpentSeconds) {
+        this.timeSpentSeconds = timeSpentSeconds;
+        updateIsRead();
+    }
+
+    private void updateIsRead() {
+        this.isRead = this.timeSpentSeconds >= 300;
+    }
+
+    public void addTimeSpent(int additionalSeconds) {
+        this.timeSpentSeconds += additionalSeconds;
+        this.lastAccessed = LocalDateTime.now();
+        updateIsRead();
     }
 }

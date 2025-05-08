@@ -18,7 +18,7 @@ interface Event {
   date: string;
   agency: string;
   location: string;
-  importance: number;
+  // importance: number; // Removed
   image: string;
   tags: string[];
 }
@@ -95,10 +95,10 @@ export default function MissionsPage() {
           date: dto.launchDate, // Assuming this is an ISO string
           agency: dto.agency,
           location: "Space Event", // Placeholder
-          importance: 50, // Default importance as it's not in DTO
+          // importance: 50, // Removed
           image: dto.missionImage || "/placeholder.svg?height=300&width=500",
           // Basic tags from title, can be improved
-          tags: dto.name.toLowerCase().split(" ").slice(0, 2), 
+          tags: dto.name.toLowerCase().split(" ").slice(0, 2),
         }))
         setAllEvents(mappedEvents)
       } catch (err) {

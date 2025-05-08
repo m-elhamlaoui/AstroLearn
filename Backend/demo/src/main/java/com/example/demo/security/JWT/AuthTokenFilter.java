@@ -32,28 +32,47 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        try {
-            // Extract JWT from the Authorization header or cookies
-            String jwt = parseAuthorizationOrCookies(request);
+         try {
+             String requestURI = request.getRequestURI(); // Get URI for logging
+             logger.debug("AuthTokenFilter: Processing request for {}", requestURI);
+             // Extract JWT from the Authorization header or cookies
+             String jwt = parseAuthorizationOrCookies(request);
+             logger.debug("AuthTokenFilter: Parsed JWT: {}", jwt != null ? jwt.substring(0, Math.min(jwt.length(), 15)) + "..." : "null");
 
-            if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
-                // Extract email from the validated JWT token
-                String email = jwtUtils.getEmailFromJwtToken(jwt);
-                logger.debug("Email from JWT: {}", email);
+             if (jwt != null) {
+                 boolean isValid = false;
+                 String email = null;
+                 try {
+                     // Validate and get email in one step if possible, or validate then get
+                     isValid = jwtUtils.validateJwtToken(jwt);
+                     logger.debug("AuthTokenFilter: JWT validation result for {}: {}", requestURI, isValid);
+                     if (isValid) {
+                         email = jwtUtils.getEmailFromJwtToken(jwt); // Get email only if valid
+                     }
+                 } catch (Exception e) {
+                     logger.error("AuthTokenFilter: JWT validation/parsing error for {}: {}", requestURI, e.getMessage());
+                     // Optionally log stack trace if needed: logger.error("Validation stack trace:", e);
+                     // isValid remains false
+                 }
 
-                // Load UserDetails by email
-                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                 // Proceed only if token was valid AND email was extracted
+                 if (isValid && email != null) {
+                     logger.debug("Email from JWT: {}", email);
 
-                // Create authentication object
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                     // Load UserDetails by email
+                     UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                     // Create authentication object
+                     UsernamePasswordAuthenticationToken authentication =
+                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
-                // Set authentication in the security context
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }
-        } catch (Exception e) {
+                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                     // Set authentication in the security context
+                     SecurityContextHolder.getContext().setAuthentication(authentication);
+                 }
+             }
+         }     catch (Exception e) {
             logger.error("Cannot set user authentication: {}", e.getMessage());
         }
 

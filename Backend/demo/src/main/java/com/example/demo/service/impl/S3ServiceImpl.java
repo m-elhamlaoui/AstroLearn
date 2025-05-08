@@ -40,13 +40,15 @@ public class S3ServiceImpl implements S3Service {
 
         String key = "uploads/" + UUID.randomUUID() + ".jpg";
 
-        PutObjectRequest objectRequest = PutObjectRequest.builder()
-                .bucket(bucketName)
-                .key(key)
-                .contentType("image/jpeg")
-                .build();
-
-        PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+         // Do NOT hardcode contentType here. Let the client specify it during upload.
+         // S3 will accept the client's Content-Type if it's not part of the signature.
+         PutObjectRequest objectRequest = PutObjectRequest.builder()
+                 .bucket(bucketName)
+                 .key(key)
+                 // .contentType("image/jpeg") // REMOVED - Client will send this header
+                 .build();
+ 
+         PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
                 .signatureDuration(Duration.ofMinutes(5))
                 .putObjectRequest(objectRequest)
                 .build();

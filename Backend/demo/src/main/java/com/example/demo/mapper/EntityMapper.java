@@ -20,6 +20,7 @@ public interface EntityMapper {
     @Mapping(target = "authorId", source = "author.id")
     @Mapping(target = "authorUsername", source = "author.username")
     @Mapping(target = "tags", source = "tags", qualifiedByName = "mapTagsToStrings")
+    @Mapping(target = "imageUrls", source = "imageUrls") // Assuming imageUrls is a List<String>
     ArticleDTO toDTO(Article article);
 
     @Named("mapTagsToStrings")
@@ -28,7 +29,7 @@ public interface EntityMapper {
             return Collections.emptySet();
         }
         return tags.stream()
-                .map(ArticleTag::getName) // Assuming ArticleTag has a getName() method
+                .map(tag -> tag.getTagName().getName()) // <<=== Updated here
                 .collect(Collectors.toSet());
     }
 
@@ -49,10 +50,21 @@ public interface EntityMapper {
 
     // ==================== ArticleTag Mappings ====================
 
-    ArticleTagDTO toDTO(ArticleTag articleTag);
+    default ArticleTagDTO toDTO(ArticleTag tag) {
+        if (tag == null) return null;
+        return new ArticleTagDTO(
+                tag.getId(),
+                tag.getTagName() != null ? tag.getTagName().getName() : null
+        );
+    }
 
-
-    ArticleTag toEntity(ArticleTagDTO articleTagDTO);
+    default ArticleTag toEntity(ArticleTagDTO dto) {
+        if (dto == null) return null;
+        ArticleTag tag = new ArticleTag();
+        tag.setId(dto.id());
+        tag.setTagName(new TagName(dto.name())); // Or fetch it in service if needed
+        return tag;
+    }
 
 
     // ==================== Comment Mappings ====================

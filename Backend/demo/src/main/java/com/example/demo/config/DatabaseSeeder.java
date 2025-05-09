@@ -587,41 +587,41 @@ public class DatabaseSeeder implements CommandLineRunner {
         // Original 4 Missions with official/stable links
         missions.add(new SpaceMission(null, "Artemis I", "NASA", LocalDateTime.of(2022, 11, 16, 6, 47),
                 "Uncrewed Moon-orbiting mission, the first flight of the Space Launch System rocket and the second flight of the Orion MPCV.",
-                "https://www.nasa.gov/sites/default/files/thumbnails/image/art001m000000001_orig.jpg",
+                "https://th.bing.com/th/id/R.34b5555b4b6985cf7d7c22d062087218?rik=ul470SGlVBLjtA&riu=http%3a%2f%2feng.auburn.edu%2fimages%2fnews%2fartemis.jpg&ehk=4ci2T0TMahmbZwZcgUkQ4cJEY14lGonoJ5AmdsfgwHY%3d&risl=&pid=ImgRaw&r=0",
                 "https://www.youtube.com/watch?v=21X5lGlDOfg",  SpaceMission.MissionStatus.COMPLETED,  verifiedUsers.get(0 % verifiedUsers.size())));
         missions.add(new SpaceMission(null, "Mars Perseverance Rover", "NASA", LocalDateTime.of(2020, 7, 30, 11, 50),
                 "Search for signs of ancient microbial life, collect rock and soil samples for possible return to Earth.",
-                "https://mars.nasa.gov/layout/general_assets/images/mars_perseverance_banner.jpg",
+                "https://th.bing.com/th/id/R.33eacd53caf9f320085318a6bf5c1887?rik=tbqz%2bLyWgvNLQw&pid=ImgRaw&r=0",
                 null, SpaceMission.MissionStatus.IN_PROGRESS,  verifiedUsers.get(1 % verifiedUsers.size())));
         missions.add(new SpaceMission(null, "Starlink Group 6-1 Launch", "SpaceX", LocalDateTime.now().plusMonths(1).withHour(10).withMinute(30),
                 "Upcoming launch to deploy more Starlink satellites into low Earth orbit.",
-                "https://cdn.spacex.com/layout/general/starlink.jpg",
+                "https://i.ytimg.com/vi/YdYnoyeV74o/hqdefault.jpg",
                 "https://www.spacex.com/launches/",  SpaceMission.MissionStatus.UPCOMING, verifiedUsers.get(0 % verifiedUsers.size())));
         missions.add(new SpaceMission(null, "Chandrayaan-3", "ISRO", LocalDateTime.of(2023, 7, 14, 9, 5),
                 "India's third lunar exploration mission. Successful soft landing on the lunar south pole.",
-                "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Chandrayaan-3_Integrated_Module.jpg/800px-Chandrayaan-3_Integrated_Module.jpg",
+                "https://cdn.siasat.com/wp-content/uploads/2023/08/sf-f.jpg",
                 null,  SpaceMission.MissionStatus.COMPLETED, verifiedUsers.get(1 % verifiedUsers.size())));
 
         // New Missions (5 additional) with official/stable links
         missions.add(new SpaceMission(null, "James Webb Space Telescope (JWST) Launch", "NASA/ESA/CSA", LocalDateTime.of(2021, 12, 25, 12, 20),
                 "Launch of the most powerful space telescope ever built, to observe the early universe, exoplanets, and more.",
-                "https://webb.nasa.gov/content/webbLaunch/assets/images/webbLaunchWithPartnersLOGOs.png",
+                "https://cdn.mos.cms.futurecdn.net/qpAkShLp2kqGCkfGqGBMuf-1200-80.jpg",
                 "https://www.youtube.com/watch?v=v6ihVeEoUdo", SpaceMission.MissionStatus.COMPLETED, verifiedUsers.get(0 % verifiedUsers.size())));
         missions.add(new SpaceMission(null, "Europa Clipper", "NASA", LocalDateTime.now().plusYears(1).plusMonths(3).withDayOfMonth(10).withHour(14).withMinute(0),
                 "Mission to Jupiter's moon Europa to investigate its habitability, including the presence of a subsurface ocean.",
-                "https://www.nasa.gov/wp-content/uploads/2023/11/53307679972-0953959f9e-o.webp",
+                "https://th.bing.com/th/id/R.c4f8e84c6e282d6804587d47eb0bdf81?rik=BUTTZJht%2fpZ9MA&pid=ImgRaw&r=0",
                 null, SpaceMission.MissionStatus.UPCOMING, verifiedUsers.get(1 % verifiedUsers.size())));
         missions.add(new SpaceMission(null, "Psyche Mission", "NASA", LocalDateTime.of(2023, 10, 13, 14, 19),
                 "Journey to a unique metal-rich asteroid orbiting the Sun between Mars and Jupiter.",
-                "https://www.jpl.nasa.gov/images/psyche/20231006/PIA26086-1600.jpg",
+                "https://scitechdaily.com/images/Psyche-Spacecraft-Asteroid-Composite-2048x1152.jpg",
                 "https://www.youtube.com/watch?v=yN9n40j5gqI", SpaceMission.MissionStatus.IN_PROGRESS, verifiedUsers.get(0 % verifiedUsers.size())));
         missions.add(new SpaceMission(null, "BepiColombo", "ESA/JAXA", LocalDateTime.of(2018, 10, 20, 1, 45),
                 "Joint mission to Mercury, consisting of two orbiters to study the planet's composition, magnetosphere, and surface.",
-                "https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2018/10/bepicolombo_launch/17739032-3-eng-GB/BepiColombo_launch_article.jpg",
+                "https://cdn.futura-sciences.com/sources/images/bepicolombo-esa-jaxa-atg-medialab1.jpg",
                 null, SpaceMission.MissionStatus.IN_PROGRESS, verifiedUsers.get(1 % verifiedUsers.size())));
         missions.add(new SpaceMission(null, "Hubble Space Telescope (HST) Servicing Mission 4 (SM4)", "NASA", LocalDateTime.of(2009, 5, 11, 18, 1),
                 "Final servicing mission to the Hubble Space Telescope, extending its operational life and enhancing its capabilities.",
-                "https://science.nasa.gov/wp-content/uploads/2023/05/hst-sm4-eva1-sts125-s-060-1.jpg",
+                "https://stsci-opo.org/STScI-01EVSRR9W0WZRR6DDKV79BX7MG.pngit ad",
                 null, SpaceMission.MissionStatus.COMPLETED, verifiedUsers.get(0 % verifiedUsers.size())));
 
         spaceMissionRepository.saveAll(missions);

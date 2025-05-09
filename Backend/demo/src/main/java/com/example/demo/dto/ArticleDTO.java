@@ -20,6 +20,9 @@ public record ArticleDTO(
         int score,
         Long commentCount,
 
-        Set<String> tags
+        Set<String> tags,
+
+        // --- User-Specific Data ---
+        Integer currentUserVote // 1 for upvote, -1 for downvote, 0 or null for neutral
 ) {
 }

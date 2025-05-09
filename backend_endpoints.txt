@@ -1,27 +1,26 @@
-# Backend API Endpoints
-
-## ArticleController (`/articles`)
-
-- **POST /articles/{authorId}**
-  - Description: Create a new article.
-  - RequestBody: `ArticleDTO articleDTO`
-  - PathVariable: `Long authorId`
-  - Returns: `ArticleDTO`
-
-- **GET /articles/{id}**
-  - Description: Get an article by its ID.
+ # Backend API Endpoints
+ 
+ ## ArticleController (`/articles`)
+ 
+ - **POST /articles** 
+   - Description: Create a new article. Author is determined from authentication context.
+   - RequestBody: `ArticleDTO articleDTO`
+   - Returns: `ArticleDTO` (Status 201 Created)
+ 
+ - **GET /articles/{id}**
+  - Description: Get an article by its ID. Includes `currentUserVote` (1: up, -1: down, 0: neutral) if user context is available.
   - PathVariable: `Long id`
-  - Returns: `ArticleDTO`
+  - Returns: `ArticleDTO` (with `currentUserVote` field)
 
 - **GET /articles**
-  - Description: Get all articles with pagination.
+  - Description: Get all articles with pagination. Includes `currentUserVote` for each article if user context is available.
   - Parameters: `Pageable pageable`
-  - Returns: `Page<ArticleDTO>`
+  - Returns: `Page<ArticleDTO>` (each DTO with `currentUserVote` field)
 
 - **GET /articles/sorted**
-  - Description: Get all articles sorted, with pagination.
+  - Description: Get all articles sorted, with pagination. Includes `currentUserVote` for each article if user context is available.
   - Parameters: `Pageable pageable`
-  - Returns: `Page<ArticleDTO>`
+  - Returns: `Page<ArticleDTO>` (each DTO with `currentUserVote` field)
 
 - **PUT /articles/{id}/user/{userId}**
   - Description: Update an existing article.
@@ -56,10 +55,11 @@
   - Returns: `List<CommentDTO>`
 
 - **POST /articles/{id}/vote/user/{userId}**
-  - Description: Vote on an article (upvote/downvote).
-  - PathVariable: `Long id` (articleId), `Long userId`
-  - RequestBody: `ArticleVoteRequestDTO voteRequest`
-  - Returns: `ArticleDTO`
+  - Description: Vote on an article (upvote/downvote). Toggles vote if same type is sent again.
+  - PathVariable: `Long id` (articleId)
+  - PathVariable: `Long userId` (User performing the vote - ideally from auth principal)
+  - RequestBody: `ArticleVoteRequestDTO voteRequest` (contains `voteType`: "UP" or "DOWN")
+  - Returns: `ArticleDTO` (with updated `score` and `currentUserVote`)
 
 - **PUT /articles/{id}/tags**
   - Description: Add tags to an article.
@@ -82,6 +82,18 @@
   - Description: Get recommended articles for a user.
   - PathVariable: `Long userId`
   - Returns: `List<ArticleDTO>`
+
+- **GET /articles/user/{authorId}**
+  - Description: Get articles published by a specific author. Includes `currentUserVote` for the requesting user.
+  - PathVariable: `Long authorId`
+  - Returns: `List<ArticleDTO>` (each DTO with `currentUserVote` field)
+
+- **GET /articles/votes/user/{userId}**
+  - Description: Get articles voted on (up or down) by a specific user. Includes `currentUserVote` for the requesting user.
+  - PathVariable: `Long userId` (The user whose votes are being queried)
+  - RequestParam: `VoteType voteType` (Enum: "UP" or "DOWN")
+  - Returns: `List<ArticleDTO>` (each DTO with `currentUserVote` field)
+
 
 ## AuthenticationController (`/auth`)
 
@@ -367,3 +379,9 @@
   - Description: Get users by their verification status.
   - RequestParam: `User.UserVerification status` (e.g., PENDING, VERIFIED, REJECTED)
   - Returns: `List<UserDTO>`
+
+## UploadController (`/`)
+
+- **GET /generate-upload-url**
+  - Description: Generates a pre-signed S3 URL for uploading a file.
+  - Returns: `String` (the pre-signed URL)

@@ -52,6 +52,11 @@ List<Article> findByTagsAndExcludeIdsAndAuthorOrderByScore(
             @Param("excludedArticleIds") Set<Long> excludedArticleIds,
             Pageable pageable);
 
+    // Find articles by a specific author
+    List<Article> findByAuthorId(Long authorId);
+
+    // Find articles voted on by a specific user with a specific vote value (1 for up, -1 for down)
+    @Query("SELECT a FROM Article a JOIN a.votes v WHERE v.user.id = :userId AND v.value = :voteValue")
+    List<Article> findArticlesVotedByUser(@Param("userId") Long userId, @Param("voteValue") int voteValue);
+
 }
-
-

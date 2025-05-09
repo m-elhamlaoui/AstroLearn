@@ -508,22 +508,22 @@ public class DatabaseSeeder implements CommandLineRunner {
          missions.add(new SpaceMission(null, "Artemis I", "NASA", LocalDateTime.of(2022, 11, 16, 6, 47),
                  "Uncrewed Moon-orbiting mission, the first flight of the Space Launch System rocket and the second flight of the Orion MPCV.",
                  "https://www.nasa.gov/sites/default/files/thumbnails/image/art001m000000001_orig.jpg",
-                 "https://www.youtube.com/watch?v=21X5lGlDOfg",  SpaceMission.MissionStatus.COMPLETED, 0, verifiedUsers.get(0 % verifiedUsers.size())));
+                 "https://www.youtube.com/watch?v=21X5lGlDOfg",  SpaceMission.MissionStatus.COMPLETED,  verifiedUsers.get(0 % verifiedUsers.size())));
  
          missions.add(new SpaceMission(null, "Mars Perseverance Rover", "NASA", LocalDateTime.of(2020, 7, 30, 11, 50),
                  "Search for signs of ancient microbial life, collect rock and soil samples for possible return to Earth.",
                  "https://mars.nasa.gov/layout/general_assets/images/mars_perseverance_banner.jpg",
-                 null, SpaceMission.MissionStatus.IN_PROGRESS, 0, verifiedUsers.get(1 % verifiedUsers.size())));
+                 null, SpaceMission.MissionStatus.IN_PROGRESS,  verifiedUsers.get(1 % verifiedUsers.size())));
  
          missions.add(new SpaceMission(null, "Starlink Group 6-1 Launch", "SpaceX", LocalDateTime.now().plusMonths(1),
                  "Upcoming launch to deploy more Starlink satellites into low Earth orbit.",
                  "https://cdn.spacex.com/layout/general/starlink.jpg",
-                 "https://www.spacex.com/launches/",  SpaceMission.MissionStatus.UPCOMING, 0, verifiedUsers.get(0 % verifiedUsers.size())));
+                 "https://www.spacex.com/launches/",  SpaceMission.MissionStatus.UPCOMING, verifiedUsers.get(0 % verifiedUsers.size())));
  
          missions.add(new SpaceMission(null, "Chandrayaan-3", "ISRO", LocalDateTime.of(2023, 7, 14, 9, 5),
                  "India's third lunar exploration mission. Successful soft landing on the lunar south pole.",
                  "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Chandrayaan-3_Integrated_Module.jpg/800px-Chandrayaan-3_Integrated_Module.jpg",
-                 null,  SpaceMission.MissionStatus.COMPLETED, 0, verifiedUsers.get(1 % verifiedUsers.size())));
+                 null,  SpaceMission.MissionStatus.COMPLETED, verifiedUsers.get(1 % verifiedUsers.size())));
 
 
         spaceMissionRepository.saveAll(missions);

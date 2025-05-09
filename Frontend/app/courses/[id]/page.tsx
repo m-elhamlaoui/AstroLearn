@@ -92,10 +92,18 @@ export default function CoursePage({ params: paramsPromise }: { params: Promise<
 
   useEffect(() => {
     const fetchCourseData = async () => {
+      // Check for token before fetching
+      if (typeof window !== 'undefined' && !localStorage.getItem('authToken')) {
+        // No token, useAuthRedirect will handle redirection.
+        // Set loading to false and potentially an error, or just return.
+        // setError("Authentication required to view this course."); // Optional: set an error
+        setIsLoading(false); // Stop loading as we won't fetch
+        return; 
+      }
+
       setIsLoading(true)
       setError(null)
-      // TODO: Replace with actual logged-in user ID
-      const userIdForProgress = 1 
+      const userIdForProgress = 1 // TODO: Replace with actual logged-in user ID
 
       try {
         // 1. Fetch Course Details

@@ -1,33 +1,29 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
-import { usePathname } from "next/navigation"
-import { useRouter } from "next/navigation"
-import { Home, BookOpen, Calendar, MessageSquare, User, ChevronRight, GraduationCap } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation" // Combined useRouter import
+import { Home, BookOpen, Calendar, MessageSquare, User, ChevronRight, GraduationCap, LogOut } from "lucide-react" // Added LogOut
 import Link from "next/link"
+import { clearAuthToken } from "@/lib/axiosInstance"; // Import clearAuthToken
 
 export function MinimalNavigation() {
   const [expanded, setExpanded] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const pathname = usePathname();
+  const router = useRouter(); // Initialize router
 
   useEffect(() => {
-    // Fetch userId from localStorage on the client side
-    const storedUserId = localStorage.getItem("userId"); // Assuming 'userId' is the key
+    const storedUserId = localStorage.getItem("userId"); 
     if (storedUserId) {
       setUserId(storedUserId);
     }
-    // If no userId, the link will default to '/profile/me'
   }, []);
 
-  // Determine if the current path matches a nav item
   const isActive = (path: string) => {
     return pathname === path || pathname.startsWith(`${path}/`)
   }
 
-  // Handle hover events
   const handleMouseEnter = () => {
     setExpanded(true)
   }
@@ -36,72 +32,92 @@ export function MinimalNavigation() {
     setExpanded(false)
   }
 
+  const handleLogout = () => {
+    clearAuthToken();
+    localStorage.removeItem("userId"); 
+    localStorage.removeItem("userRole"); // Also clear userRole if it's stored
+    setUserId(null); 
+    router.push("/"); // Redirect to homepage, or /auth/signin
+    // Optionally, could do a full page reload to ensure all states are reset:
+    // window.location.href = '/'; 
+  };
+
   return (
     <nav
-      className={`hidden md:block fixed left-0 top-1/2 -translate-y-1/2 bg-gray-800/80 backdrop-blur-md transition-all duration-300 z-[9999] ${ // Added hidden md:block
-        expanded ? "w-48 rounded-r-xl" : "w-2 rounded-r-md"
+      className={`hidden md:flex fixed left-0 top-1/2 -translate-y-1/2 bg-gray-800/80 backdrop-blur-md transition-all duration-300 z-[9999] flex-col justify-between rounded-r-xl ${
+        expanded ? "w-48 py-6" : "w-12 py-4 items-center" // Adjusted padding and width for collapsed state
       }`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      style={{ height: 'auto', minHeight: '200px' }} // Ensure it has some height
     >
-      <div className="py-4 flex flex-col items-center">
+      {/* Expansion Handle - only visible when collapsed */}
+      {!expanded && (
         <div
-          className={`absolute -right-3 top-1/2 -translate-y-1/2 transition-all duration-300 ${
-            expanded ? "opacity-0 translate-x-2" : "opacity-100"
-          }`}
+          className="absolute -right-2.5 top-1/2 -translate-y-1/2 bg-gray-700 rounded-full p-0.5 shadow-md cursor-pointer"
+          onClick={handleMouseEnter} // Allow click to expand as well
         >
-          <div className="bg-gray-700 rounded-full p-1 shadow-md">
-            <ChevronRight size={14} className="text-gray-300" />
-          </div>
+          <ChevronRight size={14} className="text-gray-300" />
         </div>
+      )}
+      
+      <ul className={`flex flex-col space-y-2 w-full ${expanded ? "px-3" : "px-0 items-center"}`}> {/* Adjusted padding */}
+        {/* Navigation Items */}
+        <NavItem
+          href="/articles"
+          icon={<BookOpen size={20} />}
+          label="Articles"
+          active={isActive("/articles")}
+          expanded={expanded}
+        />
+        <NavItem
+          href="/missions"
+          icon={<Calendar size={20} />}
+          label="Missions"
+          active={isActive("/missions")}
+          expanded={expanded}
+        />
+        <NavItem
+          href="/courses"
+          icon={<GraduationCap size={20} />}
+          label="Courses"
+          active={isActive("/courses")}
+          expanded={expanded}
+        />
+        <NavItem
+          href="/chatbot"
+          icon={<MessageSquare size={20} />}
+          label="Chatbot"
+          active={isActive("/chatbot")}
+          expanded={expanded}
+        />
+        <NavItem
+          href={userId ? `/profile/${userId}` : "/profile/me"}
+          icon={<User size={20} />}
+          label="Profile"
+          active={isActive("/profile")}
+          expanded={expanded}
+        />
+      </ul>
 
-        <ul className={`flex flex-col space-y-4 w-full ${expanded ? "opacity-100" : "opacity-0"}`}>
-          <li>
-            <NavItem
-              href="/articles"
-              icon={<BookOpen size={20} />}
-              label="Articles"
-              active={isActive("/articles")}
-              expanded={expanded}
-            />
-          </li>
-          <li>
-            <NavItem
-              href="/missions"
-              icon={<Calendar size={20} />}
-              label="Missions"
-              active={isActive("/missions")}
-              expanded={expanded}
-            />
-          </li>
-          <li>
-            <NavItem
-              href="/courses"
-              icon={<GraduationCap size={20} />}
-              label="Courses"
-              active={isActive("/courses")}
-              expanded={expanded}
-            />
-          </li>
-          <li>
-            <NavItem
-              href="/chatbot"
-              icon={<MessageSquare size={20} />}
-              label="Chatbot"
-              active={isActive("/chatbot")}
-              expanded={expanded}
-            />
-          </li>
-          <li>
-            <NavItem
-              href={userId ? `/profile/${userId}` : "/profile/me"} // Dynamic link, fallback to /me
-              icon={<User size={20} />}
-              label="Profile"
-              active={isActive("/profile")} // Keep active state logic simple
-              expanded={expanded}
-            />
-          </li>
-        </ul>
+      {/* Logout Button - always at the bottom */}
+      <div className={`w-full ${expanded ? "px-3" : "px-0 flex justify-center"} mt-4 pt-2 border-t border-gray-700/50`}>
+        <button
+          onClick={handleLogout}
+          className="w-full block"
+          title="Logout"
+        >
+          <div
+            className={`flex items-center py-2 rounded-md transition-all duration-300 text-gray-400 hover:text-red-400 hover:bg-red-900/40 ${expanded ? "px-3" : "justify-center"}`}
+          >
+            <LogOut size={20} />
+            <span
+              className={`ml-3 whitespace-nowrap transition-opacity duration-300 ${expanded ? "opacity-100" : "opacity-0"}`}
+            >
+              Logout
+            </span>
+          </div>
+        </button>
       </div>
     </nav>
   )
@@ -117,15 +133,15 @@ interface NavItemProps {
 
 function NavItem({ href, icon, label, active, expanded }: NavItemProps) {
   return (
-    <Link href={href} className="w-full block">
+    <Link href={href} className="w-full block" title={label}>
       <div
-        className={`flex items-center px-3 py-2 rounded-full transition-all duration-300 ${
-          active ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white" : "text-gray-400 hover:text-white"
-        }`}
+        className={`flex items-center py-2 rounded-md transition-all duration-300 ${
+          active ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg" : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+        } ${expanded ? "px-3" : "justify-center w-10 h-10"}`} // Centered icon when collapsed
       >
-        <div className="flex items-center justify-center w-6">{icon}</div>
+        {icon}
         <span
-          className={`ml-3 whitespace-nowrap transition-opacity duration-300 ${expanded ? "opacity-100" : "opacity-0"}`}
+          className={`ml-3 whitespace-nowrap transition-opacity duration-300 ${expanded ? "opacity-100" : "opacity-0 sr-only"}`} // sr-only for accessibility when collapsed
         >
           {label}
         </span>

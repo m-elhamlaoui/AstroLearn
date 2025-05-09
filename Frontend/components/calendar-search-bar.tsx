@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { X, Search } from "lucide-react"
+import { X, Search, Calendar as CalendarIcon } from "lucide-react" // Added CalendarIcon
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
@@ -11,7 +11,7 @@ interface Event {
   id: number
   title: string
   date: string
-  importance: number
+  // importance: number; // Removed
   agency: string
 }
 
@@ -166,7 +166,8 @@ export function CalendarSearchBar({ onClose, events }: CalendarSearchBarProps) {
                               {format(new Date(result.date), "MMM d, yyyy")} • {result.agency}
                             </span>
                           </div>
-                          <span className="text-sm font-medium">{result.importance}%</span>
+                          {/* Removed importance display */}
+                          {/* <span className="text-sm font-medium">{result.importance}%</span> */}
                         </Link>
                       </motion.div>
                     ))}

@@ -53,7 +53,6 @@ export default function HomePage() {
               icon={<FileText className="h-8 w-8 text-purple-400" />}
               title="User-Generated Articles"
               description="Share your knowledge and insights about space exploration. Our AI verification system ensures high-quality, reliable content."
-              link="/articles"
             />
 
             {/* Missions Calendar Feature */}
@@ -61,7 +60,6 @@ export default function HomePage() {
               icon={<Calendar className="h-8 w-8 text-blue-400" />}
               title="Space Events Calendar"
               description="Stay updated with upcoming space missions, launches, and astronomical events with our interactive calendar."
-              link="/missions"
             />
 
             {/* Chatbot Feature */}
@@ -69,7 +67,6 @@ export default function HomePage() {
               icon={<MessageSquare className="h-8 w-8 text-teal-400" />}
               title="Space Exploration Chatbot"
               description="Get answers to your space-related questions from our AI assistant trained on space exploration knowledge."
-              link="/chatbot"
             />
 
             {/* Courses Feature */}
@@ -77,7 +74,6 @@ export default function HomePage() {
               icon={<BookOpen className="h-8 w-8 text-indigo-400" />}
               title="Space Exploration Courses"
               description="Access educational courses on space science with videos, quizzes, and interactive materials."
-              link="/courses"
             />
 
             {/* Recommendation System Feature */}
@@ -85,7 +81,6 @@ export default function HomePage() {
               icon={<Sparkles className="h-8 w-8 text-pink-400" />}
               title="Article Recommendations"
               description="Discover content tailored to your interests with our AI-based recommendation algorithms."
-              link="/articles"
             />
 
             {/* Community Feature */}
@@ -93,7 +88,6 @@ export default function HomePage() {
               icon={<ArrowRight className="h-8 w-8 text-amber-400" />}
               title="Join the Community"
               description="Connect with fellow space enthusiasts, discuss articles, and collaborate on space exploration topics."
-              link="/profile"
             />
           </div>
         </div>
@@ -114,7 +108,7 @@ export default function HomePage() {
               excerpt="Exploring the challenges and possibilities of establishing human settlements on the Red Planet."
               author="Space Explorer"
               date="3 days ago"
-              link="/articles/1"
+              imageUrl="https://th.bing.com/th/id/OIP.3eaIQI92vy-4EyJpXUEsLAHaEO?cb=iwc1&rs=1&pid=ImgDetMain"
             />
 
             <ArticleCard
@@ -122,7 +116,7 @@ export default function HomePage() {
               excerpt="A deep dive into the groundbreaking observations from NASA's most powerful space telescope."
               author="Astronomy Enthusiast"
               date="1 week ago"
-              link="/articles/2"
+              imageUrl="https://cdn.mos.cms.futurecdn.net/jXwhLmwUt9XyJ9LGTSkVoD-1200-80.jpg"
             />
 
             <ArticleCard
@@ -130,7 +124,7 @@ export default function HomePage() {
               excerpt="A comprehensive guide to one of the universe's most mysterious phenomena."
               author="Astrophysics Lover"
               date="2 weeks ago"
-              link="/articles/3"
+              imageUrl="https://th.bing.com/th/id/R.28d7f2deb3e7e6cfddfd4303d3ca67ae?rik=aH%2bOb6EtT5uQ6g&pid=ImgRaw&r=0"
             />
           </div>
 
@@ -159,7 +153,6 @@ export default function HomePage() {
               agency="NASA"
               date="2025"
               description="The first crewed lunar landing mission of the Artemis program, aiming to land the first woman and next man on the Moon."
-              link="/missions/events/1"
             />
 
             <MissionCard
@@ -167,7 +160,6 @@ export default function HomePage() {
               agency="NASA"
               date="October 2024"
               description="Mission to conduct detailed reconnaissance of Jupiter's moon Europa and investigate whether it could harbor conditions suitable for life."
-              link="/missions/events/2"
             />
 
             <MissionCard
@@ -175,7 +167,6 @@ export default function HomePage() {
               agency="ESA/Roscosmos"
               date="2028"
               description="Mission to search for signs of past or present life on Mars and investigate the Martian atmosphere."
-              link="/missions/events/8"
             />
           </div>
 
@@ -204,7 +195,7 @@ export default function HomePage() {
               level="Beginner"
               duration="4 weeks"
               description="Learn the fundamentals of astronomy, from celestial objects to the structure of the universe."
-              link="/courses/1"
+              imageUrl="https://th.bing.com/th/id/R.d364ccd53ec38e5579134745d82f22bd?rik=siRDDnIQUWJuLw&pid=ImgRaw&r=0"
             />
 
             <CourseCard
@@ -212,7 +203,7 @@ export default function HomePage() {
               level="Intermediate"
               duration="6 weeks"
               description="Understand the principles of rocketry, propulsion systems, and spacecraft design."
-              link="/courses/2"
+              imageUrl="https://media.npr.org/assets/img/2023/01/30/rocket-launch-explosion-8fd552d8386837961077a689d66c74757bbe0e80-s1100-c50.png"
             />
 
             <CourseCard
@@ -220,7 +211,7 @@ export default function HomePage() {
               level="Advanced"
               duration="8 weeks"
               description="Explore methods for detecting exoplanets and analyzing their potential habitability."
-              link="/courses/3"
+              imageUrl="https://exoplanets.nasa.gov/system/news_items/main_images/207_EarthlikeExoplanets_0722sm.jpg"
             />
           </div>
 
@@ -352,17 +343,16 @@ interface FeatureCardProps {
   icon: React.ReactNode;
   title: string;
   description: string;
-  link: string;
 }
-function FeatureCard({ icon, title, description, link }: FeatureCardProps) {
+function FeatureCard({ icon, title, description }: FeatureCardProps) {
   return (
-    <Link href={link}>
+    // <Link href={link}> // Link removed
       <Card className="bg-gray-800 border-gray-700 p-6 rounded-xl hover:bg-gray-750 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-900/20 group h-full">
         <div className="mb-4">{icon}</div>
         <h3 className="text-xl font-bold mb-3 group-hover:text-indigo-400 transition-colors">{title}</h3>
         <p className="text-gray-400">{description}</p>
       </Card>
-    </Link>
+    // </Link> // Link removed
   )
 }
 
@@ -372,29 +362,32 @@ interface ArticleCardProps {
   excerpt: string;
   author: string;
   date: string;
-  link: string;
+  link?: string; 
+  imageUrl?: string; 
 }
-function ArticleCard({ title, excerpt, author, date, link }: ArticleCardProps) {
-  return (
-    <Link href={link}>
-      <Card className="bg-gray-800 border-gray-700 overflow-hidden rounded-xl hover:shadow-lg hover:shadow-indigo-900/20 transition-all duration-300 h-full">
-        <div className="h-48 bg-gray-700 relative">
-          {/* Image placeholder */}
+function ArticleCard({ title, excerpt, author, date, link, imageUrl }: ArticleCardProps) {
+  const cardContent = (
+    <Card className="bg-gray-800 border-gray-700 overflow-hidden rounded-xl hover:shadow-lg hover:shadow-indigo-900/20 transition-all duration-300 h-full cursor-pointer">
+      <div className="h-48 bg-gray-700 relative">
+        {imageUrl ? (
+          <img src={imageUrl} alt={title} className="absolute inset-0 w-full h-full object-cover" />
+        ) : (
           <div className="absolute inset-0 flex items-center justify-center text-gray-500">
             <span>Image Placeholder</span>
           </div>
+        )}
+      </div>
+      <div className="p-6">
+        <h3 className="text-xl font-bold mb-3 group-hover:text-indigo-400 transition-colors">{title}</h3>
+        <p className="text-gray-400 mb-4">{excerpt}</p>
+        <div className="flex justify-between items-center text-sm text-gray-500">
+          <span>{author}</span>
+          <span>{date}</span>
         </div>
-        <div className="p-6">
-          <h3 className="text-xl font-bold mb-3 hover:text-indigo-400 transition-colors">{title}</h3>
-          <p className="text-gray-400 mb-4">{excerpt}</p>
-          <div className="flex justify-between items-center text-sm text-gray-500">
-            <span>{author}</span>
-            <span>{date}</span>
-          </div>
-        </div>
-      </Card>
-    </Link>
-  )
+      </div>
+    </Card>
+  );
+  return link ? <Link href={link} className="group block h-full">{cardContent}</Link> : <div className="group block h-full">{cardContent}</div>;
 }
 
 // Component for mission cards
@@ -403,21 +396,20 @@ interface MissionCardProps {
   agency: string;
   date: string;
   description: string;
-  link: string;
+  link?: string; 
 }
 function MissionCard({ title, agency, date, description, link }: MissionCardProps) {
-  return (
-    <Link href={link}>
-      <Card className="bg-gray-800 border-gray-700 p-6 rounded-xl hover:shadow-lg hover:shadow-indigo-900/20 transition-all duration-300 h-full">
-        <div className="flex justify-between items-start mb-4">
-          <h3 className="text-xl font-bold hover:text-indigo-400 transition-colors">{title}</h3>
-          <span className="px-3 py-1 bg-indigo-900 text-indigo-300 rounded-full text-xs">{date}</span>
-        </div>
-        <p className="text-gray-300 text-sm mb-2">{agency}</p>
-        <p className="text-gray-400">{description}</p>
-      </Card>
-    </Link>
-  )
+  const cardContent = (
+    <Card className="bg-gray-800 border-gray-700 p-6 rounded-xl hover:shadow-lg hover:shadow-indigo-900/20 transition-all duration-300 h-full cursor-pointer">
+      <div className="flex justify-between items-start mb-4">
+        <h3 className="text-xl font-bold group-hover:text-indigo-400 transition-colors">{title}</h3>
+        <span className="px-3 py-1 bg-indigo-900 text-indigo-300 rounded-full text-xs">{date}</span>
+      </div>
+      <p className="text-gray-300 text-sm mb-2">{agency}</p>
+      <p className="text-gray-400">{description}</p>
+    </Card>
+  );
+  return link ? <Link href={link} className="group block h-full">{cardContent}</Link> : <div className="group block h-full">{cardContent}</div>;
 }
 
 // Component for course cards
@@ -426,20 +418,23 @@ interface CourseCardProps {
   level: string;
   duration: string;
   description: string;
-  link: string;
+  link?: string; 
+  imageUrl?: string; 
 }
-function CourseCard({ title, level, duration, description, link }: CourseCardProps) {
-  return (
-    <Link href={link}>
-      <Card className="bg-gray-800 border-gray-700 overflow-hidden rounded-xl hover:shadow-lg hover:shadow-indigo-900/20 transition-all duration-300 h-full">
-        <div className="h-48 bg-gray-700 relative">
-          {/* Image placeholder */}
-          <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-            <span>Course Image Placeholder</span>
-          </div>
+function CourseCard({ title, level, duration, description, link, imageUrl }: CourseCardProps) {
+  const cardContent = (
+    <Card className="bg-gray-800 border-gray-700 overflow-hidden rounded-xl hover:shadow-lg hover:shadow-indigo-900/20 transition-all duration-300 h-full cursor-pointer">
+      <div className="h-48 bg-gray-700 relative">
+          {imageUrl ? (
+            <img src={imageUrl} alt={title} className="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+              <span>Course Image Placeholder</span>
+            </div>
+          )}
         </div>
         <div className="p-6">
-          <h3 className="text-xl font-bold mb-3 hover:text-indigo-400 transition-colors">{title}</h3>
+          <h3 className="text-xl font-bold mb-3 group-hover:text-indigo-400 transition-colors">{title}</h3>
           <div className="flex gap-3 mb-3">
             <span className="px-3 py-1 bg-indigo-900 text-indigo-300 rounded-full text-xs">{level}</span>
             <span className="px-3 py-1 bg-purple-900 text-purple-300 rounded-full text-xs">{duration}</span>
@@ -447,6 +442,6 @@ function CourseCard({ title, level, duration, description, link }: CourseCardPro
           <p className="text-gray-400">{description}</p>
         </div>
       </Card>
-    </Link>
-  )
+  );
+  return link ? <Link href={link} className="group block h-full">{cardContent}</Link> : <div className="group block h-full">{cardContent}</div>;
 }

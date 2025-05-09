@@ -143,10 +143,10 @@ public class User {
             this.requiredXP = requiredXP;
         }
 
-        public int getRequiredXP() {
-            return requiredXP;
-        }
+    public int getRequiredXP() {
+        return requiredXP;
     }
+}
 
     // --- equals() and hashCode() ---
     // Based only on ID for JPA best practices

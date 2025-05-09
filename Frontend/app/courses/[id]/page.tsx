@@ -6,7 +6,7 @@ import { MinimalNavigation } from "@/components/minimal-navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Star, Users, Clock, ArrowLeft, CheckCircle, Play } from "lucide-react"
+import { Star, Users, Clock, ArrowLeft, CheckCircle, Play, UserCircle2 } from "lucide-react" // Added UserCircle2
 import Link from "next/link"
 import Image from "next/image"
 
@@ -300,13 +300,17 @@ export default function CoursePage({ params: paramsPromise }: { params: Promise<
           {/* Instructor Info */}
           <div className="bg-gray-900 rounded-xl p-6 mb-10">
             <div className="flex items-start gap-4">
-              <div className="relative h-16 w-16 rounded-full overflow-hidden">
-                <Image
-                  src={course.instructorImage} // Already has fallback from mapping
-                  alt={course.instructor}
-                  fill
-                  className="object-cover"
-                />
+              <div className="relative h-16 w-16 rounded-full overflow-hidden bg-gray-800 flex items-center justify-center">
+                {course.instructorImage && course.instructorImage !== "/placeholder.svg?height=100&width=100" ? (
+                  <Image
+                    src={course.instructorImage}
+                    alt={course.instructor}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <UserCircle2 className="h-10 w-10 text-gray-500" /> // Default icon
+                )}
               </div>
               <div>
                 <h3 className="text-xl font-bold mb-1">Instructor: {course.instructor}</h3>

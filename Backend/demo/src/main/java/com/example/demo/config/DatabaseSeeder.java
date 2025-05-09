@@ -265,23 +265,17 @@ public class DatabaseSeeder implements CommandLineRunner {
     }
 
     private List<Course> seedCourses() {
-        System.out.println("Seeding Courses...");
-        List<Course> courses = new ArrayList<>();
-
-<<<<<<< HEAD
-        courses.add(new Course(null, "Introduction to Astrophysics", "Learn the basics of astrophysics, from stars to galaxies.", Course.DifficultyLevel.BEGINNER, new ArrayList<>(), new ArrayList<>()));
-        courses.add(new Course(null, "Rocket Science 101", "Understand the principles of rocket propulsion and spaceflight.", Course.DifficultyLevel.INTERMEDIATE, new ArrayList<>(), new ArrayList<>()));
-        courses.add(new Course(null, "Planetary Geology", "Explore the geological features of planets in our solar system.", Course.DifficultyLevel.INTERMEDIATE, new ArrayList<>(), new ArrayList<>()));
-        courses.add(new Course(null, "Advanced Space Mission Design", "Deep dive into designing complex space missions.", Course.DifficultyLevel.ADVANCED, new ArrayList<>(), new ArrayList<>()));
-
-=======
-      courses.add(new Course(null, "Introduction to Astrophysics", "Learn the basics of astrophysics, from stars to galaxies.", Course.DifficultyLevel.BEGINNER, new ArrayList<>(), new ArrayList<>(), "https://example.com/images/astrophysics.jpg"));
-courses.add(new Course(null, "Rocket Science 101", "Understand the principles of rocket propulsion and spaceflight.", Course.DifficultyLevel.INTERMEDIATE, new ArrayList<>(), new ArrayList<>(), "https://example.com/images/rocketscience.jpg"));
-courses.add(new Course(null, "Planetary Geology", "Explore the geological features of planets in our solar system.", Course.DifficultyLevel.INTERMEDIATE, new ArrayList<>(), new ArrayList<>(), "https://example.com/images/planetarygeology.jpg"));
-courses.add(new Course(null, "Advanced Space Mission Design", "Deep dive into designing complex space missions.", Course.DifficultyLevel.ADVANCED, new ArrayList<>(), new ArrayList<>(), "https://example.com/images/spacemissiondesign.jpg"));
->>>>>>> cf94a13ed3742db7a2a9ba981ab08d511360469b
-        return courseRepository.saveAll(courses);
-    }
+         System.out.println("Seeding Courses...");
+         List<Course> courses = new ArrayList<>();
+ 
+         // Keep the version with imageUrl
+         courses.add(new Course(null, "Introduction to Astrophysics", "Learn the basics of astrophysics, from stars to galaxies.", Course.DifficultyLevel.BEGINNER, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/course1/600/300"));
+         courses.add(new Course(null, "Rocket Science 101", "Understand the principles of rocket propulsion and spaceflight.", Course.DifficultyLevel.INTERMEDIATE, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/course2/600/300"));
+         courses.add(new Course(null, "Planetary Geology", "Explore the geological features of planets in our solar system.", Course.DifficultyLevel.INTERMEDIATE, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/course3/600/300"));
+         courses.add(new Course(null, "Advanced Space Mission Design", "Deep dive into designing complex space missions.", Course.DifficultyLevel.ADVANCED, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/course4/600/300"));
+ 
+         return courseRepository.saveAll(courses);
+     }
 
     private List<Module> seedModules(List<Course> courses) {
         System.out.println("Seeding Modules...");
@@ -509,26 +503,27 @@ courses.add(new Course(null, "Advanced Space Mission Design", "Deep dive into de
             return;
         }
 
-        List<SpaceMission> missions = new ArrayList<>();
-        missions.add(new SpaceMission(null, "Artemis I", "NASA", LocalDateTime.of(2022, 11, 16, 6, 47),
-                "Uncrewed Moon-orbiting mission, the first flight of the Space Launch System rocket and the second flight of the Orion MPCV.",
-                "https://www.nasa.gov/sites/default/files/thumbnails/image/art001m000000001_orig.jpg",
-                "https://www.youtube.com/watch?v=21X5lGlDOfg",  SpaceMission.MissionStatus.COMPLETED, verifiedUsers.get(0 % verifiedUsers.size())));
-
-        missions.add(new SpaceMission(null, "Mars Perseverance Rover", "NASA", LocalDateTime.of(2020, 7, 30, 11, 50),
-                "Search for signs of ancient microbial life, collect rock and soil samples for possible return to Earth.",
-                "https://mars.nasa.gov/layout/general_assets/images/mars_perseverance_banner.jpg",
-                null, SpaceMission.MissionStatus.IN_PROGRESS, verifiedUsers.get(1 % verifiedUsers.size())));
-
-        missions.add(new SpaceMission(null, "Starlink Group 6-1 Launch", "SpaceX", LocalDateTime.now().plusMonths(1),
-                "Upcoming launch to deploy more Starlink satellites into low Earth orbit.",
-                "https://cdn.spacex.com/layout/general/starlink.jpg",
-                "https://www.spacex.com/launches/",  SpaceMission.MissionStatus.UPCOMING, verifiedUsers.get(0 % verifiedUsers.size())));
-
-        missions.add(new SpaceMission(null, "Chandrayaan-3", "ISRO", LocalDateTime.of(2023, 7, 14, 9, 5),
-                "India's third lunar exploration mission. Successful soft landing on the lunar south pole.",
-                "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Chandrayaan-3_Integrated_Module.jpg/800px-Chandrayaan-3_Integrated_Module.jpg",
-                null,  SpaceMission.MissionStatus.COMPLETED, verifiedUsers.get(1 % verifiedUsers.size())));
+         List<SpaceMission> missions = new ArrayList<>();
+         // Add anticipationScore (e.g., 0) as the second to last argument
+         missions.add(new SpaceMission(null, "Artemis I", "NASA", LocalDateTime.of(2022, 11, 16, 6, 47),
+                 "Uncrewed Moon-orbiting mission, the first flight of the Space Launch System rocket and the second flight of the Orion MPCV.",
+                 "https://www.nasa.gov/sites/default/files/thumbnails/image/art001m000000001_orig.jpg",
+                 "https://www.youtube.com/watch?v=21X5lGlDOfg",  SpaceMission.MissionStatus.COMPLETED, 0, verifiedUsers.get(0 % verifiedUsers.size())));
+ 
+         missions.add(new SpaceMission(null, "Mars Perseverance Rover", "NASA", LocalDateTime.of(2020, 7, 30, 11, 50),
+                 "Search for signs of ancient microbial life, collect rock and soil samples for possible return to Earth.",
+                 "https://mars.nasa.gov/layout/general_assets/images/mars_perseverance_banner.jpg",
+                 null, SpaceMission.MissionStatus.IN_PROGRESS, 0, verifiedUsers.get(1 % verifiedUsers.size())));
+ 
+         missions.add(new SpaceMission(null, "Starlink Group 6-1 Launch", "SpaceX", LocalDateTime.now().plusMonths(1),
+                 "Upcoming launch to deploy more Starlink satellites into low Earth orbit.",
+                 "https://cdn.spacex.com/layout/general/starlink.jpg",
+                 "https://www.spacex.com/launches/",  SpaceMission.MissionStatus.UPCOMING, 0, verifiedUsers.get(0 % verifiedUsers.size())));
+ 
+         missions.add(new SpaceMission(null, "Chandrayaan-3", "ISRO", LocalDateTime.of(2023, 7, 14, 9, 5),
+                 "India's third lunar exploration mission. Successful soft landing on the lunar south pole.",
+                 "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Chandrayaan-3_Integrated_Module.jpg/800px-Chandrayaan-3_Integrated_Module.jpg",
+                 null,  SpaceMission.MissionStatus.COMPLETED, 0, verifiedUsers.get(1 % verifiedUsers.size())));
 
 
         spaceMissionRepository.saveAll(missions);

@@ -3,6 +3,7 @@ package com.example.demo.repository;
 import com.example.demo.model.SpaceMission;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Range;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,5 +20,8 @@ public interface SpaceMissionRepository extends JpaRepository<SpaceMission, Long
     @Query("SELECT m FROM SpaceMission m WHERE m.launchDate BETWEEN :start AND :end ORDER BY m.launchDate")
     List<SpaceMission> findUpcomingMissions(@Param("start") LocalDateTime start,
                                             @Param("end") LocalDateTime end);
+
+    Page<SpaceMission> findByStatus(SpaceMission.MissionStatus missionStatus, Pageable pageable);
+
 }
 

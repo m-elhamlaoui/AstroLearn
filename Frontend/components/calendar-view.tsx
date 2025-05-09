@@ -16,7 +16,7 @@ interface Event {
   description?: string
   location?: string
   agency?: string
-  importance: number
+  // importance: number; // Removed
   tags?: string[]
 }
 
@@ -70,23 +70,7 @@ export function CalendarView({ events, initialViewMode = "year", initialMonth, o
     })
   }
 
-  const getImportanceStyle = (importance: number) => {
-    if (importance === 0) return { gradient: "", border: "" }
-    
-    const styles = {
-      90: { gradient: "from-red-500/20 to-red-600/40", border: "border-red-500/50" },
-      80: { gradient: "from-orange-500/20 to-orange-600/40", border: "border-orange-500/50" },
-      70: { gradient: "from-yellow-500/20 to-yellow-600/40", border: "border-yellow-500/50" },
-      60: { gradient: "from-green-500/20 to-green-600/40", border: "border-green-500/50" },
-      50: { gradient: "from-blue-500/20 to-blue-600/40", border: "border-blue-500/50" }
-    }
-
-    for (const threshold of Object.keys(styles).map(Number).sort((a, b) => b - a)) {
-      if (importance >= threshold) return styles[threshold]
-    }
-
-    return { gradient: "from-indigo-500/20 to-indigo-600/40", border: "border-indigo-500/50" }
-  }
+  // Removed getImportanceStyle function
 
   const renderYearView = () => {
     const monthAbbrs = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
@@ -104,11 +88,11 @@ export function CalendarView({ events, initialViewMode = "year", initialMonth, o
             return eventDate.getMonth() === index && eventDate.getFullYear() === currentDate.getFullYear()
           })
           
-          const maxImportance = monthEvents.length > 0
-            ? Math.max(...monthEvents.map(e => e.importance))
-            : 0
-          
-          const { gradient, border } = getImportanceStyle(maxImportance)
+          // Removed importance calculation and styling logic
+          // const maxImportance = monthEvents.length > 0
+          //   ? Math.max(...monthEvents.map(e => e.importance))
+          //   : 0
+          // const { gradient, border } = getImportanceStyle(maxImportance)
 
           return (
             <motion.button
@@ -118,8 +102,7 @@ export function CalendarView({ events, initialViewMode = "year", initialMonth, o
               onClick={() => handleMonthSelect(index + 1)}
               className={`
                 p-4 rounded-xl border backdrop-blur-sm
-                ${gradient ? `bg-gradient-to-br ${gradient}` : 'bg-gray-800/40'}
-                ${border ? border : 'border-gray-700/50'}
+                bg-gray-800/40 border-gray-700/50 // Default style
                 transition-all duration-200
               `}
             >
@@ -159,12 +142,12 @@ export function CalendarView({ events, initialViewMode = "year", initialMonth, o
 
             const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
             const dayEvents = getEventsByDate(date)
-            const maxImportance = dayEvents.length > 0
-              ? Math.max(...dayEvents.map(e => e.importance))
-              : 0
+            // Removed importance calculation and styling logic
+            // const maxImportance = dayEvents.length > 0
+            //   ? Math.max(...dayEvents.map(e => e.importance))
+            //   : 0
+            // const { gradient, border } = getImportanceStyle(maxImportance)
             
-            const { gradient, border } = getImportanceStyle(maxImportance)
-
             return (
               <Popover key={day}>
                 <PopoverTrigger asChild>
@@ -173,8 +156,7 @@ export function CalendarView({ events, initialViewMode = "year", initialMonth, o
                     whileTap={{ scale: 0.95 }}
                     className={`
                       aspect-square p-2 rounded-lg border relative
-                      ${gradient ? `bg-gradient-to-br ${gradient}` : 'bg-gray-800/40'}
-                      ${border ? border : 'border-gray-700/50'}
+                      bg-gray-800/40 border-gray-700/50 // Default style
                       transition-all duration-200
                     `}
                   >

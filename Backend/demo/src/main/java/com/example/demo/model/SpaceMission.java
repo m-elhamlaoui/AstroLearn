@@ -36,8 +36,6 @@ public class SpaceMission {
     @Enumerated(EnumType.STRING)
     private MissionStatus status;
 
-    @Column(name = "anticipation_score")
-    private Integer anticipationScore; // Or importanceLevel
 
     @ManyToOne
     @JoinColumn(name = "user_id")

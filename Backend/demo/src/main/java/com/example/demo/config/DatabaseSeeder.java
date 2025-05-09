@@ -422,6 +422,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         return moduleRepository.saveAll(modules);
     }
 
+
     private List<Lesson> seedLessons(List<Module> modules) {
         System.out.println("Seeding Lessons...");
         List<Lesson> lessons = new ArrayList<>();
@@ -443,6 +444,9 @@ public class DatabaseSeeder implements CommandLineRunner {
 
         return lessonRepository.saveAll(lessons);
     }
+
+
+
 
     private List<Quiz> seedQuizzes(List<Lesson> lessons) {
         System.out.println("Seeding Quizzes...");

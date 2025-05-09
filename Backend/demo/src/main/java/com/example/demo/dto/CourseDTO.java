@@ -8,6 +8,7 @@ public record CourseDTO(
         Long id,
         String title,
         String description,
+        String imageUrl,
         Course.DifficultyLevel difficulty,
         int totalLessons,
         List<Long> moduleIds

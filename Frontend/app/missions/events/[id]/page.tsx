@@ -1,88 +1,131 @@
 "use client"
 
+"use client"
+
+import { useState, useEffect, use } from "react" // Added useEffect, use
+import axiosInstance from "@/lib/axiosInstance" // Added
 import { MinimalNavigation } from "@/components/minimal-navigation"
+import { Button } from "@/components/ui/button"; // Added Button import
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, MapPin, Users, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { format, formatDistanceToNow } from "date-fns"
+import { format, formatDistanceToNow, isValid } from "date-fns" // Added isValid
 
-// This would be fetched from the backend in production
-const getEventById = (id: string) => {
-  // Sample event data
-  return {
-    id: Number.parseInt(id),
-    title: "Artemis III Moon Landing",
-    description: "NASA's mission to land the first woman and next man on the Moon's South Pole.",
-    longDescription: `
-      <p>The Artemis III mission represents humanity's return to the lunar surface after more than 50 years. As part of NASA's broader Artemis program, this mission will land the first woman and next man on the Moon, specifically targeting the South Pole region which has never been explored by humans before.</p>
-      
-      <h2>Mission Objectives</h2>
-      
-      <p>Artemis III has several key scientific and exploration objectives:</p>
-      
-      <ul>
-        <li><strong>Lunar South Pole Exploration:</strong> Investigate a region of the Moon that contains permanently shadowed craters believed to contain water ice.</li>
-        <li><strong>Sample Collection:</strong> Gather lunar samples from different geological formations to enhance our understanding of the Moon's history.</li>
-        <li><strong>Technology Demonstration:</strong> Test new spacesuits, mobility systems, and other technologies needed for future lunar exploration.</li>
-        <li><strong>Preparation for Mars:</strong> Develop and validate capabilities needed for eventual human missions to Mars.</li>
-      </ul>
-      
-      <h2>Mission Architecture</h2>
-      
-      <p>The mission will utilize several key components:</p>
-      
-      <ul>
-        <li><strong>Space Launch System (SLS):</strong> NASA's powerful rocket that will launch the Orion spacecraft.</li>
-        <li><strong>Orion Spacecraft:</strong> The vehicle that will carry astronauts to lunar orbit and back to Earth.</li>
-        <li><strong>Human Landing System (HLS):</strong> The lunar lander that will transport astronauts from lunar orbit to the surface and back.</li>
-        <li><strong>Gateway (optional):</strong> A space station in lunar orbit that may support the mission.</li>
-      </ul>
-      
-      <h2>Timeline and Surface Operations</h2>
-      
-      <p>Astronauts will spend approximately 6.5 days on the lunar surface, conducting:</p>
-      
-      <ul>
-        <li>Up to four moonwalks (EVAs)</li>
-        <li>Scientific experiments and sample collection</li>
-        <li>Deployment of scientific instruments</li>
-        <li>Testing of resource utilization technologies</li>
-      </ul>
-      
-      <p>The Artemis III mission is a critical step in establishing a sustainable human presence on the Moon and will provide valuable experience for future missions to Mars and beyond.</p>
-    `,
-    date: "2025-12-15T00:00:00Z",
-    agency: "NASA",
-    location: "Moon",
-    importance: 95, // 0-100 scale
-    image: "/placeholder.svg?height=500&width=1000",
-    tags: ["Moon", "NASA", "Artemis"],
-    relatedEvents: [
-      {
-        id: 5,
-        title: "Lunar Gateway First Module Launch",
-        date: "2025-05-22T00:00:00Z",
-      },
-      {
-        id: 10,
-        title: "First Artemis Lunar Base Module",
-        date: "2028-03-15T00:00:00Z",
-      },
-    ],
-  }
+// Interface for the data structure expected by the page
+interface PageEventData {
+  id: number;
+  title: string;
+  description: string; // Short description
+  longDescription: string;
+  date: string; // ISO string
+  agency: string;
+  location: string;
+  importance: number;
+  image: string;
+  tags: string[];
+  relatedEvents: { id: number; title: string; date: string }[]; // Simplified for now
+  liveStreamUrl?: string | null; // Added from DTO
+  status?: string; // Added from DTO
 }
 
-export default function EventPage({ params }: { params: { id: string } }) {
-  // In a real app, this would be a server component fetching data from the backend
-  const event = getEventById(params.id)
+// Backend DTO structure
+interface SpaceMissionDTO {
+  id: number;
+  name: string;
+  agency: string;
+  launchDate: string; // LocalDateTime will be string (ISO format)
+  description: string;
+  missionImage: string | null;
+  liveStreamUrl: string | null;
+  status: string;
+  // creatorUserId and creatorUsername are not directly used on this page
+}
 
-  // Format dates
-  const eventDate = new Date(event.date)
-  const formattedDate = format(eventDate, "MMMM d, yyyy")
-  const formattedTime = format(eventDate, "h:mm a")
-  const timeUntil = formatDistanceToNow(eventDate, { addSuffix: false })
+export default function EventPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
+  const params = use(paramsPromise);
+  const [event, setEvent] = useState<PageEventData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!params.id) {
+      setError("Mission ID is missing.");
+      setIsLoading(false);
+      return;
+    }
+
+    const fetchEventData = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await axiosInstance.get<SpaceMissionDTO>(`/missions/${params.id}`);
+        const dto = response.data;
+
+        // Map DTO to PageEventData
+        const mappedEvent: PageEventData = {
+          id: dto.id,
+          title: dto.name,
+          description: dto.description.substring(0, 150) + (dto.description.length > 150 ? "..." : ""), // Simple short desc
+          longDescription: `<p>${dto.description.replace(/\n/g, "</p><p>")}</p>`, // Basic HTML formatting
+          date: dto.launchDate,
+          agency: dto.agency,
+          location: "Space Event", // Placeholder
+          importance: 75, // Default importance
+          image: dto.missionImage || "/placeholder.svg?height=500&width=1000",
+          tags: dto.name.toLowerCase().split(" ").slice(0, 3).filter(tag => tag.length > 2), // Simple tags
+          relatedEvents: [], // Placeholder, as not directly available
+          liveStreamUrl: dto.liveStreamUrl,
+          status: dto.status,
+        };
+        setEvent(mappedEvent);
+      } catch (err) {
+        console.error("Failed to fetch event data:", err);
+        setError("Failed to load mission details. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchEventData();
+  }, [params.id]);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen bg-black text-white justify-center items-center">
+        <p className="text-xl">Loading mission details...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen bg-black text-white justify-center items-center p-8 text-center">
+        <div>
+          <p className="text-xl text-red-500 mb-4">{error}</p>
+          <Link href="/missions">
+            <Button variant="outline">Back to Missions</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!event) {
+    return (
+      <div className="flex min-h-screen bg-black text-white justify-center items-center">
+        <p className="text-xl">Mission not found.</p>
+      </div>
+    );
+  }
+
+  // Format dates (moved here to ensure 'event' is not null)
+  const eventDate = new Date(event.date);
+  const isValidDate = isValid(eventDate);
+  const formattedDate = isValidDate ? format(eventDate, "MMMM d, yyyy") : "Invalid Date";
+  const formattedTime = isValidDate ? format(eventDate, "h:mm a") : "N/A";
+  const timeUntil = isValidDate ? formatDistanceToNow(eventDate, { addSuffix: true }) : "N/A";
+  // Removed duplicate declarations of formattedDate and formattedTime
   // Get color based on importance
   const getImportanceColor = (importance: number) => {
     if (importance >= 90) return "bg-red-500"
@@ -115,9 +158,11 @@ export default function EventPage({ params }: { params: { id: string } }) {
           {/* Event Header */}
           <header className="mb-8">
             <h1 className="text-4xl font-bold mb-4">{event.title}</h1>
+            {event.status && <Badge variant="outline" className="mb-4 text-sm">{event.status}</Badge>}
+
 
             {/* Meta Information */}
-            <div className="flex flex-wrap items-center gap-6 mb-6">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-6">
               <div className="flex items-center gap-2 text-gray-300">
                 <Calendar className="h-5 w-5" />
                 <span>{formattedDate}</span>
@@ -161,11 +206,26 @@ export default function EventPage({ params }: { params: { id: string } }) {
           </div>
 
           {/* Launch Countdown */}
+          {/* Launch Countdown / Status */}
           <div className="mb-8 p-6 bg-gray-900 rounded-xl">
-            <h2 className="text-xl font-bold mb-2">Launching in:</h2>
-            <p className="text-3xl font-bold text-indigo-400">{timeUntil}</p>
+            <h2 className="text-xl font-bold mb-2">
+              {isValidDate && eventDate > new Date() ? "Launching:" : "Launch Date:"}
+            </h2>
+            <p className="text-3xl font-bold text-indigo-400">
+              {isValidDate && eventDate > new Date() ? timeUntil : formattedDate}
+            </p>
+            {event.liveStreamUrl && (
+              <a 
+                href={event.liveStreamUrl} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="mt-3 inline-block text-indigo-400 hover:text-indigo-300 underline"
+              >
+                Watch Live Stream
+              </a>
+            )}
           </div>
-
+          
           {/* Event Content */}
           <div className="mb-8">
             <div

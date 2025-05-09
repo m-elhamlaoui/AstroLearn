@@ -1,220 +1,99 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { MinimalNavigation } from "@/components/minimal-navigation"
-import { CourseCard } from "@/components/course-card"
-import { Button } from "@/components/ui/button"
-import { Search, ChevronRight, ArrowLeft } from "lucide-react"
-import { BloomingStars } from "@/components/blooming-stars"
+import { useState, useEffect } from "react";
+import axiosInstance from "@/lib/axiosInstance"; // Added
+import { MinimalNavigation } from "@/components/minimal-navigation";
+import { CourseCard } from "@/components/course-card";
+import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react"; // Removed ChevronRight, ArrowLeft
+import { BloomingStars } from "@/components/blooming-stars";
 
-// Sample data - would be fetched from backend in production
-const sampleCourses = [
-  {
-    id: 1,
-    title: "Introduction to Astronomy",
-    description: "Learn the fundamentals of astronomy, from celestial objects to the structure of the universe.",
-    image: "/placeholder.svg?height=300&width=500",
-    instructor: "Dr. Elena Rodriguez",
-    level: "Beginner",
-    duration: "4 weeks",
-    category: "Astronomy Basics",
-    rating: 4.8,
-    studentsCount: 1245,
-    completed: false,
-  },
-  {
-    id: 2,
-    title: "Rocket Science Basics",
-    description: "Understand the principles of rocketry, propulsion systems, and spacecraft design.",
-    image: "/placeholder.svg?height=300&width=500",
-    instructor: "Prof. Marcus Chen",
-    level: "Intermediate",
-    duration: "6 weeks",
-    category: "Space Engineering",
-    rating: 4.6,
-    studentsCount: 892,
-    completed: false,
-  },
-  {
-    id: 3,
-    title: "Exoplanet Discovery and Analysis",
-    description: "Explore methods for detecting exoplanets and analyzing their potential habitability.",
-    image: "/placeholder.svg?height=300&width=500",
-    instructor: "Dr. Sophia Williams",
-    level: "Advanced",
-    duration: "8 weeks",
-    category: "Planetary Science",
-    rating: 4.9,
-    studentsCount: 756,
-    completed: false,
-  },
-  {
-    id: 4,
-    title: "The Solar System",
-    description: "A comprehensive tour of our solar system, exploring each planet and major celestial body.",
-    image: "/placeholder.svg?height=300&width=500",
-    instructor: "Dr. James Peterson",
-    level: "Beginner",
-    duration: "5 weeks",
-    category: "Astronomy Basics",
-    rating: 4.7,
-    studentsCount: 1532,
-    completed: true,
-  },
-  {
-    id: 5,
-    title: "Space Telescopes and Observatories",
-    description: "Learn about the various space telescopes and their contributions to our understanding of the cosmos.",
-    image: "/placeholder.svg?height=300&width=500",
-    instructor: "Dr. Amara Khan",
-    level: "Intermediate",
-    duration: "4 weeks",
-    category: "Astronomy Basics",
-    rating: 4.5,
-    studentsCount: 678,
-    completed: false,
-  },
-  {
-    id: 6,
-    title: "Spacecraft Systems Engineering",
-    description: "Deep dive into the engineering principles behind spacecraft systems and subsystems.",
-    image: "/placeholder.svg?height=300&width=500",
-    instructor: "Prof. Robert Lee",
-    level: "Advanced",
-    duration: "10 weeks",
-    category: "Space Engineering",
-    rating: 4.8,
-    studentsCount: 423,
-    completed: false,
-  },
-  {
-    id: 7,
-    title: "Mars Exploration",
-    description: "Explore the history, current missions, and future plans for Mars exploration.",
-    image: "/placeholder.svg?height=300&width=500",
-    instructor: "Dr. Sarah Johnson",
-    level: "Intermediate",
-    duration: "6 weeks",
-    category: "Planetary Science",
-    rating: 4.9,
-    studentsCount: 912,
-    completed: false,
-  },
-  {
-    id: 8,
-    title: "Astrophotography Fundamentals",
-    description: "Learn techniques for capturing stunning images of celestial objects.",
-    image: "/placeholder.svg?height=300&width=500",
-    instructor: "Michael Torres",
-    level: "Beginner",
-    duration: "3 weeks",
-    category: "Astronomy Basics",
-    rating: 4.7,
-    studentsCount: 1087,
-    completed: false,
-  },
-  {
-    id: 9,
-    title: "Space Mission Design",
-    description: "Learn the process of designing space missions from concept to execution.",
-    image: "/placeholder.svg?height=300&width=500",
-    instructor: "Dr. Emily Chen",
-    level: "Advanced",
-    duration: "8 weeks",
-    category: "Space Engineering",
-    rating: 4.6,
-    studentsCount: 345,
-    completed: false,
-  },
-  {
-    id: 10,
-    title: "Astrobiology",
-    description: "Explore the study of life in the universe and the search for extraterrestrial life.",
-    image: "/placeholder.svg?height=300&width=500",
-    instructor: "Prof. David Kim",
-    level: "Intermediate",
-    duration: "7 weeks",
-    category: "Planetary Science",
-    rating: 4.8,
-    studentsCount: 678,
-    completed: false,
-  },
-  {
-    id: 11,
-    title: "Orbital Mechanics",
-    description: "Understand the mathematics and physics behind orbital dynamics and spacecraft trajectories.",
-    image: "/placeholder.svg?height=300&width=500",
-    instructor: "Dr. Alan Foster",
-    level: "Advanced",
-    duration: "9 weeks",
-    category: "Space Engineering",
-    rating: 4.7,
-    studentsCount: 412,
-    completed: false,
-  },
-  {
-    id: 12,
-    title: "Cosmology and the Big Bang",
-    description: "Explore theories about the origin and evolution of the universe.",
-    image: "/placeholder.svg?height=300&width=500",
-    instructor: "Prof. Lisa Wong",
-    level: "Advanced",
-    duration: "8 weeks",
-    category: "Theoretical Astrophysics",
-    rating: 4.9,
-    studentsCount: 532,
-    completed: false,
-  },
-]
+// Define interfaces for course data
+interface BackendCourse {
+  id: number;
+  title: string;
+  imageUrl: string;
+  description: string;
+  difficulty: string; // e.g., "BEGINNER", "INTERMEDIATE", "ADVANCED"
+  totalLessons: number; // Available from DTO, not directly used in current UI mapping but fetched
+  moduleIds: number[]; // Available from DTO, not directly used in current UI mapping but fetched
+}
+
+// Interface for data passed to CourseCard, matching CourseCard's expected props
+interface DisplayCourse {
+  id: number;
+  title: string;
+  description: string;
+  image: string;
+  instructor: string;
+  level: string;
+  duration: string;
+  category: string;
+  rating: number;
+  studentsCount: number;
+  completed: boolean;
+}
 
 export default function CoursesPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [filteredCourses, setFilteredCourses] = useState(sampleCourses)
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [allCourses, setAllCourses] = useState<BackendCourse[]>([]); // Holds all courses fetched from backend
+  const [filteredDisplayCourses, setFilteredDisplayCourses] = useState<DisplayCourse[]>([]); // Holds courses for display after filtering and mapping
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  // selectedCategory state and related logic are now fully removed.
 
-  // Get unique categories
-  const categories = Array.from(new Set(sampleCourses.map((course) => course.category)))
-
-  // Filter courses based on search query and selected category
+  // Fetch courses from backend
   useEffect(() => {
-    let filtered = sampleCourses
+    const fetchCourses = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await axiosInstance.get<BackendCourse[]>("/courses");
+        setAllCourses(response.data);
+      } catch (err) {
+        console.error("Failed to fetch courses:", err);
+        setError("Failed to load courses. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  // Filter courses based on search query and map to DisplayCourse
+  useEffect(() => {
+    let filteredBackendCourses = allCourses;
 
     if (searchQuery) {
-      filtered = filtered.filter(
+      filteredBackendCourses = filteredBackendCourses.filter(
         (course) =>
           course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           course.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          course.instructor.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          course.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          course.level.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
+          course.difficulty.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     }
 
-    if (selectedCategory) {
-      filtered = filtered.filter((course) => course.category === selectedCategory)
-    }
+    // Map BackendCourse to DisplayCourse
+    const displayCourses = filteredBackendCourses.map((course): DisplayCourse => ({
+      id: course.id,
+      title: course.title,
+      description: course.description,
+      image: course.imageUrl || "/placeholder.svg?height=300&width=500",
+      level: course.difficulty ? course.difficulty.charAt(0).toUpperCase() + course.difficulty.slice(1).toLowerCase() : "N/A",
+      // Provide default/fallback values for fields not in BackendCourse/CourseDTO
+      instructor: "N/A", // Not available from backend
+      duration: "N/A", // Not available from backend (totalLessons could be used to infer but not directly)
+      category: "N/A", // Not available from backend
+      rating: 0, // Not available from backend
+      studentsCount: 0, // Not available from backend
+      completed: false, // Not available from backend, default to false
+    }));
 
-    setFilteredCourses(filtered)
-  }, [searchQuery, selectedCategory])
+    setFilteredDisplayCourses(displayCourses);
+  }, [searchQuery, allCourses]);
 
-  // Group courses by category
-  const coursesByCategory = categories.reduce(
-    (acc, category) => {
-      // If a category is selected, only show courses from that category
-      if (selectedCategory && category !== selectedCategory) {
-        return acc
-      }
-
-      const coursesInCategory = filteredCourses.filter((course) => course.category === category)
-
-      if (coursesInCategory.length > 0) {
-        acc[category] = coursesInCategory
-      }
-
-      return acc
-    },
-    {} as Record<string, typeof sampleCourses>,
-  )
+  // Category related logic has been removed.
 
   return (
     <div className="flex min-h-screen bg-black text-white relative">
@@ -230,22 +109,7 @@ export default function CoursesPage() {
           {/* Header with Search Bar */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
             <div>
-              {selectedCategory ? (
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setSelectedCategory(null)}
-                    className="h-8 w-8 rounded-full bg-gray-800/50 border-gray-700 hover:bg-indigo-900/50 hover:border-indigo-600 text-gray-300 hover:text-indigo-400 backdrop-blur-sm"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    <span className="sr-only">All Categories</span>
-                  </Button>
-                  <h1 className="text-3xl font-bold">{selectedCategory}</h1>
-                </div>
-              ) : (
-                <h1 className="text-3xl font-bold">Space Exploration Courses</h1>
-              )}
+              <h1 className="text-3xl font-bold">Space Exploration Courses</h1>
             </div>
 
             {/* Search Input with cleaner styling */}
@@ -271,53 +135,66 @@ export default function CoursesPage() {
             </div>
           </div>
 
-          {/* Courses by Category */}
-          {Object.keys(coursesByCategory).length > 0 ? (
-            Object.entries(coursesByCategory).map(([category, courses]) => (
-              <div key={category} className="mb-12">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-2xl font-bold">{category}</h2>
-                  {!selectedCategory && (
-                    <Button
-                      variant="ghost"
-                      onClick={() => setSelectedCategory(category)}
-                      className="text-gray-400 hover:text-white flex items-center"
-                    >
-                      <span className="sr-only">Explore More</span>
-                      <ChevronRight className="h-5 w-5" />
-                    </Button>
-                  )}
-                </div>
-
-                {/* Responsive Course Grid/Flex */}
-                <div className="grid grid-cols-1 gap-6 md:flex md:overflow-x-auto md:pb-4 md:space-x-4 md:scrollbar-hide">
-                  {courses.map((course) => (
-                    // On medium screens and up, use flex-none and width; otherwise, let grid handle width
-                    <div key={course.id} className="md:flex-none md:w-80">
-                      <CourseCard course={course} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))
-          ) : (
+          {/* Display Courses, Loading, or Error Message */}
+          {isLoading && (
             <div className="text-center py-12">
-              <p className="text-gray-400 text-lg">No courses found matching your search criteria.</p>
+              <p className="text-gray-400 text-lg">Loading courses...</p>
+              {/* Optional: Add a spinner or skeleton loader here */}
+            </div>
+          )}
+
+          {error && (
+            <div className="text-center py-12">
+              <p className="text-red-500 text-lg">{error}</p>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  setSearchQuery("")
-                  setSelectedCategory(null)
+                onClick={() => { // Attempt to refetch or clear error
+                  // For simplicity, this example just clears search. A refetch function could be called.
+                  setSearchQuery("");
+                  // Consider adding a function to explicitly call fetchCourses() again
                 }}
                 className="mt-4 border-gray-700 text-gray-300 hover:bg-gray-800"
               >
-                Clear Filters
+                Try Again or Clear Search
               </Button>
+            </div>
+          )}
+
+          {!isLoading && !error && filteredDisplayCourses.length > 0 && (
+            <div className="mb-12">
+              {/* Responsive Course Grid/Flex - No longer grouped by category */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredDisplayCourses.map((course: DisplayCourse) => (
+                  <div key={course.id}> {/* Removed md:flex-none md:w-80 for better grid behavior */}
+                    <CourseCard course={course} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {!isLoading && !error && filteredDisplayCourses.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-400 text-lg">
+                {searchQuery ? "No courses found matching your search criteria." : "No courses available at the moment."}
+              </p>
+              {searchQuery && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSearchQuery("");
+                  }}
+                  className="mt-4 border-gray-700 text-gray-300 hover:bg-gray-800"
+                >
+                  Clear Search
+                </Button>
+              )}
             </div>
           )}
         </div>
       </main>
     </div>
-  )
+  );
 }

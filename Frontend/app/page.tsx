@@ -115,6 +115,7 @@ export default function HomePage() {
               author="Space Explorer"
               date="3 days ago"
               link="/articles/1"
+              imageUrl="https://th.bing.com/th/id/OIP.3eaIQI92vy-4EyJpXUEsLAHaEO?cb=iwc1&rs=1&pid=ImgDetMain"
             />
 
             <ArticleCard
@@ -123,6 +124,7 @@ export default function HomePage() {
               author="Astronomy Enthusiast"
               date="1 week ago"
               link="/articles/2"
+              imageUrl="https://cdn.mos.cms.futurecdn.net/jXwhLmwUt9XyJ9LGTSkVoD-1200-80.jpg"
             />
 
             <ArticleCard
@@ -131,6 +133,7 @@ export default function HomePage() {
               author="Astrophysics Lover"
               date="2 weeks ago"
               link="/articles/3"
+              imageUrl="https://th.bing.com/th/id/R.28d7f2deb3e7e6cfddfd4303d3ca67ae?rik=aH%2bOb6EtT5uQ6g&pid=ImgRaw&r=0"
             />
           </div>
 
@@ -205,6 +208,7 @@ export default function HomePage() {
               duration="4 weeks"
               description="Learn the fundamentals of astronomy, from celestial objects to the structure of the universe."
               link="/courses/1"
+              imageUrl="https://th.bing.com/th/id/R.d364ccd53ec38e5579134745d82f22bd?rik=siRDDnIQUWJuLw&pid=ImgRaw&r=0"
             />
 
             <CourseCard
@@ -213,6 +217,7 @@ export default function HomePage() {
               duration="6 weeks"
               description="Understand the principles of rocketry, propulsion systems, and spacecraft design."
               link="/courses/2"
+              imageUrl="https://media.npr.org/assets/img/2023/01/30/rocket-launch-explosion-8fd552d8386837961077a689d66c74757bbe0e80-s1100-c50.png"
             />
 
             <CourseCard
@@ -221,6 +226,7 @@ export default function HomePage() {
               duration="8 weeks"
               description="Explore methods for detecting exoplanets and analyzing their potential habitability."
               link="/courses/3"
+              imageUrl="https://exoplanets.nasa.gov/system/news_items/main_images/207_EarthlikeExoplanets_0722sm.jpg"
             />
           </div>
 
@@ -373,16 +379,20 @@ interface ArticleCardProps {
   author: string;
   date: string;
   link: string;
+  imageUrl?: string; // Added imageUrl prop
 }
-function ArticleCard({ title, excerpt, author, date, link }: ArticleCardProps) {
+function ArticleCard({ title, excerpt, author, date, link, imageUrl }: ArticleCardProps) {
   return (
     <Link href={link}>
       <Card className="bg-gray-800 border-gray-700 overflow-hidden rounded-xl hover:shadow-lg hover:shadow-indigo-900/20 transition-all duration-300 h-full">
         <div className="h-48 bg-gray-700 relative">
-          {/* Image placeholder */}
-          <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-            <span>Image Placeholder</span>
-          </div>
+          {imageUrl ? (
+            <img src={imageUrl} alt={title} className="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+              <span>Image Placeholder</span>
+            </div>
+          )}
         </div>
         <div className="p-6">
           <h3 className="text-xl font-bold mb-3 hover:text-indigo-400 transition-colors">{title}</h3>
@@ -427,16 +437,20 @@ interface CourseCardProps {
   duration: string;
   description: string;
   link: string;
+  imageUrl?: string; // Added imageUrl prop
 }
-function CourseCard({ title, level, duration, description, link }: CourseCardProps) {
+function CourseCard({ title, level, duration, description, link, imageUrl }: CourseCardProps) {
   return (
     <Link href={link}>
       <Card className="bg-gray-800 border-gray-700 overflow-hidden rounded-xl hover:shadow-lg hover:shadow-indigo-900/20 transition-all duration-300 h-full">
         <div className="h-48 bg-gray-700 relative">
-          {/* Image placeholder */}
-          <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-            <span>Course Image Placeholder</span>
-          </div>
+          {imageUrl ? (
+            <img src={imageUrl} alt={title} className="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+              <span>Course Image Placeholder</span>
+            </div>
+          )}
         </div>
         <div className="p-6">
           <h3 className="text-xl font-bold mb-3 hover:text-indigo-400 transition-colors">{title}</h3>

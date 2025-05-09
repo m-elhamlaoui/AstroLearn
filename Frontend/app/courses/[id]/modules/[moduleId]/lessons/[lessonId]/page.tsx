@@ -3,28 +3,27 @@
 import { useState, useEffect, use } from "react"
 import { MinimalNavigation } from "@/components/minimal-navigation"
 import QuizDisplay from "@/components/quiz/QuizDisplay" 
-import QuizReviewDisplay from "@/components/quiz/QuizReviewDisplay" // Import the new review component
+import QuizReviewDisplay from "@/components/quiz/QuizReviewDisplay" 
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, ArrowRight, CheckCircle, Award, AlertTriangle, RotateCcw } from "lucide-react" // Added RotateCcw
+import { ArrowLeft, ArrowRight, CheckCircle, Award, AlertTriangle, RotateCcw } from "lucide-react" 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import axiosInstance from "@/lib/axiosInstance"
 
-// DTO interfaces (subset of what's in dtos.txt, focused on needs)
+// DTO interfaces
 interface LessonDTO {
   id: number
   title: string
   content: string
   videoUrl: string | null
   moduleId: number
-  quizId: number | null // This will be the ID for the quiz itself
+  quizId: number | null
 }
 
 interface QuizQuestionDTO {
   id: number
   questionText: string
   options: string[]
-  // correctOptionIndex?: number; // Might be needed for answer checking, but not for display from QuizDTO
 }
 
 interface QuizDTO {
@@ -36,58 +35,37 @@ interface QuizDTO {
   experienceReward: number
 }
 
-// DTO for submitting quiz answers
 interface QuizQuestionAnswerDTO {
   questionId: number
   chosenOptionIndex: number
 }
 
-interface QuizSubmissionDTO {
-  userId: number
-  answers: QuizQuestionAnswerDTO[]
-}
-
-// This interface will represent the payload sent in the POST request body
 interface QuizSubmissionPayload {
   answers: QuizQuestionAnswerDTO[];
 }
 
-// DTO for quiz completion result
-// This will be replaced by AugmentedQuizCompletionDTO after backend update
-interface QuizCompletionDTO { // Keep for now if parts of code still reference it before full refactor
-  id: number;
-  score: number; // Raw score (number of correct answers)
-  completionDate: string;
-  userId: number;
-  username: string;
-  quizId: number;
-  quizTitle: string;
-}
-
-// --- NEW DTOs for detailed quiz results from backend ---
 interface QuizAttemptDetail {
   questionId: number;
-  questionText: string; // Assuming backend provides this for convenience
-  options: string[];    // Assuming backend provides this
+  questionText: string; 
+  options: string[];    
   chosenOptionIndex: number;
   correctOptionIndex: number;
-  isCorrect: boolean; // True if chosenOptionIndex === correctOptionIndex (can be derived frontend too)
+  isCorrect: boolean; 
 }
 
 interface AugmentedQuizCompletionDTO {
-  id: number; // Completion ID (for this specific attempt/completion)
-  rawScore: number; // Number of correct answers
-  totalQuestions: number; // Total questions in the quiz
-  completionDate: string; // ISO timestamp
+  id: number; 
+  rawScore: number; 
+  totalQuestions: number; 
+  completionDate: string; 
   userId: number;
   username: string;
   quizId: number;
   quizTitle: string;
-  experienceEarned: number; // XP earned for this attempt/completion
+  experienceEarned: number; 
   attemptDetails: QuizAttemptDetail[]; 
 }
 
-// DTO for the result of a quiz submission (from POST /submit)
 interface QuizSubmissionResultDTO {
   completionId: number;
   rawScore: number;
@@ -95,29 +73,21 @@ interface QuizSubmissionResultDTO {
   isPerfected: boolean;
   experienceEarned: number;
 }
-// --- End of NEW DTOs ---
 
 type QuizProgressState = 'unstarted' | 'active' | 'reviewing' | 'perfected' | 'show_score_retake';
 
-interface ModuleWithLessonsDTO {
-  id: number
-  title: string
-  lessons: { id: number; title: string }[] // Simplified lesson for navigation structure
-}
-
-interface CourseProgressDTO {
-  completedLessonIds: number[]
-  // currentLessonId might also be part of this if needed globally
-}
-
-interface LessonPageParams {
-  id: string // courseId
+interface NavLesson {
+  courseId: string
   moduleId: string
   lessonId: string
 }
 
-interface NavLesson {
-  courseId: string
+interface CourseProgressDTO {
+  completedLessonIds: number[]
+}
+
+interface LessonPageParams {
+  id: string 
   moduleId: string
   lessonId: string
 }
@@ -129,21 +99,19 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
   const [lessonDetails, setLessonDetails] = useState<LessonDTO | null>(null)
   const [quizDetails, setQuizDetails] = useState<QuizDTO | null>(null)
   const [quizReviewData, setQuizReviewData] = useState<AugmentedQuizCompletionDTO | null>(null)
-  const [currentCompletionId, setCurrentCompletionId] = useState<number | null>(null); // State to store the ID from submit response
+  const [currentCompletionId, setCurrentCompletionId] = useState<number | null>(null);
   const [quizProgressState, setQuizProgressState] = useState<QuizProgressState>('unstarted')
-  const [quizAttemptKey, setQuizAttemptKey] = useState(0) // Used to force re-mount of QuizDisplay
-  const [isCompleted, setIsCompleted] = useState(false) // Lesson completion status (overall)
+  const [quizAttemptKey, setQuizAttemptKey] = useState(0) 
+  const [isCompleted, setIsCompleted] = useState(false) 
   const [isLoading, setIsLoading] = useState(true)
-  const [isSubmittingQuiz, setIsSubmittingQuiz] = useState(false) // For the submission process itself
-  const [error, setError] = useState<string | null>(null) // General page errors
-  const [quizSpecificError, setQuizSpecificError] = useState<string | null>(null) // Errors related to quiz submission/fetching
+  const [isSubmittingQuiz, setIsSubmittingQuiz] = useState(false) 
+  const [error, setError] = useState<string | null>(null) 
+  const [quizSpecificError, setQuizSpecificError] = useState<string | null>(null) 
   const [nextLesson, setNextLesson] = useState<NavLesson | null>(null)
   const [prevLesson, setPrevLesson] = useState<NavLesson | null>(null)
 
-  // TODO: Replace with actual logged-in user ID
-  const userIdForProgress = 1 // This should ideally come from auth context
+  const userIdForProgress = 1 
 
-  // useEffect for fetching initial lesson data
   useEffect(() => {
     if (!params.id || !params.moduleId || !params.lessonId) {
       setError("Missing course, module, or lesson ID.")
@@ -154,19 +122,17 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
     const fetchLessonAllData = async () => {
       setIsLoading(true)
       setError(null)
-      setQuizSpecificError(null) // Reset quiz-specific errors
+      setQuizSpecificError(null) 
       setLessonDetails(null)
       setQuizDetails(null)
-      setQuizReviewData(null)    // Reset review data
-      setQuizProgressState('unstarted') // Reset quiz state
+      setQuizReviewData(null)    
+      setQuizProgressState('unstarted') 
 
       try {
-        // 1. Fetch current lesson details
         const lessonResponse = await axiosInstance.get<LessonDTO>(`/lessons/${params.lessonId}`)
         const currentLesson = lessonResponse.data
         setLessonDetails(currentLesson)
 
-        // 2. Fetch course progress
         let lessonAlreadyMarkedCompletedInSystem = false
         try {
           const progressResponse = await axiosInstance.get<CourseProgressDTO>(
@@ -179,18 +145,13 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
           console.warn("Failed to fetch course progress:", progressError)
         }
 
-        // 3. Fetch Quiz if quizId exists on the lesson
-        if (currentLesson && currentLesson.quizId) {
+        if (currentLesson?.quizId) {
           try {
             const quizResponse = await axiosInstance.get<QuizDTO>(`/quizzes/lessons/${currentLesson.id}`)
             setQuizDetails(quizResponse.data)
 
-            // If lesson is marked completed in the system, it implies the quiz (if any) was perfected.
-            // Fetch the detailed completion data for potential review or just to confirm.
-            if (lessonAlreadyMarkedCompletedInSystem && currentLesson.quizId) {
+            if (lessonAlreadyMarkedCompletedInSystem) {
               try {
-                // Assuming GET /quizzes/{quizId}/completion now returns AugmentedQuizCompletionDTO
-                // or a similar detailed DTO if the user has a completion record.
                 const completionResponse = await axiosInstance.get<AugmentedQuizCompletionDTO>(
                   `/quizzes/${currentLesson.quizId}/completion?userId=${userIdForProgress}`
                 )
@@ -198,25 +159,20 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
                   setQuizReviewData(completionResponse.data)
                   setQuizProgressState('perfected') 
                 } else {
-                  // Lesson marked complete, but quiz data suggests not perfected or no data.
-                  // Default to 'unstarted' to allow taking it if desired.
                   setQuizProgressState('unstarted')
                 }
               } catch (completionFetchError) {
                 console.warn("Failed to fetch prior detailed quiz completion data:", completionFetchError)
-                setQuizProgressState('unstarted') // Default to unstarted if fetch fails
+                setQuizProgressState('unstarted') 
               }
-            } else if (currentLesson.quizId) {
-              // Lesson not marked as completed in system, so quiz is 'unstarted'
+            } else {
               setQuizProgressState('unstarted')
             }
-            // If no quizId, quizProgressState remains 'unstarted' but won't trigger quiz UI
           } catch (quizFetchError) {
             console.error("Failed to load quiz details:", quizFetchError)
             setQuizSpecificError("Could not load quiz details.")
           }
         } else if (currentLesson && !currentLesson.quizId && !lessonAlreadyMarkedCompletedInSystem) {
-          // If no quiz and lesson not completed, mark as complete
           try {
             await axiosInstance.post(
               `/course-progress/${userIdForProgress}/${params.id}/lessons/${params.lessonId}/complete`,
@@ -227,7 +183,6 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
           }
         }
         
-        // 4. Fetch full course structure for navigation
         const courseModulesResponse = await axiosInstance.get<
           { id: number; title: string; lessonIds: number[] }[]
         >(`/modules/courses/${params.id}`)
@@ -267,23 +222,20 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
     fetchLessonAllData()
   }, [params.id, params.moduleId, params.lessonId, userIdForProgress])
 
-  // useEffect to fetch review data when currentCompletionId is set and in 'reviewing' state
   useEffect(() => {
     const fetchReviewData = async () => {
       if (!currentCompletionId || quizProgressState !== 'reviewing' || !lessonDetails) return;
-      // Avoid refetching if reviewData is already present for this completionId (unless forced)
       if (quizReviewData && quizReviewData.id === currentCompletionId) return;
 
-      // setIsLoading(true); // Consider a more specific loading state for review data if needed
       setQuizSpecificError(null);
       try {
         const reviewResponse = await axiosInstance.get<AugmentedQuizCompletionDTO>(
-          `/quizzes/completions/${currentCompletionId}` // Use the new endpoint
+          `/quizzes/completions/${currentCompletionId}` 
         );
         setQuizReviewData(reviewResponse.data);
 
         if (reviewResponse.data.rawScore === reviewResponse.data.totalQuestions) {
-          setQuizProgressState('perfected'); // Update state if perfected
+          setQuizProgressState('perfected'); 
           if (!isCompleted) {
             try {
               await axiosInstance.post(
@@ -301,13 +253,11 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
       } catch (fetchErr) {
         console.error("Failed to fetch review data:", fetchErr);
         setQuizSpecificError("Could not load your quiz results for review.");
-      } finally {
-        // setIsLoading(false); // Stop loading indicator for review data
       }
     };
 
     fetchReviewData();
-  }, [currentCompletionId, quizProgressState, lessonDetails, userIdForProgress, params.id, isCompleted, quizReviewData]); // quizReviewData added to prevent re-fetch if already loaded
+  }, [currentCompletionId, quizProgressState, lessonDetails, userIdForProgress, params.id, isCompleted, quizReviewData]);
 
   const handleNavigation = (navLesson: NavLesson | null) => {
     if (navLesson) {
@@ -328,7 +278,6 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
       submissionAnswers.push({ questionId, chosenOptionIndex })
     })
 
-    // Constructing the payload without userId in the body, as it's a RequestParam
     const submissionPayload: QuizSubmissionPayload = {
       answers: submissionAnswers,
     }
@@ -339,22 +288,21 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
         submissionPayload,
       );
       const result = response.data;
-      setCurrentCompletionId(result.completionId); // Store completion ID
+      setCurrentCompletionId(result.completionId); 
 
       if (result.isPerfected) {
         setQuizProgressState('perfected');
-        // Construct a minimal AugmentedQuizCompletionDTO for the 'perfected' screen display
         setQuizReviewData({ 
             id: result.completionId,
             rawScore: result.rawScore,
             totalQuestions: result.totalQuestions,
-            completionDate: new Date().toISOString(), // Current time as placeholder
+            completionDate: new Date().toISOString(), 
             userId: userIdForProgress,
-            username: "User", // Placeholder, or fetch if needed
+            username: "User", 
             quizId: quizDetails.id,
             quizTitle: quizDetails.title,
             experienceEarned: result.experienceEarned,
-            attemptDetails: [] // No detailed attempts shown on initial "perfected" screen
+            attemptDetails: [] 
         });
 
         if (!isCompleted) {
@@ -368,37 +316,27 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
           }
         }
       } else {
-        // Not perfected, show score and retake option
         setQuizProgressState('show_score_retake');
-        // Store score info in quizReviewData for the 'show_score_retake' state
         setQuizReviewData({ 
             id: result.completionId,
             rawScore: result.rawScore,
             totalQuestions: result.totalQuestions,
             completionDate: new Date().toISOString(),
             userId: userIdForProgress,
-            username: "User", // Placeholder
+            username: "User", 
             quizId: quizDetails.id,
             quizTitle: quizDetails.title,
-            experienceEarned: result.experienceEarned, // Might be 0 if not perfected
-            attemptDetails: [] // No details shown here
+            experienceEarned: result.experienceEarned, 
+            attemptDetails: [] 
         });
       }
     } catch (err: any) {
       console.error("Quiz submission failed:", err);
-      // Log the full error for debugging backend issues
       if (err.response) {
         console.error("Backend Error Response:", err.response.data);
-        console.error("Backend Error Status:", err.response.status);
-        console.error("Backend Error Headers:", err.response.headers);
-      } else if (err.request) {
-        console.error("Backend No Response:", err.request);
-      } else {
-        console.error("Axios Setup Error:", err.message);
       }
       const errorMessage = err.response?.data?.message || "Failed to submit quiz. Please try again."
       setQuizSpecificError(errorMessage)
-      // Potentially set quizProgressState to 'unstarted' or show error prominently
     } finally {
       setIsSubmittingQuiz(false)
     }
@@ -433,6 +371,35 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
     )
   }
 
+  const renderVideoPlayer = () => {
+    if (lessonDetails.videoUrl) {
+      let videoSrc = lessonDetails.videoUrl;
+      if (videoSrc.includes("youtube.com/watch?v=")) {
+        const videoId = videoSrc.split("watch?v=")[1].split("&")[0];
+        videoSrc = `https://www.youtube.com/embed/${videoId}`;
+      } else if (videoSrc.includes("youtu.be/")) {
+        const videoId = videoSrc.split("youtu.be/")[1].split("?")[0];
+        videoSrc = `https://www.youtube.com/embed/${videoId}`;
+      }
+
+      return (
+        <div className="mb-8">
+          <div className="relative pb-[56.25%] h-0 overflow-hidden rounded-xl shadow-2xl">
+            <iframe
+              src={videoSrc}
+              className="absolute top-0 left-0 w-full h-full"
+              title={lessonDetails.title}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="flex min-h-screen bg-black text-white">
       <MinimalNavigation />
@@ -456,20 +423,7 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
             )}
           </div>
 
-          {lessonDetails.videoUrl && (
-            <div className="mb-8">
-              <div className="relative pb-[56.25%] h-0 overflow-hidden rounded-xl shadow-2xl">
-                <iframe
-                  src={lessonDetails.videoUrl}
-                  className="absolute top-0 left-0 w-full h-full"
-                  title={lessonDetails.title}
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                ></iframe>
-              </div>
-            </div>
-          )}
+          {renderVideoPlayer()}
 
           <div className="mb-10 prose prose-invert max-w-none bg-gray-900/50 p-6 rounded-xl" 
                dangerouslySetInnerHTML={{ __html: lessonDetails.content }} />
@@ -488,38 +442,33 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
 
           {quizDetails && quizProgressState === 'active' && (
             <QuizDisplay
-              key={quizAttemptKey} // Force re-mount on new attempt
+              key={quizAttemptKey} 
               quiz={quizDetails}
               onQuizSubmit={handleQuizSubmit}
               isSubmitting={isSubmittingQuiz}
-              initialAnswers={new Map()} // Ensure fresh start for answers
+              initialAnswers={new Map()} 
             />
           )}
 
-          {/* Reviewing state now needs to fetch data */}
           {quizProgressState === 'reviewing' && (
             <>
-              {/* Placeholder/Loading state while fetching review data */}
               {!quizReviewData && currentCompletionId && (
                 <div className="mt-10 text-center p-6 bg-gray-800 rounded-xl">
                   <p className="text-lg mb-4">Loading your results...</p>
-                  {/* Loading indicator could be more sophisticated, e.g. a spinner */}
                 </div>
               )}
-              {/* Display review data once fetched */}
               {quizReviewData && (
                  <>
                    <QuizReviewDisplay reviewData={quizReviewData} />
                    <div className="mt-6 text-center">
-                     {/* Show Retake button only if not perfected */}
                      {quizReviewData.rawScore !== quizReviewData.totalQuestions && (
                        <Button
                          onClick={() => {
                            setQuizProgressState('active');
-                           setQuizAttemptKey(prevKey => prevKey + 1); // Increment key to force re-mount
-                           setQuizSpecificError(null); // Clear previous submission errors
-                           setCurrentCompletionId(null); // Clear old completion ID
-                           setQuizReviewData(null); // Clear review data
+                           setQuizAttemptKey(prevKey => prevKey + 1); 
+                           setQuizSpecificError(null); 
+                           setCurrentCompletionId(null); 
+                           setQuizReviewData(null); 
                          }}
                          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 text-lg"
                        >
@@ -527,7 +476,6 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
                          Retake Quiz
                        </Button>
                      )}
-                     {/* If perfected, maybe show a different message or just the navigation */}
                       {quizReviewData.rawScore === quizReviewData.totalQuestions && (
                          <div className="mt-4 p-4 bg-green-900/70 border border-green-600 rounded-xl shadow-md text-center">
                            <Award className="h-8 w-8 text-yellow-400 mx-auto mb-2" />
@@ -549,7 +497,6 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
             </>
           )}
 
-          {/* State to show score and retake button after a non-perfect attempt */}
           {quizProgressState === 'show_score_retake' && quizReviewData && (
             <div className="mt-10 p-6 bg-gray-800 rounded-xl text-center">
               <h2 className="text-2xl font-bold mb-3 text-yellow-400">Try Again!</h2>
@@ -591,7 +538,6 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
                   <span>Lesson marked as completed!</span>
                 </div>
               )}
-              {/* "Review Answers" button removed from perfected state as per request */}
             </div>
           )}
 
@@ -602,7 +548,6 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
              </div>
           )}
 
-          {/* Navigation Buttons */}
           <div className={`flex justify-between mt-${(quizDetails || quizReviewData) ? '10' : '10'}`}>
             <Button
               onClick={() => handleNavigation(prevLesson)}
@@ -617,7 +562,6 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
             <Button 
               onClick={() => handleNavigation(nextLesson)} 
               className="bg-white text-black hover:bg-gray-200 disabled:opacity-50"
-              // No explicit disabled prop needed if handleNavigation handles null nextLesson to go to course page
             >
               {nextLesson ? (
                 <>
@@ -625,7 +569,7 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </>
               ) : (
-                "Back to Course" // Or "Finish Course"
+                "Back to Course" 
               )}
             </Button>
           </div>

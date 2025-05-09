@@ -1,32 +1,30 @@
 "use client"
 
-"use client"
-
-import { useState, useEffect, use } from "react" // Added useEffect, use
-import axiosInstance from "@/lib/axiosInstance" // Added
+import { useState, useEffect, use } from "react" 
+import axiosInstance from "@/lib/axiosInstance" 
 import { MinimalNavigation } from "@/components/minimal-navigation"
-import { Button } from "@/components/ui/button"; // Added Button import
+import { Button } from "@/components/ui/button"; 
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, MapPin, Users, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { format, formatDistanceToNow, isValid } from "date-fns" // Added isValid
+import { format, formatDistanceToNow, isValid } from "date-fns" 
 
 // Interface for the data structure expected by the page
 interface PageEventData {
   id: number;
   title: string;
-  description: string; // Short description
+  description: string; 
   longDescription: string;
-  date: string; // ISO string
+  date: string; 
   agency: string;
   location: string;
-  importance: number;
+  // importance: number; // Removed
   image: string;
   tags: string[];
-  relatedEvents: { id: number; title: string; date: string }[]; // Simplified for now
-  liveStreamUrl?: string | null; // Added from DTO
-  status?: string; // Added from DTO
+  relatedEvents: { id: number; title: string; date: string }[]; 
+  liveStreamUrl?: string | null; 
+  status?: string; 
 }
 
 // Backend DTO structure
@@ -34,12 +32,11 @@ interface SpaceMissionDTO {
   id: number;
   name: string;
   agency: string;
-  launchDate: string; // LocalDateTime will be string (ISO format)
+  launchDate: string; 
   description: string;
   missionImage: string | null;
   liveStreamUrl: string | null;
   status: string;
-  // creatorUserId and creatorUsername are not directly used on this page
 }
 
 export default function EventPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
@@ -62,19 +59,18 @@ export default function EventPage({ params: paramsPromise }: { params: Promise<{
         const response = await axiosInstance.get<SpaceMissionDTO>(`/missions/${params.id}`);
         const dto = response.data;
 
-        // Map DTO to PageEventData
         const mappedEvent: PageEventData = {
           id: dto.id,
           title: dto.name,
-          description: dto.description.substring(0, 150) + (dto.description.length > 150 ? "..." : ""), // Simple short desc
-          longDescription: `<p>${dto.description.replace(/\n/g, "</p><p>")}</p>`, // Basic HTML formatting
+          description: dto.description.substring(0, 150) + (dto.description.length > 150 ? "..." : ""), 
+          longDescription: `<p>${dto.description.replace(/\n/g, "</p><p>")}</p>`, 
           date: dto.launchDate,
           agency: dto.agency,
-          location: "Space Event", // Placeholder
-          importance: 75, // Default importance
+          location: "Space Event", 
+          // importance: 75, // Removed
           image: dto.missionImage || "/placeholder.svg?height=500&width=1000",
-          tags: dto.name.toLowerCase().split(" ").slice(0, 3).filter(tag => tag.length > 2), // Simple tags
-          relatedEvents: [], // Placeholder, as not directly available
+          tags: dto.name.toLowerCase().split(" ").slice(0, 3).filter(tag => tag.length > 2), 
+          relatedEvents: [], 
           liveStreamUrl: dto.liveStreamUrl,
           status: dto.status,
         };
@@ -119,34 +115,18 @@ export default function EventPage({ params: paramsPromise }: { params: Promise<{
     );
   }
 
-  // Format dates (moved here to ensure 'event' is not null)
   const eventDate = new Date(event.date);
   const isValidDate = isValid(eventDate);
   const formattedDate = isValidDate ? format(eventDate, "MMMM d, yyyy") : "Invalid Date";
   const formattedTime = isValidDate ? format(eventDate, "h:mm a") : "N/A";
   const timeUntil = isValidDate ? formatDistanceToNow(eventDate, { addSuffix: true }) : "N/A";
-  // Removed duplicate declarations of formattedDate and formattedTime
-  // Get color based on importance
-  const getImportanceColor = (importance: number) => {
-    if (importance >= 90) return "bg-red-500"
-    if (importance >= 80) return "bg-orange-500"
-    if (importance >= 70) return "bg-yellow-500"
-    if (importance >= 60) return "bg-green-500"
-    if (importance >= 50) return "bg-blue-500"
-    return "bg-indigo-500"
-  }
-
-  const importanceColor = getImportanceColor(event.importance)
+  // Removed getImportanceColor function and importanceColor variable
 
   return (
     <div className="flex min-h-screen bg-black text-white">
-      {/* Minimal Navigation */}
       <MinimalNavigation />
-
-      {/* Main Content */}
       <main className="flex-1 p-6 ml-12">
         <div className="container mx-auto max-w-4xl">
-          {/* Back Button */}
           <Link
             href="/missions"
             className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors"
@@ -155,36 +135,29 @@ export default function EventPage({ params: paramsPromise }: { params: Promise<{
             Back to Calendar
           </Link>
 
-          {/* Event Header */}
           <header className="mb-8">
             <h1 className="text-4xl font-bold mb-4">{event.title}</h1>
             {event.status && <Badge variant="outline" className="mb-4 text-sm">{event.status}</Badge>}
 
-
-            {/* Meta Information */}
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-6">
               <div className="flex items-center gap-2 text-gray-300">
                 <Calendar className="h-5 w-5" />
                 <span>{formattedDate}</span>
               </div>
-
               <div className="flex items-center gap-2 text-gray-300">
                 <Clock className="h-5 w-5" />
                 <span>{formattedTime}</span>
               </div>
-
               <div className="flex items-center gap-2 text-gray-300">
                 <MapPin className="h-5 w-5" />
                 <span>{event.location}</span>
               </div>
-
               <div className="flex items-center gap-2 text-gray-300">
                 <Users className="h-5 w-5" />
                 <span>{event.agency}</span>
               </div>
             </div>
 
-            {/* Tags */}
             <div className="flex flex-wrap gap-2 mb-6">
               {event.tags.map((tag) => (
                 <Link
@@ -195,18 +168,14 @@ export default function EventPage({ params: paramsPromise }: { params: Promise<{
                   {tag}
                 </Link>
               ))}
-
-              <Badge className={`${importanceColor} ml-2`}>{event.importance}% Anticipated</Badge>
+              {/* Removed Anticipated Badge */}
             </div>
           </header>
 
-          {/* Featured Image */}
           <div className="relative h-80 md:h-96 mb-8 rounded-xl overflow-hidden">
             <Image src={event.image || "/placeholder.svg"} alt={event.title} fill className="object-cover" />
           </div>
 
-          {/* Launch Countdown */}
-          {/* Launch Countdown / Status */}
           <div className="mb-8 p-6 bg-gray-900 rounded-xl">
             <h2 className="text-xl font-bold mb-2">
               {isValidDate && eventDate > new Date() ? "Launching:" : "Launch Date:"}
@@ -226,7 +195,6 @@ export default function EventPage({ params: paramsPromise }: { params: Promise<{
             )}
           </div>
           
-          {/* Event Content */}
           <div className="mb-8">
             <div
               className="prose prose-invert prose-indigo max-w-none"
@@ -234,7 +202,6 @@ export default function EventPage({ params: paramsPromise }: { params: Promise<{
             />
           </div>
 
-          {/* Related Events */}
           {event.relatedEvents && event.relatedEvents.length > 0 && (
             <div className="mt-12">
               <h2 className="text-2xl font-bold mb-4">Related Missions</h2>

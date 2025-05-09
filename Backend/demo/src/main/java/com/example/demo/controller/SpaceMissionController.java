@@ -8,6 +8,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/missions")
@@ -49,5 +51,19 @@ public class SpaceMissionController {
     public ResponseEntity<Void> deleteMission(@PathVariable Long id, @RequestParam Long userId) {
         spaceMissionService.deleteMission(id, userId);
         return ResponseEntity.noContent().build();
+    }
+
+    // add the controller to get method by status
+    @GetMapping("/status/{status}")
+    public ResponseEntity<Page<SpaceMissionDTO>> getMissionsByStatus(@PathVariable String status, Pageable pageable) {
+        Page<SpaceMissionDTO> missions = spaceMissionService.getMissionsByStatus(status, pageable);
+        return ResponseEntity.ok(missions);
+    }
+
+
+    @GetMapping("/month/{year}/{month}")
+    public ResponseEntity<List<SpaceMissionDTO>> getMissionsByMonth(@PathVariable int year, @PathVariable int month) {
+        List<SpaceMissionDTO> missions = spaceMissionService.getMissionsByMonth(year, month);
+        return ResponseEntity.ok(missions);
     }
 }

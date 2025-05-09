@@ -11,6 +11,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -102,5 +104,29 @@ public class SpaceMissionServiceImpl implements SpaceMissionService {
         }
 
         spaceMissionRepository.delete(mission);
+    }
+
+    @Override
+    public Page<SpaceMissionDTO> getMissionsByStatus(String status, Pageable pageable) {
+        SpaceMission.MissionStatus missionStatus;
+        try {
+            missionStatus = SpaceMission.MissionStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid mission status: " + status);
+        }
+
+        return spaceMissionRepository.findByStatus(missionStatus, pageable)
+                .map(mission -> entityMapper.toDTO((SpaceMission) mission));
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public List<SpaceMissionDTO> getMissionsByMonth(int year, int month) {
+        LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0);
+        LocalDateTime end = start.plusMonths(1).minusSeconds(1);
+
+        List<SpaceMission> missions = spaceMissionRepository.findByLaunchDateBetween(start, end);
+        return missions.stream()
+                .map(entityMapper::toDTO)
+                .collect(Collectors.toList());
     }
 }

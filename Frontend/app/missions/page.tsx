@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react" // Added useEffect
+import axiosInstance from "@/lib/axiosInstance" // Added
 import { MinimalNavigation } from "@/components/minimal-navigation"
 import { CalendarView } from "@/components/calendar-view"
 import { NextEventCard } from "@/components/next-event-card"
@@ -22,145 +23,33 @@ interface Event {
   tags: string[];
 }
 
-// Sample data - would be fetched from backend in production
-const sampleEvents: Event[] = [
-  {
-    id: 1,
-    title: "Artemis III Moon Landing",
-    description: "NASA's mission to land the first woman and next man on the Moon's South Pole.",
-    date: "2025-12-15T00:00:00Z",
-    agency: "NASA",
-    location: "Moon",
-    importance: 95, // 0-100 scale
-    image: "/placeholder.svg?height=300&width=500",
-    tags: ["Moon", "NASA", "Artemis"],
-  },
-  {
-    id: 2,
-    title: "Europa Clipper Launch",
-    description: "Mission to conduct detailed reconnaissance of Jupiter's moon Europa.",
-    date: "2024-10-10T00:00:00Z",
-    agency: "NASA",
-    location: "Jupiter's Moon Europa",
-    importance: 85,
-    image: "/placeholder.svg?height=300&width=500",
-    tags: ["Europa", "NASA", "Jupiter"],
-  },
-  {
-    id: 3,
-    title: "SpaceX Starship Mars Cargo Mission",
-    description: "First uncrewed cargo mission to Mars using Starship.",
-    date: "2024-09-20T00:00:00Z",
-    agency: "SpaceX",
-    location: "Mars",
-    importance: 90,
-    image: "/placeholder.svg?height=300&width=500",
-    tags: ["Mars", "SpaceX", "Starship"],
-  },
-  {
-    id: 4,
-    title: "James Webb Space Telescope Deep Field Observation",
-    description: "Unprecedented deep field observation of the earliest galaxies.",
-    date: "2024-07-15T00:00:00Z",
-    agency: "NASA/ESA",
-    location: "L2 Point",
-    importance: 80,
-    image: "/placeholder.svg?height=300&width=500",
-    tags: ["JWST", "Astronomy", "Deep Space"],
-  },
-  {
-    id: 5,
-    title: "Lunar Gateway First Module Launch",
-    description: "Launch of the Power and Propulsion Element for the Lunar Gateway station.",
-    date: "2025-05-22T00:00:00Z",
-    agency: "NASA/International Partners",
-    location: "Lunar Orbit",
-    importance: 88,
-    image: "/placeholder.svg?height=300&width=500",
-    tags: ["Moon", "Gateway", "NASA"],
-  },
-  {
-    id: 6,
-    title: "DAVINCI Mission to Venus",
-    description: "Deep Atmosphere Venus Investigation of Noble gases, Chemistry, and Imaging mission launch.",
-    date: "2029-06-30T00:00:00Z",
-    agency: "NASA",
-    location: "Venus",
-    importance: 75,
-    image: "/placeholder.svg?height=300&width=500",
-    tags: ["Venus", "NASA", "Atmosphere"],
-  },
-  {
-    id: 7,
-    title: "Dragonfly Launch to Titan",
-    description: "Launch of the Dragonfly rotorcraft to explore Saturn's moon Titan.",
-    date: "2027-07-01T00:00:00Z",
-    agency: "NASA",
-    location: "Titan",
-    importance: 82,
-    image: "/placeholder.svg?height=300&width=500",
-    tags: ["Titan", "NASA", "Dragonfly"],
-  },
-  {
-    id: 8,
-    title: "ESA ExoMars Rover Launch",
-    description: "Launch of the Rosalind Franklin rover to search for signs of past life on Mars.",
-    date: "2028-09-10T00:00:00Z",
-    agency: "ESA/Roscosmos",
-    location: "Mars",
-    importance: 78,
-    image: "/placeholder.svg?height=300&width=500",
-    tags: ["Mars", "ESA", "Rover"],
-  },
-  {
-    id: 9,
-    title: "NASA VIPER Moon Rover",
-    description: "Volatiles Investigating Polar Exploration Rover to search for water on the Moon.",
-    date: "2024-11-22T00:00:00Z",
-    agency: "NASA",
-    location: "Moon",
-    importance: 76,
-    image: "/placeholder.svg?height=300&width=500",
-    tags: ["Moon", "NASA", "Rover"],
-  },
-  {
-    id: 10,
-    title: "First Artemis Lunar Base Module",
-    description: "Delivery of the first habitat module for the Artemis Base Camp.",
-    date: "2028-03-15T00:00:00Z",
-    agency: "NASA/International Partners",
-    location: "Moon",
-    importance: 92,
-    image: "/placeholder.svg?height=300&width=500",
-    tags: ["Moon", "NASA", "Habitat"],
-  },
-  {
-    id: 11,
-    title: "OSIRIS-APEX Asteroid Apophis Encounter",
-    description:
-      "OSIRIS-REx spacecraft (renamed OSIRIS-APEX) will study asteroid Apophis during its close Earth approach.",
-    date: "2029-04-13T00:00:00Z",
-    agency: "NASA",
-    location: "Asteroid Apophis",
-    importance: 70,
-    image: "/placeholder.svg?height=300&width=500",
-    tags: ["Asteroid", "NASA", "OSIRIS"],
-  },
-  {
-    id: 12,
-    title: "New Horizons Reaches 100 AU",
-    description: "New Horizons spacecraft reaches 100 astronomical units from the Sun.",
-    date: "2029-12-25T00:00:00Z",
-    agency: "NASA",
-    location: "Outer Solar System",
-    importance: 65,
-    image: "/placeholder.svg?height=300&width=500",
-    tags: ["New Horizons", "NASA", "Outer Solar System"],
-  },
-]
+// Backend DTO structure
+interface SpaceMissionDTO {
+  id: number; // Assuming Long maps to number in JS/TS
+  name: string;
+  agency: string;
+  launchDate: string; // LocalDateTime will be string (ISO format)
+  description: string;
+  missionImage: string | null;
+  liveStreamUrl: string | null;
+  status: string; // Assuming SpaceMission.MissionStatus maps to string
+  creatorUserId: number;
+  creatorUsername: string | null;
+}
+
+// For paginated response
+interface Page<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number; // Current page number
+}
+
 
 // Get the next closest event (first upcoming event)
 const getNextClosestEvent = (events: Event[]): Event | undefined => {
+  if (!events || events.length === 0) return undefined;
   const now = new Date()
   return events
     .filter((event) => new Date(event.date) > now)
@@ -168,26 +57,65 @@ const getNextClosestEvent = (events: Event[]): Event | undefined => {
 }
 
 // Get the most anticipated events (top 8 by importance, excluding the next closest)
+// As 'importance' is not in DTO, we'll sort by date for now, or use a default importance.
 const getMostAnticipatedEvents = (events: Event[], nextEventId: number | undefined, limit = 8): Event[] => {
+  if (!events || events.length === 0) return [];
   const now = new Date()
   return events
     .filter((event) => new Date(event.date) > now && event.id !== nextEventId)
-    .sort((a, b) => b.importance - a.importance)
+    // Sort by date as importance is not available from backend
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) 
     .slice(0, limit)
 }
 
 type ViewMode = "year" | "month" | "day";
 
 export default function MissionsPage() {
-  const [viewMode, setViewMode] = useState<ViewMode>("year") // "year", "month", or "day"
+  const [allEvents, setAllEvents] = useState<Event[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  
+  const [viewMode, setViewMode] = useState<ViewMode>("year")
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
 
+  useEffect(() => {
+    const fetchMissions = async () => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        // Fetching first page, 20 missions. Adjust size as needed.
+        const response = await axiosInstance.get<Page<SpaceMissionDTO>>("/missions?page=0&size=20")
+        const missionsData = response.data.content
+
+        const mappedEvents: Event[] = missionsData.map((dto) => ({
+          id: dto.id,
+          title: dto.name,
+          description: dto.description,
+          date: dto.launchDate, // Assuming this is an ISO string
+          agency: dto.agency,
+          location: "Space Event", // Placeholder
+          importance: 50, // Default importance as it's not in DTO
+          image: dto.missionImage || "/placeholder.svg?height=300&width=500",
+          // Basic tags from title, can be improved
+          tags: dto.name.toLowerCase().split(" ").slice(0, 2), 
+        }))
+        setAllEvents(mappedEvents)
+      } catch (err) {
+        console.error("Failed to fetch missions:", err)
+        setError("Failed to load missions. Please try again later.")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchMissions()
+  }, [])
+
   // Get next closest event
-  const nextEvent = getNextClosestEvent(sampleEvents)
+  const nextEvent = getNextClosestEvent(allEvents)
 
   // Get most anticipated events
-  const anticipatedEvents = getMostAnticipatedEvents(sampleEvents, nextEvent?.id)
+  const anticipatedEvents = getMostAnticipatedEvents(allEvents, nextEvent?.id)
 
   // Handle month selection from year view
   const handleSelectMonth = (month: number) => {
@@ -278,7 +206,7 @@ export default function MissionsPage() {
           {/* Calendar View */}
           <div className="bg-transparent rounded-xl mb-10">
             <CalendarView
-              events={sampleEvents}
+              events={allEvents}
               initialViewMode={viewMode}
               initialMonth={selectedMonth ?? undefined}
               onViewModeChange={setViewMode}
@@ -308,7 +236,7 @@ export default function MissionsPage() {
       </main>
 
       {/* Search Overlay */}
-      {isSearchOpen && <CalendarSearchBar onClose={() => setIsSearchOpen(false)} events={sampleEvents} />}
+      {isSearchOpen && <CalendarSearchBar onClose={() => setIsSearchOpen(false)} events={allEvents} />}
     </div>
   )
 }

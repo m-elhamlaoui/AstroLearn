@@ -6,10 +6,15 @@ import com.example.demo.security.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+<<<<<<< HEAD
 import org.springframework.http.HttpMethod; // Import HttpMethod
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer; // Import Customizer
+=======
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+>>>>>>> cf94a13ed3742db7a2a9ba981ab08d511360469b
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -85,6 +90,7 @@ public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+<<<<<<< HEAD
         http.cors(Customizer.withDefaults()) // Enable CORS with default configuration (or customize further)
                 .csrf(AbstractHttpConfigurer::disable)
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
@@ -95,6 +101,14 @@ public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
                                 // Add other specific public GET endpoints if needed, e.g.:
                                 // .requestMatchers(HttpMethod.GET, "/articles", "/articles/*").permitAll() 
                                 .anyRequest().authenticated() // Require auth for everything else
+=======
+        http.csrf(AbstractHttpConfigurer::disable)
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth ->
+                        auth.requestMatchers("/**").permitAll()
+                                .anyRequest().authenticated()
+>>>>>>> cf94a13ed3742db7a2a9ba981ab08d511360469b
                 );
 
         http.authenticationProvider(authenticationProvider());
@@ -104,4 +118,8 @@ public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
         return http.build();
     }
 
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> cf94a13ed3742db7a2a9ba981ab08d511360469b

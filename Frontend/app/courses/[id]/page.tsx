@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, use } from "react" // Added use
+import axiosInstance from "@/lib/axiosInstance" 
 import { MinimalNavigation } from "@/components/minimal-navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -9,185 +10,215 @@ import { Star, Users, Clock, ArrowLeft, CheckCircle, Play } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
-// Sample course data - would be fetched from backend in production
-const getCourseById = (id: string) => {
-  return {
-    id: Number(id),
-    title: "Introduction to Astronomy",
-    description:
-      "Learn the fundamentals of astronomy, from celestial objects to the structure of the universe. This comprehensive course covers everything from the basics of stargazing to the complex physics of black holes.",
-    longDescription: `
-      <p>Astronomy is the scientific study of celestial objects (such as stars, planets, comets, and galaxies), the physics, chemistry, and evolution of such objects, and phenomena that originate outside the Earth's atmosphere (such as cosmic microwave background radiation).</p>
-      
-      <p>In this course, you will learn about:</p>
-      
-      <ul>
-        <li>The history of astronomy and how our understanding of the universe has evolved</li>
-        <li>The solar system and its components, including planets, moons, asteroids, and comets</li>
-        <li>Stars, their life cycles, and stellar evolution</li>
-        <li>Galaxies, their types, and the structure of the universe</li>
-        <li>Modern astronomical tools and techniques</li>
-        <li>Current research and discoveries in the field</li>
-      </ul>
-      
-      <p>By the end of this course, you will have a solid foundation in astronomical concepts and be prepared for more advanced studies in astrophysics and space science.</p>
-    `,
-    image: "/placeholder.svg?height=500&width=1000",
-    instructor: "Dr. Elena Rodriguez",
-    instructorBio: "Astrophysicist with 15 years of experience in research and education. Former NASA scientist.",
-    instructorImage: "/placeholder.svg?height=100&width=100",
-    level: "Beginner",
-    duration: "4 weeks",
-    category: "Astronomy Basics",
-    rating: 4.8,
-    studentsCount: 1245,
-    modules: [
-      {
-        id: 1,
-        title: "Introduction to the Night Sky",
-        description: "Learn about constellations, celestial coordinates, and basic stargazing.",
-        lessons: [
-          {
-            id: 101,
-            title: "Understanding the Celestial Sphere",
-            duration: "15 min",
-            completed: true,
-          },
-          {
-            id: 102,
-            title: "Major Constellations and How to Find Them",
-            duration: "20 min",
-            completed: true,
-          },
-          {
-            id: 103,
-            title: "Celestial Coordinates and Star Charts",
-            duration: "25 min",
-            completed: false,
-          },
-        ],
-      },
-      {
-        id: 2,
-        title: "The Solar System",
-        description: "Explore our cosmic neighborhood, including planets, moons, and other objects.",
-        lessons: [
-          {
-            id: 201,
-            title: "The Sun: Our Star",
-            duration: "30 min",
-            completed: false,
-          },
-          {
-            id: 202,
-            title: "Inner Planets: Mercury, Venus, Earth, and Mars",
-            duration: "45 min",
-            completed: false,
-          },
-          {
-            id: 203,
-            title: "Outer Planets: Jupiter, Saturn, Uranus, and Neptune",
-            duration: "45 min",
-            completed: false,
-          },
-          {
-            id: 204,
-            title: "Dwarf Planets, Asteroids, and Comets",
-            duration: "30 min",
-            completed: false,
-          },
-        ],
-      },
-      {
-        id: 3,
-        title: "Stars and Stellar Evolution",
-        description: "Learn about the life cycles of stars from birth to death.",
-        lessons: [
-          {
-            id: 301,
-            title: "Star Formation and Classification",
-            duration: "35 min",
-            completed: false,
-          },
-          {
-            id: 302,
-            title: "Main Sequence Stars",
-            duration: "25 min",
-            completed: false,
-          },
-          {
-            id: 303,
-            title: "Red Giants and Supergiants",
-            duration: "20 min",
-            completed: false,
-          },
-          {
-            id: 304,
-            title: "Stellar Death: White Dwarfs, Neutron Stars, and Black Holes",
-            duration: "40 min",
-            completed: false,
-          },
-        ],
-      },
-      {
-        id: 4,
-        title: "Galaxies and Cosmology",
-        description: "Explore the larger structures of the universe and theories about its origin and evolution.",
-        lessons: [
-          {
-            id: 401,
-            title: "Galaxy Types and Formation",
-            duration: "30 min",
-            completed: false,
-          },
-          {
-            id: 402,
-            title: "The Milky Way Galaxy",
-            duration: "25 min",
-            completed: false,
-          },
-          {
-            id: 403,
-            title: "The Big Bang Theory",
-            duration: "35 min",
-            completed: false,
-          },
-          {
-            id: 404,
-            title: "Dark Matter and Dark Energy",
-            duration: "40 min",
-            completed: false,
-          },
-        ],
-      },
-    ],
-  }
+// Define interfaces for backend DTOs and page data structure
+interface CourseDTO {
+  id: number;
+  title: string;
+  imageUrl: string;
+  description: string;
+  difficulty: string; // e.g., "BEGINNER", "INTERMEDIATE", "ADVANCED"
+  totalLessons: number;
+  moduleIds: number[];
 }
 
-export default function CoursePage({ params }: { params: { id: string } }) {
-  const course = getCourseById(params.id)
+interface ModuleDTO {
+  id: number;
+  title: string;
+  courseId: number;
+  lessonCount: number;
+  lessonIds: number[];
+  // description is not in ModuleDTO, will use title or placeholder
+}
+
+interface LessonDTO {
+  id: number;
+  title: string;
+  content: string; // Assuming content can be used for a brief description if needed
+  videoUrl: string | null;
+  moduleId: number;
+  quizId: number | null;
+  // duration and completed are not in LessonDTO
+}
+
+interface CourseProgressDTO {
+  id: number;
+  completionPercentage: number;
+  completed: boolean;
+  lastAccessed: string; // ISO DateTime string
+  userId: number;
+  courseId: number;
+  currentLessonId: number | null;
+  completedLessonIds: number[];
+}
+
+interface PageLesson {
+  id: number;
+  title: string;
+  duration: string; // Placeholder, as not in DTO
+  completed: boolean;
+}
+
+interface PageModule {
+  id: number;
+  title: string;
+  description: string; // Placeholder or derived
+  lessons: PageLesson[];
+}
+
+interface PageCourse {
+  id: number;
+  title: string;
+  description: string;
+  longDescription: string; // Will use DTO's description, rendered as text
+  image: string;
+  instructor: string; // Placeholder
+  instructorBio: string; // Placeholder
+  instructorImage: string; // Placeholder
+  level: string;
+  duration: string; // Placeholder
+  category: string; // Placeholder
+  rating: number; // Placeholder
+  studentsCount: number; // Placeholder
+  modules: PageModule[];
+}
+
+export default function CoursePage({ params: paramsPromise }: { params: Promise<{ id: string }> }) { // Modified params prop
+  const params = use(paramsPromise); // Resolve the params promise
+
+  const [course, setCourse] = useState<PageCourse | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [expandedModules, setExpandedModules] = useState<string[]>([])
 
-  // Calculate progress
+  useEffect(() => {
+    const fetchCourseData = async () => {
+      setIsLoading(true)
+      setError(null)
+      // TODO: Replace with actual logged-in user ID
+      const userIdForProgress = 1 
+
+      try {
+        // 1. Fetch Course Details
+        const courseResponse = await axiosInstance.get<CourseDTO>(`/courses/${params.id}`)
+        const courseData = courseResponse.data
+        
+        // 2. Fetch Modules for the Course
+        const modulesResponse = await axiosInstance.get<ModuleDTO[]>(`/modules/courses/${courseData.id}`)
+        const moduleDataArray = modulesResponse.data
+
+        // 3. Fetch Course Progress
+        let completedLessonIdsSet = new Set<number>()
+        try {
+            const progressResponse = await axiosInstance.get<CourseProgressDTO>(`/course-progress/${userIdForProgress}/${courseData.id}`)
+            if (progressResponse.data && progressResponse.data.completedLessonIds) {
+                completedLessonIdsSet = new Set(progressResponse.data.completedLessonIds)
+            }
+        } catch (progressError) {
+            console.warn(`Could not fetch course progress for user ${userIdForProgress} and course ${courseData.id}:`, progressError)
+            // Continue without progress data if it fails
+        }
+
+        // 4. Fetch Lessons for each Module and map
+        const pageModules: PageModule[] = await Promise.all(
+          moduleDataArray.map(async (moduleDto) => {
+            const lessonsResponse = await axiosInstance.get<LessonDTO[]>(`/lessons/modules/${moduleDto.id}`)
+            const lessonDataArray = lessonsResponse.data
+
+            const pageLessons: PageLesson[] = lessonDataArray.map((lessonDto) => ({
+              id: lessonDto.id,
+              title: lessonDto.title,
+              duration: "N/A", // Placeholder for lesson duration
+              completed: completedLessonIdsSet.has(lessonDto.id),
+            }))
+
+            return {
+              id: moduleDto.id,
+              title: moduleDto.title,
+              description: moduleDto.title, // Using title as placeholder for module description
+              lessons: pageLessons,
+            }
+          }),
+        )
+
+        // 5. Map to PageCourse structure
+        const difficultyMap: { [key: string]: string } = {
+          BEGINNER: "Beginner",
+          INTERMEDIATE: "Intermediate",
+          ADVANCED: "Advanced",
+        }
+
+        setCourse({
+          id: courseData.id,
+          title: courseData.title,
+          description: courseData.description,
+          longDescription: `<p>${courseData.description.replace(/\n/g, "</p><p>")}</p>`, // Basic formatting for long description
+          image: courseData.imageUrl || "/placeholder.svg?height=500&width=1000", // Use S3/backend URL or fallback
+          instructor: "AstroLearn Faculty", // Placeholder
+          instructorBio: "Dedicated educators passionate about space and technology.", // Placeholder
+          instructorImage: "/placeholder.svg?height=100&width=100", // Placeholder
+          level: difficultyMap[courseData.difficulty.toUpperCase()] || "N/A",
+          duration: "N/A", // Placeholder for course duration
+          category: "Space Science", // Placeholder
+          rating: 0, // Placeholder
+          studentsCount: 0, // Placeholder
+          modules: pageModules,
+        })
+      } catch (err) {
+        console.error("Failed to fetch course details:", err)
+        setError("Failed to load course details. Please try again later.")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    if (params.id) {
+      fetchCourseData()
+    }
+  }, [params.id])
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen bg-black text-white justify-center items-center">
+        <p className="text-xl">Loading course details...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen bg-black text-white justify-center items-center">
+        <p className="text-xl text-red-500">{error}</p>
+      </div>
+    )
+  }
+
+  if (!course) {
+    return (
+      <div className="flex min-h-screen bg-black text-white justify-center items-center">
+        <p className="text-xl">Course not found.</p>
+      </div>
+    )
+  }
+
+  // Calculate progress (moved here to ensure 'course' is not null)
   const totalLessons = course.modules.reduce((total, module) => total + module.lessons.length, 0)
   const completedLessons = course.modules.reduce(
     (total, module) => total + module.lessons.filter((lesson) => lesson.completed).length,
     0,
   )
-  const progressPercentage = Math.round((completedLessons / totalLessons) * 100)
+  const progressPercentage = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
 
   // Find first incomplete lesson for "Start Course" button
   const firstIncompleteLesson = course.modules
-    .map((module) => {
-      const incompleteLesson = module.lessons.find((lesson) => !lesson.completed)
-      return incompleteLesson ? { moduleId: module.id, lessonId: incompleteLesson.id } : null
-    })
-    .filter(Boolean)[0]
+    .flatMap((module) => module.lessons.map(lesson => ({ ...lesson, moduleId: module.id })))
+    .find((lesson) => !lesson.completed)
 
-  // If all lessons are completed, use the first lesson
+  // If all lessons are completed, or no lessons, use the first lesson of the first module if available
   const startLessonLink = firstIncompleteLesson
-    ? `/courses/${course.id}/modules/${firstIncompleteLesson.moduleId}/lessons/${firstIncompleteLesson.lessonId}`
-    : `/courses/${course.id}/modules/${course.modules[0].id}/lessons/${course.modules[0].lessons[0].id}`
+    ? `/courses/${course.id}/modules/${firstIncompleteLesson.moduleId}/lessons/${firstIncompleteLesson.id}`
+    : (course.modules.length > 0 && course.modules[0].lessons.length > 0
+        ? `/courses/${course.id}/modules/${course.modules[0].id}/lessons/${course.modules[0].lessons[0].id}`
+        : `/courses/${course.id}`); // Fallback if no lessons
 
   return (
     <div className="flex min-h-screen bg-black text-white">
@@ -208,7 +239,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
             {/* Course Image */}
             <div className="md:col-span-1">
               <div className="relative h-60 rounded-xl overflow-hidden">
-                <Image src={course.image || "/placeholder.svg"} alt={course.title} fill className="object-cover" />
+                <Image src={course.image} alt={course.title} fill className="object-cover" />
               </div>
             </div>
 
@@ -225,19 +256,23 @@ export default function CoursePage({ params }: { params: { id: string } }) {
               </div>
 
               <div className="flex flex-wrap gap-6 mb-6">
-                <div className="flex items-center gap-1">
-                  <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-                  <span className="font-medium">{course.rating}</span>
-                </div>
+                {course.rating > 0 && (
+                  <div className="flex items-center gap-1">
+                    <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+                    <span className="font-medium">{course.rating}</span>
+                  </div>
+                )}
 
-                <div className="flex items-center gap-1 text-gray-300">
-                  <Users className="h-5 w-5" />
-                  <span>{course.studentsCount.toLocaleString()} students</span>
-                </div>
+                {course.studentsCount > 0 && (
+                  <div className="flex items-center gap-1 text-gray-300">
+                    <Users className="h-5 w-5" />
+                    <span>{course.studentsCount.toLocaleString()} students</span>
+                  </div>
+                )}
 
                 <div className="flex items-center gap-1 text-gray-300">
                   <Clock className="h-5 w-5" />
-                  <span>{course.duration}</span>
+                  <span>{course.duration}</span> {/* This will show N/A if not available */}
                 </div>
               </div>
 
@@ -267,7 +302,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
             <div className="flex items-start gap-4">
               <div className="relative h-16 w-16 rounded-full overflow-hidden">
                 <Image
-                  src={course.instructorImage || "/placeholder.svg"}
+                  src={course.instructorImage} // Already has fallback from mapping
                   alt={course.instructor}
                   fill
                   className="object-cover"

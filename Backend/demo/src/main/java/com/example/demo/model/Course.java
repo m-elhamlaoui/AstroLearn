@@ -28,6 +28,8 @@ public class Course {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+
+
     @Enumerated(EnumType.STRING)
     private DifficultyLevel difficulty;
 
@@ -37,6 +39,8 @@ public class Course {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<CourseProgress> progresses = new ArrayList<>();
 
+    // add course imageURL
+    private String imageUrl;
 
     @Transient // Calculated field, not persisted
     public int getTotalLessons() {

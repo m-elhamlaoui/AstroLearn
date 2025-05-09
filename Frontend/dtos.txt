@@ -1,0 +1,199 @@
+dtos:
+
+
+public record ArticleDTO(
+        Long id,
+        String title,
+        String summary,
+        String content,
+        List<String> imageUrls,
+        LocalDateTime createdAt,
+
+        // --- Relationships ---
+        Long authorId,           // ID of the User who wrote it
+        String authorUsername,   // Convenient display field
+
+
+        int score,
+        Long commentCount,
+
+        Set<String> tags
+) {
+}
+
+
+public record ArticleRatingDTO(
+        Long id,
+        int rating,
+        Long userId,
+        Long articleId
+) {}
+
+
+
+public record ArticleTagDTO(
+        Long id,
+        String name
+) {}
+
+
+
+public record ArticleVoteRequestDTO(
+        @NotNull VoteType voteType // User specifies UP or DOWN
+) {}
+
+public record CommentDTO(
+        Long id,
+        String content,
+        Long articleId,
+        LocalDateTime createdAt,
+        // --- Relationships ---
+        Long userId,
+        String authorUsername // Convenient display field
+) {
+}
+
+public record CourseDTO(
+        Long id,
+        String title,
+        String imageUrl,
+        String description,
+        Course.DifficultyLevel difficulty,
+        int totalLessons,
+        List<Long> moduleIds
+) {}
+
+public record CourseProgressDTO(
+        Long id,
+        double completionPercentage,
+        boolean completed,
+        LocalDateTime lastAccessed,
+        // --- Relationships ---
+        Long userId,
+        Long courseId,
+        Long currentLessonId, // ID of the Lesson the user is currently on (optional)
+        Set<Long> completedLessonIds // If needed for detailed tracking
+) {}
+
+
+public record LessonDTO(
+        Long id,
+        String title,
+        String content,
+        String videoUrl,
+        Long moduleId,
+        Long quizId
+) {
+}
+
+
+
+public record ModuleDTO(
+        Long id,
+        String title,
+        Long courseId,
+        int lessonCount,
+        List<Long> lessonIds
+) {
+}
+
+
+public record QuizCompletionDTO(
+        Long id,
+        int score,
+        LocalDateTime completionDate,
+        Long userId,
+        String username, // Convenient display field
+        Long quizId,
+        String quizTitle // Convenient display field
+) {}
+
+
+public record QuizDTO(
+        Long id,
+        String title,
+        List<QuizQuestionDTO> questions,
+        Long lessonId,
+        String lessonTitle,
+        int experienceReward
+) {
+}
+
+
+public record QuizQuestionAnswerDTO(
+        Long questionId,
+        int chosenOptionIndex
+) {}
+
+
+
+public record QuizQuestionDTO(
+        Long id,
+        String questionText,
+        List<String> options
+        // --- Relationship ---
+        // Long quizId; // Often unnecessary if QuizQuestionDTO is always nested within QuizDTO
+) {}
+
+public record QuizSubmissionDTO(
+        Long userId, // Or get from security context
+        List<QuizQuestionAnswerDTO> answers
+) {}
+
+
+public record ReadingHistoryDTO(
+        Long id, // Added ID as per UML convention
+        boolean isRead,
+        int timeSpentSeconds,
+        LocalDateTime lastAccessed,
+        // --- Relationships ---
+        Long userId,
+        Long articleId,
+        String articleTitle // Convenient display field
+) {}
+
+
+public record SpaceMissionDTO(
+        Long id,
+        String name,
+        String agency,
+        LocalDateTime launchDate,
+        String description,
+        String missionImage,
+        String liveStreamUrl,
+        SpaceMission.MissionStatus status,
+        Long creatorUserId, // ID of the User who created the mission
+        String creatorUsername // Optional convenience field
+) {}
+
+
+
+// Represents public or semi-public User information
+public record UserDTO(
+        Long id,
+        String username,
+        String email,
+        String bio,
+        String password,
+        String profileImageUrl,
+        String photoCoverUrl,
+        User.UserRole role,
+        User.UserVerification verificationStatus,
+        User.UserLevel level,
+        int experiencePoints,
+        // --- Calculated/Aggregated Data (Optional, depends on use case) ---
+        Long articleCount,
+        Long commentCount,
+        Long quizCompletionCount,
+        // --- Relationships (Collections represented minimally) ---
+        // Avoid listing all IDs if they can be very large lists.
+        // Provide dedicated endpoints like /users/{id}/articles, /users/{id}/course-progress etc.
+        // List<Long> articleIds,          // IDs of Articles written by the user
+        // List<Long> commentIds,          // IDs of Comments written by the user
+        // List<Long> articleRatingIds,    // IDs of Ratings given by the user
+        List<Long> readingHistoryIds,   // IDs of ReadingHistory records
+        List<Long> courseProgressIds,   // IDs of CourseProgress records
+        List<Long> quizCompletionIds,   // IDs of QuizCompletions
+        List<Long> createdSpaceMissionIds // IDs of SpaceMissions created by the user
+) {}
+

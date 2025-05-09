@@ -28,4 +28,14 @@ axiosInstance.interceptors.request.use(
   }
 );
 
+export const clearAuthToken = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('authToken');
+    // Optionally, you could also clear the header on the instance if it was set directly,
+    // but the interceptor handles this by not finding the token.
+    // delete axiosInstance.defaults.headers.common['Authorization']; // Not strictly necessary with the current interceptor
+    console.log("[Auth] authToken cleared from localStorage.");
+  }
+};
+
 export default axiosInstance;

@@ -8,8 +8,9 @@ import { CalendarView } from "@/components/calendar-view"
 import { AnticipatedEventCard } from "@/components/anticipated-event-card" 
 import { CalendarSearchBar } from "@/components/calendar-search-bar"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, Search, Calendar as CalendarIcon } from "lucide-react" // ChevronLeft might be unused now
+import { ChevronLeft, Search, Calendar as CalendarIcon } from "lucide-react" 
 import { BloomingStars } from "@/components/blooming-stars"
+import { useAuthRedirect } from "@/lib/useAuthRedirect"; // Import the hook
 
 interface Event {
   id: number;
@@ -44,21 +45,17 @@ interface Page<T> {
   number: number; 
 }
 
-// type ViewMode = "year" | "month" | "day"; // Only "year" view will be primarily used here
-
 export default function MissionsPage() {
+  useAuthRedirect(); // Apply the auth redirect hook
   const router = useRouter(); 
   const [upcomingMissions, setUpcomingMissions] = useState<Event[]>([])
   const [inProgressMissions, setInProgressMissions] = useState<Event[]>([])
   const [completedMissions, setCompletedMissions] = useState<Event[]>([])
   const [allEventsForCalendar, setAllEventsForCalendar] = useState<Event[]>([])
-  // eventsForMonthView, selectedMonth, selectedYear are removed
 
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   
-  // viewMode will be predominantly "year" on this page. 
-  // CalendarView itself handles internal view mode for display if needed, but navigation takes precedence.
   const [viewMode, setViewMode] = useState<"year" | "month" | "day">("year"); 
   const [isSearchOpen, setIsSearchOpen] = useState(false)
 
@@ -115,19 +112,9 @@ export default function MissionsPage() {
     fetchAllMissionsData();
   }, []);
 
-  // Removed useEffect for eventsForMonthView
-  // Removed handleMonthYearSelect
-
-  // handleBack is no longer needed as this page is primarily year view.
-  // Navigation back from month page will use router.back() or link to /missions.
-
-  const pageTitle = "Space Missions Calendar"; // Simplified title
+  const pageTitle = "Space Missions Calendar"; 
 
   const handleDayClick = (date: Date, eventsOnDay: Event[]) => {
-    // This might still be relevant if CalendarView is in month mode on this page,
-    // but the primary interaction is navigating away when a month is clicked.
-    // For now, if a day is clicked (e.g. if user somehow gets to month view here without navigating),
-    // it will try to navigate to the event.
     if (eventsOnDay.length === 1) {
       router.push(`/missions/events/${eventsOnDay[0].id}`);
     } else if (eventsOnDay.length > 1) {
@@ -135,15 +122,9 @@ export default function MissionsPage() {
     }
   };
   
-  // onViewModeChange for CalendarView can still update local viewMode if needed for UI elements on this page
-  // but CalendarView's internal logic now drives navigation for month selection.
   const handleViewModeChange = (newMode: "year" | "month" | "day") => {
     setViewMode(newMode);
-    // If CalendarView somehow switches to month view on this page (e.g. via its own toggle),
-    // and we want to navigate, we could add logic here.
-    // However, CalendarView's toggle now also tries to navigate.
   };
-
 
   if (isLoading) {
     return (
@@ -161,17 +142,13 @@ export default function MissionsPage() {
         <div className="container mx-auto">
           <div className="flex justify-between items-center mb-8">
             <div>
-              {/* Header no longer needs back button as this is top level for calendar year view */}
               <h1 className="text-3xl font-bold">{pageTitle}</h1>
             </div>
             <div className="flex gap-2">
-              {/* The CalendarIcon button in CalendarView now handles navigation to current month page */}
-              {/* This button could be removed or repurposed if CalendarView's toggle is preferred */}
                <Button
                   variant="outline"
                   size="icon"
                   onClick={() => {
-                    // This button forces navigation to current month's page
                     const now = new Date();
                     router.push(`/missions/month/${now.getFullYear()}/${now.getMonth() + 1}`);
                   }}
@@ -195,12 +172,10 @@ export default function MissionsPage() {
 
           <div className="bg-transparent rounded-xl mb-10">
             <CalendarView
-              events={allEventsForCalendar} // Always pass all events for year view context
-              initialViewMode="year" // This page is now primarily for year view
-              // initialMonth is not needed as month selection navigates away
-              onViewModeChange={handleViewModeChange} // Parent still knows the mode
-              onDayClick={handleDayClick} // For potential day clicks if month view is reached
-              // onMonthSelect is removed
+              events={allEventsForCalendar} 
+              initialViewMode="year" 
+              onViewModeChange={handleViewModeChange} 
+              onDayClick={handleDayClick} 
             />
           </div>
 

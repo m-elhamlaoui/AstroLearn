@@ -49,4 +49,7 @@ public interface SpaceMissionService {
      * @throws UnauthorizedException if user is not creator or admin
      */
     void deleteMission(Long id, Long userId);
+
+    Page<SpaceMissionDTO> getMissionsByStatus(String status, Pageable pageable);
+    List<SpaceMissionDTO> getMissionsByMonth(int year, int month);
 }

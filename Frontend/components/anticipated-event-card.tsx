@@ -12,26 +12,14 @@ interface AnticipatedEventCardProps {
 export function AnticipatedEventCard({ event }: AnticipatedEventCardProps) {
   const eventDate = new Date(event.date)
 
-  // Get color based on importance
-  const getImportanceColor = (importance: number) => {
-    if (importance >= 90) return "bg-red-500"
-    if (importance >= 80) return "bg-orange-500"
-    if (importance >= 70) return "bg-yellow-500"
-    if (importance >= 60) return "bg-green-500"
-    if (importance >= 50) return "bg-blue-500"
-    return "bg-indigo-500"
-  }
-
-  const importanceColor = getImportanceColor(event.importance)
+  // Removed getImportanceColor function and importanceColor variable
 
   return (
     <Card className="bg-gray-900 border-gray-700 overflow-hidden rounded-xl hover:shadow-lg hover:shadow-indigo-900/20 transition-all duration-300 h-full flex flex-col">
       {/* Event Image */}
       <div className="relative h-40">
         <Image src={event.image || "/placeholder.svg"} alt={event.title} fill className="object-cover" />
-        <div className="absolute top-2 right-2">
-          <Badge className={`${importanceColor} text-white`}>{event.importance}% Anticipated</Badge>
-        </div>
+        {/* Removed Anticipated Badge */}
       </div>
 
       {/* Event Content */}

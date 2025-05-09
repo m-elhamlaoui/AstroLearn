@@ -8,30 +8,47 @@ import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
+import { useRouter } from "next/navigation" // Added useRouter
 
 interface Event {
-  id: string | number
+  id: number 
   title: string
-  date: string | Date
-  description?: string
-  location?: string
-  agency?: string
-  // importance: number; // Removed
-  tags?: string[]
+  date: string; 
+  description: string; 
+  location: string; 
+  agency: string; 
+  image: string; 
+  tags: string[]; 
+  status?: string; 
 }
 
 interface CalendarViewProps {
   events: Event[]
   initialViewMode?: "year" | "month" | "day"
-  initialMonth?: number
-  onViewModeChange?: (mode: "year" | "month" | "day") => void
+  initialMonth?: number // Month number (1-12)
+  initialYear?: number // Added to correctly initialize currentDate for month/day views on specific month pages
+  onViewModeChange?: (mode: "year" | "month" | "day") => void // Still useful for parent to know the mode
+  onDayClick?: (date: Date, events: Event[]) => void;
+  // onMonthSelect is removed as navigation will handle month changes
 }
 
-export function CalendarView({ events, initialViewMode = "year", initialMonth, onViewModeChange }: CalendarViewProps) {
-  const [viewMode, setViewMode] = useState(initialViewMode)
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const [selectedMonth, setSelectedMonth] = useState(initialMonth || currentDate.getMonth() + 1)
-  const [hoveredDay, setHoveredDay] = useState<number | null>(null)
+export function CalendarView({ 
+  events, 
+  initialViewMode = "year", 
+  initialMonth, 
+  initialYear,
+  onViewModeChange, 
+  onDayClick 
+}: CalendarViewProps) {
+  const router = useRouter();
+  const [viewMode, setViewMode] = useState(initialViewMode);
+  
+  const [currentDate, setCurrentDate] = useState(() => {
+    const now = new Date();
+    const yearToUse = initialYear || now.getFullYear();
+    const monthToUse = initialMonth ? initialMonth - 1 : now.getMonth(); // initialMonth is 1-12, Date month is 0-11
+    return new Date(yearToUse, monthToUse);
+  });
 
   useEffect(() => {
     if (onViewModeChange) {
@@ -39,24 +56,49 @@ export function CalendarView({ events, initialViewMode = "year", initialMonth, o
     }
   }, [viewMode, onViewModeChange])
 
+  useEffect(() => {
+    // Sync currentDate if initialMonth or initialYear props change,
+    // and CalendarView is in a mode where these props are relevant (month/day view).
+    if (viewMode === "month" || viewMode === "day") {
+      const yearToSet = initialYear !== undefined ? initialYear : currentDate.getFullYear();
+      const monthToSet = initialMonth !== undefined ? initialMonth - 1 : currentDate.getMonth(); // initialMonth is 1-12
+
+      if (currentDate.getFullYear() !== yearToSet || currentDate.getMonth() !== monthToSet) {
+        setCurrentDate(new Date(yearToSet, monthToSet));
+      }
+    }
+  }, [initialMonth, initialYear, viewMode]); // Removed currentDate from dependencies
+
+
   const navigateDate = (direction: "prev" | "next") => {
     setCurrentDate(prev => {
+      const newDateBasis = new Date(prev); // Clone to avoid modifying 'prev' directly before calculation
       if (viewMode === "year") {
-        return new Date(prev.getFullYear() + (direction === "next" ? 1 : -1), prev.getMonth())
-      } else {
-        return new Date(prev.getFullYear(), prev.getMonth() + (direction === "next" ? 1 : -1))
+        newDateBasis.setFullYear(newDateBasis.getFullYear() + (direction === "next" ? 1 : -1));
+        return newDateBasis;
+      } else { // month or day view
+        newDateBasis.setMonth(newDateBasis.getMonth() + (direction === "next" ? 1 : -1));
+        // If on a specific month page, update URL
+        if (window.location.pathname.startsWith("/missions/month/")) {
+             router.push(`/missions/month/${newDateBasis.getFullYear()}/${newDateBasis.getMonth() + 1}`);
+        }
+        return newDateBasis;
       }
     })
   }
 
-  const handleMonthSelect = (month: number) => {
-    setSelectedMonth(month)
-    setCurrentDate(new Date(currentDate.getFullYear(), month - 1))
-    setViewMode("month")
+  const handleMonthSelectFromYearView = (monthNumber: number) => { // monthNumber is 1-12
+    const year = currentDate.getFullYear();
+    router.push(`/missions/month/${year}/${monthNumber}`);
   }
 
   const toggleView = () => {
-    setViewMode(viewMode === "year" ? "month" : "year")
+    const newViewMode = viewMode === "year" ? "month" : "year";
+    setViewMode(newViewMode);
+    // If on main /missions page and toggling to month view, go to current month's page
+    if (newViewMode === "month" && window.location.pathname === "/missions") {
+        router.push(`/missions/month/${currentDate.getFullYear()}/${currentDate.getMonth() + 1}`);
+    }
   }
 
   const getEventsByDate = (date: Date) => {
@@ -69,8 +111,6 @@ export function CalendarView({ events, initialViewMode = "year", initialMonth, o
       )
     })
   }
-
-  // Removed getImportanceStyle function
 
   const renderYearView = () => {
     const monthAbbrs = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
@@ -88,26 +128,24 @@ export function CalendarView({ events, initialViewMode = "year", initialMonth, o
             return eventDate.getMonth() === index && eventDate.getFullYear() === currentDate.getFullYear()
           })
           
-          // Removed importance calculation and styling logic
-          // const maxImportance = monthEvents.length > 0
-          //   ? Math.max(...monthEvents.map(e => e.importance))
-          //   : 0
-          // const { gradient, border } = getImportanceStyle(maxImportance)
-
           return (
             <motion.button
               key={month}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => handleMonthSelect(index + 1)}
+              onClick={() => handleMonthSelectFromYearView(index + 1)}
               className={`
                 p-4 rounded-xl border backdrop-blur-sm
-                bg-gray-800/40 border-gray-700/50 // Default style
+                ${monthEvents.length > 0 ? 'bg-indigo-700/50 border-indigo-500 hover:bg-indigo-600/60' : 'bg-gray-800/40 border-gray-700/50 hover:bg-gray-700/50'}
                 transition-all duration-200
               `}
             >
-              <div className="text-lg font-bold mb-2">{month}</div>
-              <div className="text-sm text-gray-400">{monthEvents.length} events</div>
+              <div className={`text-lg font-bold mb-2 ${monthEvents.length > 0 ? 'text-white' : 'text-gray-300'}`}>{month}</div>
+              {monthEvents.length > 0 ? (
+                <div className="text-sm text-indigo-200">{monthEvents.length} event{monthEvents.length === 1 ? '' : 's'}</div>
+              ) : (
+                <div className="text-sm text-gray-500">No events</div>
+              )}
             </motion.button>
           )
         })}
@@ -120,9 +158,9 @@ export function CalendarView({ events, initialViewMode = "year", initialMonth, o
     const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay()
     const dayNames = ["S", "M", "T", "W", "T", "F", "S"]
 
-    const days = Array.from({ length: daysInMonth }, (_, i) => i + 1)
+    const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1)
     const paddingDays = Array.from({ length: firstDayOfMonth }, (_, i) => null)
-    const allDays = [...paddingDays, ...days]
+    const allDays = [...paddingDays, ...daysArray]
 
     return (
       <motion.div
@@ -132,37 +170,37 @@ export function CalendarView({ events, initialViewMode = "year", initialMonth, o
         className="w-full max-w-[1024px] mx-auto"
       >
         <div className="grid grid-cols-7 gap-1 mb-2">
-          {dayNames.map(day => (
-            <div key={day} className="text-center text-sm font-medium text-gray-400">{day}</div>
+          {dayNames.map((day, index) => (
+            <div key={`${day}-${index}`} className="text-center text-sm font-medium text-gray-400">{day}</div>
           ))}
         </div>
         <div className="grid grid-cols-7 gap-1">
-          {allDays.map((day, index) => {
-            if (!day) return <div key={`empty-${index}`} className="aspect-square" />
+          {allDays.map((day, idx) => {
+            if (!day) return <div key={`empty-${idx}`} className="aspect-square" />
 
-            const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
-            const dayEvents = getEventsByDate(date)
-            // Removed importance calculation and styling logic
-            // const maxImportance = dayEvents.length > 0
-            //   ? Math.max(...dayEvents.map(e => e.importance))
-            //   : 0
-            // const { gradient, border } = getImportanceStyle(maxImportance)
+            const dateObj = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
+            const dayEvents = getEventsByDate(dateObj)
             
             return (
               <Popover key={day}>
                 <PopoverTrigger asChild>
                   <motion.button
+                    onClick={() => {
+                      if (onDayClick) {
+                        onDayClick(dateObj, dayEvents);
+                      }
+                    }}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className={`
                       aspect-square p-2 rounded-lg border relative
-                      bg-gray-800/40 border-gray-700/50 // Default style
-                      transition-all duration-200
+                      ${dayEvents.length > 0 ? 'bg-sky-700/40 border-sky-600 hover:bg-sky-600/50' : 'bg-gray-800/40 border-gray-700/50 hover:bg-gray-700/50'}
+                      transition-all duration-200 flex flex-col items-center justify-center
                     `}
                   >
-                    <div className="text-sm font-medium">{day}</div>
+                    <div className={`text-sm font-medium ${dayEvents.length > 0 ? 'text-white' : 'text-gray-300'}`}>{day}</div>
                     {dayEvents.length > 0 && (
-                      <div className="absolute bottom-1 right-1 w-2 h-2 rounded-full bg-white/80" />
+                      <span className="text-xs text-sky-300 mt-1">{dayEvents.length}</span>
                     )}
                   </motion.button>
                 </PopoverTrigger>
@@ -251,7 +289,7 @@ export function CalendarView({ events, initialViewMode = "year", initialMonth, o
       <AnimatePresence mode="wait">
         {viewMode === "year" && renderYearView()}
         {viewMode === "month" && renderMonthView()}
-        {viewMode === "day" && renderMonthView()}
+        {viewMode === "day" && renderMonthView()} 
       </AnimatePresence>
     </div>
   )

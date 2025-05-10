@@ -44,7 +44,7 @@ services:
     container_name: si-postgres
     restart: always
     environment:
-      POSTGRES_DB: db2
+      POSTGRES_DB: db4
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
     ports:

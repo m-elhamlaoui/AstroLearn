@@ -91,11 +91,10 @@ public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
                  .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                  .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                  .authorizeHttpRequests(auth ->
-                         auth.requestMatchers("/auth/**").permitAll() // Allow auth endpoints
-                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Permit all OPTIONS requests for CORS preflight
-                                 // Add other specific public GET endpoints if needed, e.g.:
-                                 // .requestMatchers(HttpMethod.GET, "/articles", "/articles/*").permitAll() 
-                                 .anyRequest().authenticated() // Require auth for everything else
+                         auth.requestMatchers("/actuator/health").permitAll() // Permit Actuator health endpoint
+                                 .requestMatchers("/auth/**").permitAll()         // Permit your authentication paths (e.g., /auth/signup, /auth/signin)
+                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Permit CORS preflight requests
+                                 .anyRequest().authenticated()                    // Secure all other requests
                  );
  
          http.authenticationProvider(authenticationProvider());

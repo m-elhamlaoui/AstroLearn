@@ -1,4 +1,3 @@
-
 package com.example.demo.repository;
 
 import com.example.demo.model.ArticleVote;
@@ -19,6 +18,9 @@ public interface ArticleVoteRepository extends JpaRepository<ArticleVote, Long> 
 
     // Find all votes by a user for a given list of article IDs
     List<ArticleVote> findByUserIdAndArticleIdIn(Long userId, List<Long> articleIds);
+
+    // Find all votes for a specific article
+    List<ArticleVote> findByArticleId(Long articleId);
 
     // Optional: Find all article IDs downvoted by a specific user
     @Query("SELECT av.article.id FROM ArticleVote av WHERE av.user.id = :userId AND av.value = -1")

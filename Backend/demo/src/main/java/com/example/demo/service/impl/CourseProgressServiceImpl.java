@@ -11,8 +11,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -52,32 +54,34 @@ public class CourseProgressServiceImpl implements CourseProgressService {
         CourseProgress savedProgress = courseProgressRepository.save(progress);
         return entityMapper.toDTO(savedProgress);
     }
+@Override
+public CourseProgressDTO markLessonCompleted(Long userId, Long courseId, Long lessonId) {
+    // TODO: Add security check: Ensure requesting user ID matches userId
 
-    @Override
-    public CourseProgressDTO markLessonCompleted(Long userId, Long courseId, Long lessonId) {
-        // TODO: Add security check: Ensure requesting user ID matches userId
+    CourseProgress progress = courseProgressRepository.findByUserIdAndCourseId(userId, courseId)
+            .orElseThrow(() -> new ResourceNotFoundException("CourseProgress for user " + userId + " and course " + courseId));
 
-        CourseProgress progress = courseProgressRepository.findByUserIdAndCourseId(userId, courseId)
-                .orElseThrow(() -> new ResourceNotFoundException("CourseProgress for user " + userId + " and course " + courseId));
-
-        Lesson lesson = lessonRepository.findById(lessonId)
-                .orElseThrow(() -> new ResourceNotFoundException("Lesson", "id", lessonId));
-        if (lesson.getModule() == null || lesson.getModule().getCourse() == null || !lesson.getModule().getCourse().getId().equals(courseId)) {
-            throw new BadRequestException("Lesson " + lessonId + " does not belong to course " + courseId);
-        }
-
-        boolean added = progress.getCompletedLessonIds().add(lessonId);
-        progress.setLastAccessed(LocalDateTime.now()); // Update last accessed regardless
-
-        if (added) {
-            // @PreUpdate in CourseProgress entity should recalculate completion %
-            progress = courseProgressRepository.save(progress);
-        }
-        // else: Already completed, no need to save again just for time unless required
-
-        return entityMapper.toDTO(progress);
+    Lesson lesson = lessonRepository.findById(lessonId)
+            .orElseThrow(() -> new ResourceNotFoundException("Lesson", "id", lessonId));
+    if (lesson.getModule() == null || lesson.getModule().getCourse() == null || !lesson.getModule().getCourse().getId().equals(courseId)) {
+        throw new BadRequestException("Lesson " + lessonId + " does not belong to course " + courseId);
     }
 
+    // Create a mutable copy of the completedLessonIds set
+    Set<Long> completedLessonIds = new HashSet<>(progress.getCompletedLessonIds());
+    boolean added = completedLessonIds.add(lessonId);
+
+    if (added) {
+        progress.setCompletedLessonIds(completedLessonIds); // Update the mutable set back to progress
+        progress.setLastAccessed(LocalDateTime.now());
+        // @PreUpdate in CourseProgress entity should recalculate completion %
+        progress = courseProgressRepository.save(progress);
+    } else {
+        progress.setLastAccessed(LocalDateTime.now()); // Update last accessed regardless
+    }
+
+    return entityMapper.toDTO(progress);
+}
     @Override
     @Transactional(readOnly = true)
     public List<CourseProgressDTO> getProgressByUserId(Long userId) {

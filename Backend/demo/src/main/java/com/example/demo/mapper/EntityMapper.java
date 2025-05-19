@@ -147,6 +147,7 @@ public interface EntityMapper {
     @Mapping(target = "username", source = "user.username")
     @Mapping(target = "quizId", source = "quiz.id")
     @Mapping(target = "quizTitle", source = "quiz.title")
+    @Mapping(target = "experienceEarned", source = "experienceEarned")
     QuizCompletionDTO toDTO(QuizCompletion quizCompletion);
 
     @Mapping(target = "user", ignore = true) // Handled by service

@@ -511,23 +511,23 @@ public class DatabaseSeeder implements CommandLineRunner {
         if (quizzes.isEmpty()) return;
 
         if (quizzes.size() > 0) {
-            completions.add(new QuizCompletion(null, users.get(0), quizzes.get(0), 100, LocalDateTime.now().minusDays(1))); users.get(0).addExperience(quizzes.get(0).getExperienceReward());
-            completions.add(new QuizCompletion(null, users.get(1), quizzes.get(0), 50, LocalDateTime.now().minusHours(10))); users.get(1).addExperience(quizzes.get(0).getExperienceReward() / 2);
-            completions.add(new QuizCompletion(null, users.get(4), quizzes.get(0), 100, LocalDateTime.now().minusDays(3))); users.get(4).addExperience(quizzes.get(0).getExperienceReward());
+            completions.add(new QuizCompletion(null, users.get(0), quizzes.get(0), 100, quizzes.get(0).getExperienceReward(), LocalDateTime.now().minusDays(1))); users.get(0).addExperience(quizzes.get(0).getExperienceReward());
+            completions.add(new QuizCompletion(null, users.get(1), quizzes.get(0), 50, quizzes.get(0).getExperienceReward() / 2, LocalDateTime.now().minusHours(10))); users.get(1).addExperience(quizzes.get(0).getExperienceReward() / 2);
+            completions.add(new QuizCompletion(null, users.get(4), quizzes.get(0), 100, quizzes.get(0).getExperienceReward(), LocalDateTime.now().minusDays(3))); users.get(4).addExperience(quizzes.get(0).getExperienceReward());
         }
         if (quizzes.size() > 1) {
-            completions.add(new QuizCompletion(null, users.get(1), quizzes.get(1), 100, LocalDateTime.now().minusHours(5))); users.get(1).addExperience(quizzes.get(1).getExperienceReward());
-            completions.add(new QuizCompletion(null, users.get(5), quizzes.get(1), 80, LocalDateTime.now().minusHours(15))); users.get(5).addExperience((int)(quizzes.get(1).getExperienceReward() * 0.80));
+            completions.add(new QuizCompletion(null, users.get(1), quizzes.get(1), 100, quizzes.get(1).getExperienceReward(), LocalDateTime.now().minusHours(5))); users.get(1).addExperience(quizzes.get(1).getExperienceReward());
+            completions.add(new QuizCompletion(null, users.get(5), quizzes.get(1), 80, (int)(quizzes.get(1).getExperienceReward() * 0.80), LocalDateTime.now().minusHours(15))); users.get(5).addExperience((int)(quizzes.get(1).getExperienceReward() * 0.80));
         }
         if (quizzes.size() > 2) {
-            completions.add(new QuizCompletion(null, users.get(2), quizzes.get(2), 75, LocalDateTime.now().minusDays(2))); users.get(2).addExperience((int)(quizzes.get(2).getExperienceReward() * 0.75));
-            completions.add(new QuizCompletion(null, users.get(8), quizzes.get(2), 90, LocalDateTime.now().minusDays(1))); users.get(8).addExperience((int)(quizzes.get(2).getExperienceReward() * 0.90));
+            completions.add(new QuizCompletion(null, users.get(2), quizzes.get(2), 75, (int)(quizzes.get(2).getExperienceReward() * 0.75), LocalDateTime.now().minusDays(2))); users.get(2).addExperience((int)(quizzes.get(2).getExperienceReward() * 0.75));
+            completions.add(new QuizCompletion(null, users.get(8), quizzes.get(2), 90, (int)(quizzes.get(2).getExperienceReward() * 0.90), LocalDateTime.now().minusDays(1))); users.get(8).addExperience((int)(quizzes.get(2).getExperienceReward() * 0.90));
         }
         if (quizzes.size() > 3) {
-            completions.add(new QuizCompletion(null, users.get(6), quizzes.get(3), 100, LocalDateTime.now().minusHours(8))); users.get(6).addExperience(quizzes.get(3).getExperienceReward());
+            completions.add(new QuizCompletion(null, users.get(6), quizzes.get(3), 100, quizzes.get(3).getExperienceReward(), LocalDateTime.now().minusHours(8))); users.get(6).addExperience(quizzes.get(3).getExperienceReward());
         }
         if (quizzes.size() > 4) {
-            completions.add(new QuizCompletion(null, users.get(0), quizzes.get(4), 90, LocalDateTime.now().minusDays(4))); users.get(0).addExperience((int) (quizzes.get(4).getExperienceReward() * 0.9));
+            completions.add(new QuizCompletion(null, users.get(0), quizzes.get(4), 90, (int)(quizzes.get(4).getExperienceReward() * 0.9), LocalDateTime.now().minusDays(4))); users.get(0).addExperience((int)(quizzes.get(4).getExperienceReward() * 0.9));
         }
 
         quizCompletionRepository.saveAll(completions);

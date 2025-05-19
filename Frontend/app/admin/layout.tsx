@@ -54,10 +54,10 @@ export default function AdminLayout({
                 </Link>
               ))}
               <Link
-                href="/articles"
+                href="/"
                 className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
               >
-                Exit Admin
+                Logout
               </Link>
             </nav>
           </div>
@@ -81,10 +81,10 @@ export default function AdminLayout({
             </Link>
           ))}
           <Link
-            href="/articles"
+            href="/"
             className="flex flex-col items-center p-2 text-gray-400 hover:text-white"
           >
-            <span className="text-xs mt-1">Exit</span>
+            <span className="text-xs mt-1">Logout</span>
           </Link>
         </div>
       </div>

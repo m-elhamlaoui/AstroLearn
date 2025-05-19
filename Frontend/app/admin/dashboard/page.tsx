@@ -4,7 +4,9 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import axiosInstance from "@/lib/axiosInstance"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+// @ts-ignore
 import { Bar, Pie, Line } from "react-chartjs-2"
+// @ts-ignore
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -52,37 +54,51 @@ export default function AdminDashboardPage() {
       try {
         setLoading(true)
         
-        // Fetch users count
+        // Fetch users count with error handling
         const usersResponse = await axiosInstance.get("/users")
-        const users = usersResponse.data
+        const users = Array.isArray(usersResponse.data) ? usersResponse.data : []
+        console.log("Users data:", users)
         
         // Fetch articles count
         const articlesResponse = await axiosInstance.get("/articles")
-        const articles = articlesResponse.data.content || []
+        let articles = []
+        if (articlesResponse.data && articlesResponse.data.content) {
+          articles = Array.isArray(articlesResponse.data.content) ? articlesResponse.data.content : []
+        } else if (Array.isArray(articlesResponse.data)) {
+          articles = articlesResponse.data
+        }
+        console.log("Articles data:", articles)
         
-        // Fetch courses (assuming there's an endpoint)
+        // Fetch courses (ensuring it's an array)
         const coursesResponse = await axiosInstance.get("/courses")
-        const courses = coursesResponse.data || []
+        const courses = Array.isArray(coursesResponse.data) ? coursesResponse.data : []
+        console.log("Courses data:", courses)
         
-        // Calculate user levels distribution
+        // Calculate user levels distribution (with safety checks)
         const levels = { NOVICE: 0, EXPLORER: 0, ASTRONAUT: 0, GALACTIC: 0 }
-        users.forEach(user => {
-          if (user.level in levels) {
-            levels[user.level]++
-          }
-        })
+        if (Array.isArray(users)) {
+          users.forEach(user => {
+            if (user && user.level && user.level in levels) {
+              // Use type assertion to handle the indexing
+              levels[user.level as keyof typeof levels]++
+            }
+          })
+        }
 
-        // Count pending verification requests
-        const pendingVerifications = users.filter(user => 
-          user.verificationStatus === "PENDING"
-        ).length
+        // Count pending verification requests (with safety checks)
+        let pendingVerifications = 0
+        if (Array.isArray(users)) {
+          pendingVerifications = users.filter(user => 
+            user && user.verificationStatus === "PENDING"
+          ).length
+        }
 
         // Calculate stats
         setStats({
           totalUsers: users.length,
           totalArticles: articles.length,
           totalCourses: courses.length,
-          totalComments: articles.reduce((sum, article) => sum + (article.commentCount || 0), 0),
+          totalComments: articles.reduce((sum: number, article: any) => sum + (article.commentCount || 0), 0),
           pendingVerifications,
           userLevels: levels,
           articlesByMonth: getArticlesByMonth(articles),
@@ -100,12 +116,16 @@ export default function AdminDashboardPage() {
   }, [])
 
   // Helper function to calculate articles by month
-  const getArticlesByMonth = (articles) => {
+  const getArticlesByMonth = (articles: any[]) => {
     const now = new Date()
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1)
     const monthCounts = Array(6).fill(0)
     
+    if (!Array.isArray(articles)) return monthCounts
+    
     articles.forEach(article => {
+      if (!article || !article.createdAt) return
+      
       const createdAt = new Date(article.createdAt)
       if (createdAt >= sixMonthsAgo) {
         const monthIndex = (now.getMonth() - createdAt.getMonth() + 12) % 12
@@ -119,8 +139,8 @@ export default function AdminDashboardPage() {
   }
 
   // Helper function to calculate course completion rate
-  const calculateCourseCompletionRate = (courses, users) => {
-    if (!courses.length || !users.length) return 0
+  const calculateCourseCompletionRate = (courses: any[], users: any[]) => {
+    if (!Array.isArray(courses) || !Array.isArray(users) || !courses.length || !users.length) return 0
     
     // This is a placeholder calculation
     // In a real implementation, you'd need to fetch course progress data

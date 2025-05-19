@@ -32,7 +32,16 @@ export default function VerificationRequestsPage() {
         setLoading(true)
         // Fetch users with PENDING verification status
         const response = await axiosInstance.get("/users?verificationStatus=PENDING")
-        setRequests(response.data)
+        // Ensure we have an array of requests
+        const data = response.data
+        console.log("Verification requests data:", data)
+        
+        if (Array.isArray(data)) {
+          setRequests(data)
+        } else {
+          console.error("Expected array for verification requests, got:", typeof data)
+          setRequests([])
+        }
       } catch (err) {
         console.error("Error fetching verification requests:", err)
         setError("Failed to load verification requests")

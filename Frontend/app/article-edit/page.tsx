@@ -5,8 +5,11 @@ import axios from "axios" // For direct S3 upload
 
 import { useState, useRef, useEffect } from "react"
 import axiosInstance from "../../lib/axiosInstance" // Your configured axios instance
+import { validateArticleContent } from "../../lib/geminiService" // Import the AI validation service
+import { useAuthRedirect } from "../../lib/useAuthRedirect" // Import auth redirect hook
 import { useRouter } from "next/navigation"
 import Image from "next/image"
+import { useToast } from "@/components/ui/use-toast"
 import { MinimalNavigation } from "@/components/minimal-navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,7 +30,11 @@ import {
 import { BloomingStars } from "@/components/blooming-stars"
 
 export default function ArticleEditPage() {
+  // Use the auth redirect hook to ensure only authenticated users can access this page
+  useAuthRedirect()
+  
   const router = useRouter()
+  const { toast } = useToast()
   const [title, setTitle] = useState("")
   const [summary, setSummary] = useState("")
   const [content, setContent] = useState("")
@@ -36,6 +43,7 @@ export default function ArticleEditPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isValidating, setIsValidating] = useState(false) // Track AI validation state
   const [submissionError, setSubmissionError] = useState<string | null>(null)
   // const [currentCheck, setCurrentCheck] = useState(0) // To be removed
   const editorRef = useRef<HTMLDivElement>(null)
@@ -134,6 +142,18 @@ export default function ArticleEditPage() {
   }
 
   const handleSubmit = async () => {
+    // Check for authentication first
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) {
+      setSubmissionError("You must be signed in to post an article.")
+      toast({
+        variant: "destructive",
+        title: "Authentication required",
+        description: "Please sign in to post articles.",
+      })
+      return
+    }
+    
     if (!title.trim()) {
       setSubmissionError("Article title is required.")
       return
@@ -146,13 +166,46 @@ export default function ArticleEditPage() {
     }
 
     setIsSubmitting(true)
+    setIsValidating(true) // Start AI validation
     setSubmissionError(null)
     console.log("[Submit] Starting article submission process.")
-    let finalImageUrl = coverImage // Use existing S3 URL if image wasn't changed (i.e. selectedFile is null)
+    
+    // Step 1: Validate content with AI
+    console.log("[Submit] Validating article content with AI...")
+    try {
+      const validationResult = await validateArticleContent(title, summary, articleContent)
+      
+      if (!validationResult.isValid) {
+        console.warn("[Submit] Article validation failed:", validationResult.reason)
+        setSubmissionError(`AI Content Validation Failed: ${validationResult.reason}`)
+        setIsSubmitting(false)
+        setIsValidating(false)
+        toast({
+          variant: "destructive",
+          title: "Content validation failed",
+          description: validationResult.reason,
+        })
+        return
+      }
+      
+      console.log("[Submit] Article content validated successfully")
+      toast({
+        title: "Content validation passed",
+        description: "Your article is relevant and appropriate for AstroLearn.",
+      })
+    } catch (error: any) {
+      console.error("[Submit] Error validating article content:", error)
+      setSubmissionError("Failed to validate article content. Please try again.")
+      setIsSubmitting(false)
+      setIsValidating(false)
+      return
+    }
+    
+    setIsValidating(false) // End AI validation
+    
+    // Step 2: Handle image upload if needed
+    let finalImageUrl = coverImage // Use existing S3 URL if image wasn't changed
 
-    // If a new file was selected, it needs to be uploaded.
-    // If coverImage is a data URL (local preview) and selectedFile is present, it means new upload is needed.
-    // If coverImage is an S3 URL and selectedFile is null, it means image wasn't changed.
     if (selectedFile) {
       console.log("[Submit] New file selected. Attempting to upload to S3.")
       const s3Url = await uploadImageToS3(selectedFile)
@@ -168,6 +221,7 @@ export default function ArticleEditPage() {
       console.log("[Submit] No new file selected. Using existing coverImage URL (if any):", finalImageUrl)
     }
 
+    // Step 3: Prepare and submit the article data
     const articleData = {
       title,
       summary,
@@ -178,19 +232,19 @@ export default function ArticleEditPage() {
     }
 
     try {
-      // Assuming authorId is derived from the authenticated user on the backend
-      // The endpoint is POST /articles/{authorId}, but if backend handles auth,
-      // it might just be POST /articles
-      // For now, let's assume a placeholder authorId or that backend handles it.
-      // The DTO expects authorId, so we might need to pass it or adjust backend.
-      // Let's use a placeholder authorId '1' as per previous ArticleController.
-       // TODO: Replace '1' with actual authenticated user ID from auth context. // No longer needed, backend uses principal
-       console.log("[Submit] Attempting to POST article data to /articles:", articleData)
-       const response = await axiosInstance.post(`/articles`, articleData) // Use endpoint without authorId
-       
-       console.log("[Submit] Article created successfully:", response.data)
-      // Redirect to the articles page or the new article page
-      router.push("/articles") // Or router.push(`/articles/${response.data.id}`) if ID is returned
+      console.log("[Submit] Attempting to POST article data to /articles:", articleData)
+      const response = await axiosInstance.post(`/articles`, articleData) 
+      
+      console.log("[Submit] Article created successfully:", response.data)
+      
+      // Show success message
+      toast({
+        title: "Article posted successfully",
+        description: "Your article has been posted to AstroLearn.",
+      })
+      
+      // Redirect to the articles page
+      router.push("/articles")
     } catch (error: any) {
       console.error("[Submit] Error creating article:", error)
       if (error.response) {
@@ -198,17 +252,41 @@ export default function ArticleEditPage() {
         console.error("[Submit] Axios error response status:", error.response.status)
       }
       setSubmissionError(error.response?.data?.message || error.message || "Failed to create article. Check console for details.")
+      
+      toast({
+        variant: "destructive",
+        title: "Failed to post article",
+        description: error.response?.data?.message || error.message || "Failed to create article. Please try again.",
+      })
     } finally {
       console.log("[Submit] Finished article submission attempt.")
       setIsSubmitting(false)
     }
   }
 
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+
   useEffect(() => {
     if (editorRef.current) {
       editorRef.current.focus()
     }
-  }, [])
+    
+    // Check authentication status
+    const checkAuth = () => {
+      const authToken = localStorage.getItem('authToken');
+      setIsAuthenticated(!!authToken);
+    };
+    
+    checkAuth();
+    
+    // Listen for storage events (in case user logs in/out in another tab)
+    const handleStorageChange = () => checkAuth();
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-black text-white relative">
@@ -344,12 +422,13 @@ export default function ArticleEditPage() {
               <Button
                 type="submit"
                 className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-2.5"
-                disabled={isSubmitting || isUploadingImage}
+                disabled={isSubmitting || isUploadingImage || isValidating}
               >
-                {isSubmitting ? (
+                {isSubmitting || isValidating ? (
                   <Loader2 className="w-5 h-5 animate-spin mr-2" />
                 ) : null}
-                {isSubmitting ? "Posting..." : "Post Article"}
+                {isValidating ? "AI Validating..." : 
+                 isSubmitting ? "Posting..." : "Post Article"}
               </Button>
             </div>
         </form>

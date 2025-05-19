@@ -48,6 +48,7 @@ interface UserData {
   xp: number;
   joinDate: string; // Placeholder or fetch if available
   isCurrentUser: boolean; // Determined client-side
+  verificationStatus: string; // User verification status: VERIFIED, UNVERIFIED, PENDING
   articles: Article[]; // Published articles by this user
   upvotedArticles: Article[];
   downvotedArticles: Article[];
@@ -214,6 +215,7 @@ export function ProfileClient({ profileId }: { profileId: string }) {
           xp: userDto.experiencePoints,
           joinDate: "2024-01-01T00:00:00Z", // Placeholder - fetch if available from UserDTO
           isCurrentUser: isCurrentUser,
+          verificationStatus: userDto.verificationStatus, // Add verificationStatus
           articles: publishedArticlesData,
           upvotedArticles: upvotedArticlesData,
           downvotedArticles: downvotedArticlesData,
@@ -358,7 +360,45 @@ export function ProfileClient({ profileId }: { profileId: string }) {
     }
   }
 
-  // --- Article Deletion --- 
+  // --- Request Verification ---
+const handleRequestVerification = async () => {
+  if (!userData) {
+    toast({
+      title: "Error",
+      description: "User data not available",
+      variant: "destructive"
+    });
+    return;
+  }
+
+  try {
+    await axiosInstance.put(`/users/${userData.id}/verification`, {
+      verificationStatus: "PENDING"
+    });
+    
+    // Update local state
+    setUserData(prev => {
+      if (!prev) return null;
+      return { ...prev, verificationStatus: "PENDING" };
+    });
+    
+    toast({
+      title: "Verification requested",
+      description: "Your verification request has been submitted and is pending review.",
+      duration: 5000,
+    });
+  } catch (err) {
+    console.error("Error requesting verification:", err);
+    toast({
+      title: "Error",
+      description: "Failed to submit verification request. Please try again later.",
+      variant: "destructive",
+      duration: 5000,
+    });
+  }
+};
+
+// --- Article Deletion --- 
   const handleDeleteArticle = async (articleId: number) => {
     if (!userData || !userData.isCurrentUser) return;
     
@@ -495,19 +535,67 @@ export function ProfileClient({ profileId }: { profileId: string }) {
               </div>
             </div>
             {userData.isCurrentUser && (
-              <div className="flex space-x-2">
-                {editMode ? (
+              <div className="flex gap-2 items-center">
+                {userData.isCurrentUser ? (
                   <>
-                    <Button onClick={handleProfileUpdate} className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600" disabled={isSavingProfile || isUploadingProfile || isUploadingCover}>
-                       {isSavingProfile ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null} Save Profile
-                    </Button>
-                    <Button onClick={() => setEditMode(false)} variant="outline" className="border-gray-700 text-gray-300 hover:bg-gray-800" disabled={isSavingProfile || isUploadingProfile || isUploadingCover}>Cancel</Button>
-                  </>
-                ) : ( <Button onClick={() => setEditMode(true)} variant="outline" size="icon" className="border-gray-700 text-gray-300 hover:bg-gray-800"><Edit className="h-4 w-4" /></Button> )}
-                <Link href="/article-edit"><Button variant="outline" size="icon" className="border-gray-700 text-gray-300 hover:bg-gray-800"><PenSquare className="h-4 w-4" /></Button></Link>
-              </div>
-            )}
-          </div>
+                    {editMode ? (
+                      <>
+                        <Button onClick={handleProfileUpdate} className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600" disabled={isSavingProfile || isUploadingProfile || isUploadingCover}>
+                          {isSavingProfile ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null} Save Profile
+                        </Button>
+                        <Button onClick={() => setEditMode(false)} variant="outline" className="border-gray-700 text-gray-300 hover:bg-gray-800" disabled={isSavingProfile || isUploadingProfile || isUploadingCover}>Cancel</Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button onClick={() => setEditMode(true)} variant="outline" size="icon" className="border-gray-700 text-gray-300 hover:bg-gray-800"><Edit className="h-4 w-4" /></Button>
+                        <Link href="/article-edit"><Button variant="outline" size="icon" className="border-gray-700 text-gray-300 hover:bg-gray-800"><PenSquare className="h-4 w-4" /></Button></Link>
+                        
+                        {/* Verification Button - only show if user is not verified and not pending */}
+                        {userData.verificationStatus === "UNVERIFIED" && (
+                          <Button
+                            onClick={handleRequestVerification}
+                            className="bg-green-600 hover:bg-green-700 ml-2"
+                          >
+                            Request Verification
+                          </Button>
+                        )}
+                        
+                        {/* Show badge if verified */}
+                        {userData.verificationStatus === "VERIFIED" && (
+                          <span className="bg-green-600 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            Verified
+                          </span>
+                        )}
+                        
+                        {/* Show pending badge if pending verification */}
+                        {userData.verificationStatus === "PENDING" && (
+                          <span className="bg-amber-600 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Verification Pending
+                          </span>
+                        )}
+                      </>
+                    )} 
+                  </> 
+                ) : (
+                  <>
+                    {/* If viewing someone else's profile */}
+                    {userData.verificationStatus === "VERIFIED" && (
+                      <span className="bg-green-600 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        Verified
+                      </span>
+                    )}
+                  </> 
+                )} 
+              </div> 
+            )} 
+          </div> 
 
           {/* Bio Section */}
           <div className="mb-8">

@@ -2,6 +2,7 @@ package com.example.demo.config;
 
 import com.example.demo.security.JWT.AuthEntryPointJwt;
 import com.example.demo.security.JWT.AuthTokenFilter;
+import com.example.demo.security.AuthenticationLoggingFilter;
 import com.example.demo.security.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
  import org.springframework.context.annotation.Bean;
@@ -38,6 +39,11 @@ public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
         return new AuthTokenFilter();
+    }
+    
+    @Bean
+    public AuthenticationLoggingFilter authenticationLoggingFilter() {
+        return new AuthenticationLoggingFilter();
     }
 
 //  @Override
@@ -92,14 +98,19 @@ public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
                  .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                  .authorizeHttpRequests(auth ->
                          auth.requestMatchers("/actuator/health").permitAll() // Permit Actuator health endpoint
-                                 .requestMatchers("/auth/**").permitAll()         // Permit your authentication paths (e.g., /auth/signup, /auth/signin)
+                                 .requestMatchers("/health").permitAll()     // Permit our custom health endpoint
+                                 .requestMatchers("/auth/**").permitAll()    // Permit authentication paths
                                  .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Permit CORS preflight requests
-                                 .anyRequest().authenticated()                    // Secure all other requests
+                                 .requestMatchers(HttpMethod.GET, "/articles/**").permitAll() // Allow public access to GET articles
+                                 .requestMatchers("/admin/**").hasAuthority("ADMIN") // Only allow ADMIN role to access admin endpoints
+                                 .requestMatchers("/api/admin/**").hasAuthority("ADMIN") // Also secure API endpoints for admins
+                                 .anyRequest().authenticated()               // Secure all other requests
                  );
  
          http.authenticationProvider(authenticationProvider());
 
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAfter(authenticationLoggingFilter(), AuthTokenFilter.class);
  
          return http.build();
      }

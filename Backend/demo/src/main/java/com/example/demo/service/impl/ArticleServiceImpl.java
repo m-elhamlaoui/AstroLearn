@@ -250,7 +250,7 @@ public class ArticleServiceImpl implements ArticleService {
             if (existingVote.getValue() == newVoteValue) {
                 articleVoteRepository.delete(existingVote);
                 System.out.println("Vote Action: Deleting existing vote for user " + userId + ", article " + articleId); // Log action
-                finalUserVote = 0; 
+                finalUserVote = 0;
             }
             // User changed their vote (e.g., was upvote, now downvote) -> update vote
             else {
@@ -265,28 +265,29 @@ public class ArticleServiceImpl implements ArticleService {
             newVote.setArticle(article);
             newVote.setUser(user);
             newVote.setValue(newVoteValue);
-             articleVoteRepository.save(newVote);
-             System.out.println("Vote Action: Creating new vote with value " + newVoteValue + " for user " + userId + ", article " + articleId); // Log action
-             finalUserVote = newVoteValue;
-         }
- 
-         // 3. Explicitly flush changes to the database before refreshing
-         articleVoteRepository.flush(); // Ensure vote changes are sent to DB
-         entityManager.refresh(article); // <<< Force reload article state from DB, recalculating @Formula
-  
-          // 4. Map the *refreshed* article to DTO
-          // AND include the current user's vote status based on the action taken
-          // (finalUserVote was determined above based on action)
-  
-          ArticleDTO dto = entityMapper.toDTO(article); // Map base article
-          return new ArticleDTO( // Construct DTO with vote status
-                 dto.id(), dto.title(), dto.summary(), dto.content(), dto.imageUrls(),
-                 dto.createdAt(), dto.authorId(), dto.authorUsername(), dto.score(),
-                 dto.commentCount(), dto.tags(), finalUserVote
-         );
-         // return entityMapper.toDTO(article); // Old version without currentUserVote in response
-     }
- 
+            articleVoteRepository.save(newVote);
+            System.out.println("Vote Action: Creating new vote with value " + newVoteValue + " for user " + userId + ", article " + articleId); // Log action
+            finalUserVote = newVoteValue;
+        }
+
+        // 3. Explicitly flush changes to the database before refreshing
+        articleVoteRepository.flush(); // Ensure vote changes are sent to DB
+        
+        // 4. Clear the persistence context to ensure we get fresh data
+        entityManager.clear();
+        
+        // 5. Get a fresh article from the database
+        article = articleRepository.findById(articleId).orElseThrow();
+
+        // 6. Map the fresh article to DTO
+        ArticleDTO dto = entityMapper.toDTO(article);
+        return new ArticleDTO(
+                dto.id(), dto.title(), dto.summary(), dto.content(), dto.imageUrls(),
+                dto.createdAt(), dto.authorId(), dto.authorUsername(), dto.score(),
+                dto.commentCount(), dto.tags(), finalUserVote
+        );
+    }
+
 
 
     // --- Tags Implementation ---

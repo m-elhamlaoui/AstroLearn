@@ -539,18 +539,104 @@ public class DatabaseSeeder implements CommandLineRunner {
         List<CourseProgress> progresses = new ArrayList<>();
 
         Course course0 = courses.get(0); List<Lesson> course0Lessons = allLessons.stream().filter(l -> l.getModule().getCourse().equals(course0)).collect(Collectors.toList());
-        if (course0Lessons.size() > 1) { CourseProgress cp1 = new CourseProgress(); cp1.setUser(users.get(0)); cp1.setCourse(course0); cp1.setCurrentLesson(course0Lessons.get(1)); cp1.getCompletedLessonIds().add(course0Lessons.get(0).getId()); cp1.setLastAccessed(LocalDateTime.now().minusDays(3)); cp1.updateCompletion(); progresses.add(cp1); }
-        if (!course0Lessons.isEmpty()) { CourseProgress cp3 = new CourseProgress(); cp3.setUser(users.get(2)); cp3.setCourse(course0); cp3.setCurrentLesson(course0Lessons.get(0)); cp3.setLastAccessed(LocalDateTime.now().minusHours(5)); cp3.updateCompletion(); progresses.add(cp3); }
+        if (course0Lessons.size() > 1) {
+            CourseProgress cp1 = CourseProgress.builder()
+                    .user(users.get(0))
+                    .course(course0)
+                    .currentLesson(course0Lessons.get(1))
+                    .completedLessonIds(new HashSet<>(Arrays.asList(course0Lessons.get(0).getId())))
+                    .completed(false)
+                    .completionPercentage(33.33)
+                    .lastAccessed(LocalDateTime.now())
+                    .build();
+            progresses.add(cp1);
+        }
+        if (!course0Lessons.isEmpty()) {
+            CourseProgress cp3 = CourseProgress.builder()
+                    .user(users.get(2))
+                    .course(course0)
+                    .currentLesson(course0Lessons.get(0))
+                    .completedLessonIds(new HashSet<>())
+                    .completed(false)
+                    .completionPercentage(0.0)
+                    .lastAccessed(LocalDateTime.now())
+                    .build();
+            progresses.add(cp3);
+        }
 
         Course course1 = courses.get(1); List<Lesson> course1Lessons = allLessons.stream().filter(l -> l.getModule().getCourse().equals(course1)).collect(Collectors.toList());
-        if (!course1Lessons.isEmpty()) { CourseProgress cp2 = new CourseProgress(); cp2.setUser(users.get(1)); cp2.setCourse(course1); cp2.setCurrentLesson(course1Lessons.get(course1Lessons.size() -1)); course1Lessons.forEach(l -> cp2.getCompletedLessonIds().add(l.getId())); cp2.setLastAccessed(LocalDateTime.now().minusDays(1)); cp2.updateCompletion(); progresses.add(cp2); }
+        if (!course1Lessons.isEmpty()) {
+            CourseProgress cp2 = CourseProgress.builder()
+                    .user(users.get(1))
+                    .course(course1)
+                    .currentLesson(course1Lessons.get(course1Lessons.size() - 1))
+                    .completedLessonIds(course1Lessons.stream().map(Lesson::getId).collect(Collectors.toSet()))
+                    .completed(true)
+                    .completionPercentage(100.0)
+                    .lastAccessed(LocalDateTime.now())
+                    .build();
+            progresses.add(cp2);
+        }
 
         Course course2 = courses.get(2); List<Lesson> course2Lessons = allLessons.stream().filter(l -> l.getModule().getCourse().equals(course2)).collect(Collectors.toList());
-        if (course2Lessons.size() > 1) { CourseProgress cp4 = new CourseProgress(); cp4.setUser(users.get(3)); cp4.setCourse(course2); cp4.setCurrentLesson(course2Lessons.get(1)); cp4.getCompletedLessonIds().add(course2Lessons.get(0).getId()); cp4.setLastAccessed(LocalDateTime.now().minusDays(2)); cp4.updateCompletion(); progresses.add(cp4); }
+        if (course2Lessons.size() > 1) {
+            CourseProgress cp4 = CourseProgress.builder()
+                    .user(users.get(3))
+                    .course(course2)
+                    .currentLesson(course2Lessons.get(1))
+                    .completedLessonIds(new HashSet<>(Arrays.asList(course2Lessons.get(0).getId())))
+                    .completed(false)
+                    .completionPercentage(33.33)
+                    .lastAccessed(LocalDateTime.now())
+                    .build();
+            progresses.add(cp4);
+        }
 
-        if (courses.size() > 4 && users.size() > 4) { Course course4 = courses.get(4); List<Lesson> course4Lessons = allLessons.stream().filter(l -> l.getModule().getCourse().equals(course4)).collect(Collectors.toList()); if (!course4Lessons.isEmpty()) { CourseProgress cp5 = new CourseProgress(); cp5.setUser(users.get(4)); cp5.setCourse(course4); cp5.setCurrentLesson(course4Lessons.get(0)); cp5.setLastAccessed(LocalDateTime.now().minusDays(10)); cp5.updateCompletion(); progresses.add(cp5); } }
-        if (courses.size() > 5 && users.size() > 5) { Course course5 = courses.get(5); List<Lesson> course5Lessons = allLessons.stream().filter(l -> l.getModule().getCourse().equals(course5)).collect(Collectors.toList()); if (!course5Lessons.isEmpty()) { CourseProgress cp6 = new CourseProgress(); cp6.setUser(users.get(5)); cp6.setCourse(course5); cp6.setCurrentLesson(course5Lessons.get(course5Lessons.size() - 1)); course5Lessons.forEach(l -> cp6.getCompletedLessonIds().add(l.getId())); cp6.setLastAccessed(LocalDateTime.now().minusDays(5)); cp6.updateCompletion(); progresses.add(cp6); } }
-        if (courses.size() > 6 && users.size() > 8) { Course course6 = courses.get(6); List<Lesson> course6Lessons = allLessons.stream().filter(l -> l.getModule().getCourse().equals(course6)).collect(Collectors.toList()); if (course6Lessons.size() > 1) { CourseProgress cp7 = new CourseProgress(); cp7.setUser(users.get(8)); cp7.setCourse(course6); cp7.setCurrentLesson(course6Lessons.get(1)); cp7.getCompletedLessonIds().add(course6Lessons.get(0).getId()); cp7.setLastAccessed(LocalDateTime.now().minusDays(4)); cp7.updateCompletion(); progresses.add(cp7); } }
+        if (courses.size() > 4 && users.size() > 4) {
+            Course course4 = courses.get(4); List<Lesson> course4Lessons = allLessons.stream().filter(l -> l.getModule().getCourse().equals(course4)).collect(Collectors.toList());
+            if (!course4Lessons.isEmpty()) {
+                CourseProgress cp5 = CourseProgress.builder()
+                        .user(users.get(4))
+                        .course(course4)
+                        .currentLesson(course4Lessons.get(0))
+                        .completedLessonIds(new HashSet<>(Arrays.asList(course4Lessons.get(0).getId())))
+                        .completed(false)
+                        .completionPercentage(33.33)
+                        .lastAccessed(LocalDateTime.now())
+                        .build();
+                progresses.add(cp5);
+            }
+        }
+        if (courses.size() > 5 && users.size() > 5) {
+            Course course5 = courses.get(5); List<Lesson> course5Lessons = allLessons.stream().filter(l -> l.getModule().getCourse().equals(course5)).collect(Collectors.toList());
+            if (!course5Lessons.isEmpty()) {
+                CourseProgress cp6 = CourseProgress.builder()
+                        .user(users.get(5))
+                        .course(course5)
+                        .currentLesson(course5Lessons.get(course5Lessons.size() - 1))
+                        .completedLessonIds(course5Lessons.stream().map(Lesson::getId).collect(Collectors.toSet()))
+                        .completed(true)
+                        .completionPercentage(100.0)
+                        .lastAccessed(LocalDateTime.now())
+                        .build();
+                progresses.add(cp6);
+            }
+        }
+        if (courses.size() > 6 && users.size() > 8) {
+            Course course6 = courses.get(6); List<Lesson> course6Lessons = allLessons.stream().filter(l -> l.getModule().getCourse().equals(course6)).collect(Collectors.toList());
+            if (course6Lessons.size() > 1) {
+                CourseProgress cp7 = CourseProgress.builder()
+                        .user(users.get(8))
+                        .course(course6)
+                        .currentLesson(course6Lessons.get(1))
+                        .completedLessonIds(new HashSet<>(Arrays.asList(course6Lessons.get(0).getId())))
+                        .completed(false)
+                        .completionPercentage(33.33)
+                        .lastAccessed(LocalDateTime.now())
+                        .build();
+                progresses.add(cp7);
+            }
+        }
 
         courseProgressRepository.saveAll(progresses);
     }

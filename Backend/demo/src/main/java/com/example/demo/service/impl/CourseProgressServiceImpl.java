@@ -54,34 +54,41 @@ public class CourseProgressServiceImpl implements CourseProgressService {
         CourseProgress savedProgress = courseProgressRepository.save(progress);
         return entityMapper.toDTO(savedProgress);
     }
-@Override
-public CourseProgressDTO markLessonCompleted(Long userId, Long courseId, Long lessonId) {
-    // TODO: Add security check: Ensure requesting user ID matches userId
 
-    CourseProgress progress = courseProgressRepository.findByUserIdAndCourseId(userId, courseId)
-            .orElseThrow(() -> new ResourceNotFoundException("CourseProgress for user " + userId + " and course " + courseId));
+    @Override
+    public CourseProgressDTO markLessonCompleted(Long userId, Long courseId, Long lessonId) {
+        // TODO: Add security check: Ensure requesting user ID matches userId
 
-    Lesson lesson = lessonRepository.findById(lessonId)
-            .orElseThrow(() -> new ResourceNotFoundException("Lesson", "id", lessonId));
-    if (lesson.getModule() == null || lesson.getModule().getCourse() == null || !lesson.getModule().getCourse().getId().equals(courseId)) {
-        throw new BadRequestException("Lesson " + lessonId + " does not belong to course " + courseId);
+        CourseProgress progress = courseProgressRepository.findByUserIdAndCourseId(userId, courseId)
+                .orElseThrow(() -> new ResourceNotFoundException("CourseProgress for user " + userId + " and course " + courseId));
+
+        Lesson lesson = lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new ResourceNotFoundException("Lesson", "id", lessonId));
+        if (lesson.getModule() == null || lesson.getModule().getCourse() == null || !lesson.getModule().getCourse().getId().equals(courseId)) {
+            throw new BadRequestException("Lesson " + lessonId + " does not belong to course " + courseId);
+        }
+
+        // Create a mutable copy of the completedLessonIds set
+        Set<Long> completedLessonIds = new HashSet<>(progress.getCompletedLessonIds());
+        boolean added = completedLessonIds.add(lessonId);
+
+        if (added) {
+            progress.setCompletedLessonIds(completedLessonIds); // Update the mutable set back to progress
+            progress.setLastAccessed(LocalDateTime.now());
+            
+            // Calculate completion percentage directly
+            int totalLessons = lessonRepository.countByModuleCourseId(courseId);
+            progress.setCompletionPercentage(((double) completedLessonIds.size() / totalLessons) * 100);
+            progress.setCompleted(progress.getCompletionPercentage() >= 100);
+            
+            progress = courseProgressRepository.save(progress);
+        } else {
+            progress.setLastAccessed(LocalDateTime.now()); // Update last accessed regardless
+        }
+
+        return entityMapper.toDTO(progress);
     }
 
-    // Create a mutable copy of the completedLessonIds set
-    Set<Long> completedLessonIds = new HashSet<>(progress.getCompletedLessonIds());
-    boolean added = completedLessonIds.add(lessonId);
-
-    if (added) {
-        progress.setCompletedLessonIds(completedLessonIds); // Update the mutable set back to progress
-        progress.setLastAccessed(LocalDateTime.now());
-        // @PreUpdate in CourseProgress entity should recalculate completion %
-        progress = courseProgressRepository.save(progress);
-    } else {
-        progress.setLastAccessed(LocalDateTime.now()); // Update last accessed regardless
-    }
-
-    return entityMapper.toDTO(progress);
-}
     @Override
     @Transactional(readOnly = true)
     public List<CourseProgressDTO> getProgressByUserId(Long userId) {

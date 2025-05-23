@@ -13,4 +13,7 @@ import java.util.Optional;
 public interface LessonRepository extends JpaRepository<Lesson, Long> {
 
     List<Lesson> findByModuleId(Long moduleId);
+    
+    @Query("SELECT COUNT(l) FROM Lesson l WHERE l.module.course.id = :courseId")
+    int countByModuleCourseId(@Param("courseId") Long courseId);
 }

@@ -11,8 +11,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -66,14 +68,23 @@ public class CourseProgressServiceImpl implements CourseProgressService {
             throw new BadRequestException("Lesson " + lessonId + " does not belong to course " + courseId);
         }
 
-        boolean added = progress.getCompletedLessonIds().add(lessonId);
-        progress.setLastAccessed(LocalDateTime.now()); // Update last accessed regardless
+        // Create a mutable copy of the completedLessonIds set
+        Set<Long> completedLessonIds = new HashSet<>(progress.getCompletedLessonIds());
+        boolean added = completedLessonIds.add(lessonId);
 
         if (added) {
-            // @PreUpdate in CourseProgress entity should recalculate completion %
+            progress.setCompletedLessonIds(completedLessonIds); // Update the mutable set back to progress
+            progress.setLastAccessed(LocalDateTime.now());
+            
+            // Calculate completion percentage directly
+            int totalLessons = lessonRepository.countByModuleCourseId(courseId);
+            progress.setCompletionPercentage(((double) completedLessonIds.size() / totalLessons) * 100);
+            progress.setCompleted(progress.getCompletionPercentage() >= 100);
+            
             progress = courseProgressRepository.save(progress);
+        } else {
+            progress.setLastAccessed(LocalDateTime.now()); // Update last accessed regardless
         }
-        // else: Already completed, no need to save again just for time unless required
 
         return entityMapper.toDTO(progress);
     }

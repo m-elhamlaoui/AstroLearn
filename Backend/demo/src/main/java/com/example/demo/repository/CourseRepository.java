@@ -14,5 +14,4 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     @EntityGraph(attributePaths = {"modules"})
     @Query("SELECT c FROM Course c LEFT JOIN FETCH c.modules m")
     List<Course> findAllWithModules();
-
 }

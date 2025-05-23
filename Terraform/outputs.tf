@@ -10,6 +10,18 @@ output "backend_alb_dns" {
   value       = aws_lb.backend_alb.dns_name
 }
 
+# Output the RDS instance endpoint
+output "rds_instance_endpoint" {
+  description = "Endpoint of the RDS database instance"
+  value       = aws_db_instance.app_db.endpoint
+}
+
+# Output the RDS instance port
+output "rds_instance_port" {
+  description = "Port of the RDS database instance"
+  value       = aws_db_instance.app_db.port
+}
+
 # Add a delay to ensure instances are fully provisioned
 resource "time_sleep" "wait_for_instances" {
   depends_on = [aws_autoscaling_group.frontend_asg, aws_autoscaling_group.backend_asg]

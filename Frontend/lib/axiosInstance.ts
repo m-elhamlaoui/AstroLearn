@@ -1,7 +1,7 @@
 import axios, { InternalAxiosRequestConfig, AxiosError } from 'axios'; // Use InternalAxiosRequestConfig
 
 const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8090', // Default to localhost:8090
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8088', // Default to localhost:8090
 });
 
 axiosInstance.interceptors.request.use(

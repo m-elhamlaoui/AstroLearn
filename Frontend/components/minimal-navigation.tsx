@@ -3,13 +3,14 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation" // Combined useRouter import
-import { Home, BookOpen, Calendar, MessageSquare, User, ChevronRight, GraduationCap, LogOut } from "lucide-react" // Added LogOut
+import { Home, BookOpen, Calendar, MessageSquare, User, ChevronRight, GraduationCap, LogOut, LayoutDashboard, CheckSquare, Edit } from "lucide-react" // Added admin icons
 import Link from "next/link"
 import { clearAuthToken } from "@/lib/axiosInstance"; // Import clearAuthToken
 
 export function MinimalNavigation() {
   const [expanded, setExpanded] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const pathname = usePathname();
   const router = useRouter(); // Initialize router
 
@@ -17,6 +18,18 @@ export function MinimalNavigation() {
     const storedUserId = localStorage.getItem("userId"); 
     if (storedUserId) {
       setUserId(storedUserId);
+    }
+    
+    // Check if user has admin role
+    try {
+      const userRolesStr = localStorage.getItem("userRoles");
+      if (userRolesStr) {
+        const userRoles = JSON.parse(userRolesStr);
+        setIsAdmin(userRoles.includes("ROLE_ADMIN"));
+      }
+    } catch (error) {
+      console.error("Error parsing user roles:", error);
+      setIsAdmin(false);
     }
   }, []);
 
@@ -35,8 +48,9 @@ export function MinimalNavigation() {
   const handleLogout = () => {
     clearAuthToken();
     localStorage.removeItem("userId"); 
-    localStorage.removeItem("userRole"); // Also clear userRole if it's stored
+    localStorage.removeItem("userRoles"); // Clear userRoles from localStorage
     setUserId(null); 
+    setIsAdmin(false); // Reset admin state
     router.push("/"); // Redirect to homepage, or /auth/signin
     // Optionally, could do a full page reload to ensure all states are reset:
     // window.location.href = '/'; 
@@ -44,12 +58,12 @@ export function MinimalNavigation() {
 
   return (
     <nav
-      className={`hidden md:flex fixed left-0 top-1/2 -translate-y-1/2 bg-gray-800/80 backdrop-blur-md transition-all duration-300 z-[9999] flex-col justify-between rounded-r-xl ${
-        expanded ? "w-48 py-6" : "w-12 py-4 items-center" // Adjusted padding and width for collapsed state
+      className={`md:flex fixed left-0 top-1/2 -translate-y-1/2 bg-gray-800/80 backdrop-blur-md transition-all duration-300 z-[9999] flex-col justify-between rounded-r-xl ${
+        expanded ? "w-48 py-6" : "w-12 py-4" // Adjusted padding and width for collapsed state
       }`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      style={{ height: 'auto', minHeight: '200px' }} // Ensure it has some height
+      style={{ height: 'auto', minHeight: '300px' }} // Increased minimum height
     >
       {/* Expansion Handle - only visible when collapsed */}
       {!expanded && (
@@ -62,7 +76,7 @@ export function MinimalNavigation() {
       )}
       
       <ul className={`flex flex-col space-y-2 w-full ${expanded ? "px-3" : "px-0 items-center"}`}> {/* Adjusted padding */}
-        {/* Navigation Items */}
+        {/* Common Navigation Items */}
         <NavItem
           href="/articles"
           icon={<BookOpen size={20} />}
@@ -98,21 +112,49 @@ export function MinimalNavigation() {
           active={isActive("/profile")}
           expanded={expanded}
         />
+        
+        {/* Admin-specific Navigation Items */}
+        {isAdmin && (
+          <>
+            <div className="w-full pt-2 mt-2 border-t border-gray-700/50"></div>
+            <NavItem
+              href="/admin/dashboard"
+              icon={<LayoutDashboard size={20} />}
+              label="Dashboard"
+              active={isActive("/admin/dashboard")}
+              expanded={expanded}
+            />
+            <NavItem
+              href="/admin/verification-requests"
+              icon={<CheckSquare size={20} />}
+              label="Verifications"
+              active={isActive("/admin/verification-requests")}
+              expanded={expanded}
+            />
+            <NavItem
+              href="/admin/courses"
+              icon={<Edit size={20} />}
+              label="Edit Courses"
+              active={isActive("/admin/courses")}
+              expanded={expanded}
+            />
+          </>
+        )}
       </ul>
 
       {/* Logout Button - always at the bottom */}
       <div className={`w-full ${expanded ? "px-3" : "px-0 flex justify-center"} mt-4 pt-2 border-t border-gray-700/50`}>
         <button
           onClick={handleLogout}
-          className="w-full block"
+          className={`w-full ${!expanded ? "flex justify-center" : ""}`}
           title="Logout"
         >
           <div
-            className={`flex items-center py-2 rounded-md transition-all duration-300 text-gray-400 hover:text-red-400 hover:bg-red-900/40 ${expanded ? "px-3" : "justify-center"}`}
+            className={`flex items-center py-2 rounded-md transition-all duration-300 text-gray-400 hover:text-red-400 hover:bg-red-900/40 ${expanded ? "px-3" : "justify-center w-10 h-10"}`}
           >
             <LogOut size={20} />
             <span
-              className={`ml-3 whitespace-nowrap transition-opacity duration-300 ${expanded ? "opacity-100" : "opacity-0"}`}
+              className={`ml-3 whitespace-nowrap transition-opacity duration-300 ${expanded ? "opacity-100" : "opacity-0 absolute"}`}
             >
               Logout
             </span>
@@ -133,7 +175,7 @@ interface NavItemProps {
 
 function NavItem({ href, icon, label, active, expanded }: NavItemProps) {
   return (
-    <Link href={href} className="w-full block" title={label}>
+    <Link href={href} className={`w-full ${!expanded ? "flex justify-center" : ""}`} title={label}>
       <div
         className={`flex items-center py-2 rounded-md transition-all duration-300 ${
           active ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg" : "text-gray-400 hover:text-white hover:bg-gray-700/50"
@@ -141,7 +183,7 @@ function NavItem({ href, icon, label, active, expanded }: NavItemProps) {
       >
         {icon}
         <span
-          className={`ml-3 whitespace-nowrap transition-opacity duration-300 ${expanded ? "opacity-100" : "opacity-0 sr-only"}`} // sr-only for accessibility when collapsed
+          className={`ml-3 whitespace-nowrap transition-opacity duration-300 ${expanded ? "opacity-100" : "opacity-0 absolute"}`} // Hide text when collapsed but keep it accessible on hover
         >
           {label}
         </span>

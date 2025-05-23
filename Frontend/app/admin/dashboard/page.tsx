@@ -4,6 +4,10 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import axiosInstance from "@/lib/axiosInstance"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { MinimalNavigation } from "@/components/minimal-navigation"
+import { BloomingStars } from "@/components/blooming-stars"
+import { useAuthRedirect } from "@/lib/useAuthRedirect"
 // @ts-ignore
 import { Bar, Pie, Line } from "react-chartjs-2"
 // @ts-ignore
@@ -35,6 +39,7 @@ ChartJS.register(
 
 export default function AdminDashboardPage() {
   const router = useRouter()
+  const { isLoading: authLoading } = useAuthRedirect()
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalArticles: 0,
@@ -43,7 +48,6 @@ export default function AdminDashboardPage() {
     pendingVerifications: 0,
     userLevels: { NOVICE: 0, EXPLORER: 0, ASTRONAUT: 0, GALACTIC: 0 },
     articlesByMonth: Array(6).fill(0),
-    courseCompletionRate: 0,
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -56,7 +60,12 @@ export default function AdminDashboardPage() {
         
         // Fetch users count with error handling
         const usersResponse = await axiosInstance.get("/users")
-        const users = Array.isArray(usersResponse.data) ? usersResponse.data : []
+        let users = []
+        if (usersResponse.data && usersResponse.data.content) {
+          users = Array.isArray(usersResponse.data.content) ? usersResponse.data.content : []
+        } else if (Array.isArray(usersResponse.data)) {
+          users = usersResponse.data
+        }
         console.log("Users data:", users)
         
         // Fetch articles count
@@ -78,7 +87,7 @@ export default function AdminDashboardPage() {
         const levels = { NOVICE: 0, EXPLORER: 0, ASTRONAUT: 0, GALACTIC: 0 }
         if (Array.isArray(users)) {
           users.forEach(user => {
-            if (user && user.level && user.level in levels) {
+            if (user && user.level && levels.hasOwnProperty(user.level)) {
               // Use type assertion to handle the indexing
               levels[user.level as keyof typeof levels]++
             }
@@ -102,7 +111,6 @@ export default function AdminDashboardPage() {
           pendingVerifications,
           userLevels: levels,
           articlesByMonth: getArticlesByMonth(articles),
-          courseCompletionRate: calculateCourseCompletionRate(courses, users),
         })
       } catch (err) {
         console.error("Error fetching dashboard statistics:", err)
@@ -138,17 +146,7 @@ export default function AdminDashboardPage() {
     return monthCounts
   }
 
-  // Helper function to calculate course completion rate
-  const calculateCourseCompletionRate = (courses: any[], users: any[]) => {
-    if (!Array.isArray(courses) || !Array.isArray(users) || !courses.length || !users.length) return 0
-    
-    // This is a placeholder calculation
-    // In a real implementation, you'd need to fetch course progress data
-    const completedCourses = Math.floor(Math.random() * 100)
-    const totalEnrollments = courses.length * users.length / 3
-    
-    return totalEnrollments > 0 ? (completedCourses / totalEnrollments) * 100 : 0
-  }
+  // This function has been removed as requested
 
   // Prepare chart data
   const userLevelsData = {
@@ -194,163 +192,193 @@ export default function AdminDashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="w-16 h-16 border-4 border-t-indigo-500 border-r-transparent border-b-indigo-500 border-l-transparent rounded-full animate-spin"></div>
+      <div className="flex min-h-screen bg-black text-white items-center justify-center">
+        <MinimalNavigation />
+        <p className="text-xl">Loading dashboard statistics...</p>
+        <div className="ml-4 w-16 h-16 border-4 border-t-indigo-500 border-r-transparent border-b-indigo-500 border-l-transparent rounded-full animate-spin"></div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="text-center py-10">
-        <h2 className="text-2xl font-bold text-red-500">Error</h2>
-        <p className="mt-2">{error}</p>
-        <button 
-          onClick={() => window.location.reload()}
-          className="mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-md text-white"
-        >
-          Retry
-        </button>
+      <div className="flex min-h-screen bg-black text-white items-center justify-center p-6">
+        <MinimalNavigation />
+        <div className="text-center">
+          <p className="text-xl text-red-500">Error: {error}</p>
+          <Button
+            variant="outline"
+            onClick={() => window.location.reload()}
+            className="mt-4 border-gray-700 text-gray-300 hover:bg-gray-800"
+          >
+            Try Again
+          </Button>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-        <p className="text-gray-400 mt-2">Overview of platform statistics and metrics</p>
-      </div>
+    <div className="flex min-h-screen bg-black text-white relative">
+      {/* Blooming Stars Animation */}
+      <BloomingStars />
+      
+      {/* Minimal Navigation */}
+      <MinimalNavigation />
 
-      {/* Stats Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg text-gray-200">Total Users</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-indigo-400">{stats.totalUsers}</div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg text-gray-200">Total Articles</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-indigo-400">{stats.totalArticles}</div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg text-gray-200">Courses</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-indigo-400">{stats.totalCourses}</div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg text-gray-200">Pending Verifications</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-amber-500">{stats.pendingVerifications}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* User Levels Distribution */}
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-lg text-gray-200">User Levels Distribution</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <Pie 
-                data={userLevelsData} 
-                options={{ 
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      position: 'bottom',
-                      labels: {
-                        color: '#e2e8f0'
-                      }
-                    }
-                  }
-                }} 
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Articles Published By Month */}
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-lg text-gray-200">Articles Published (Last 6 Months)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <Bar 
-                data={articlesByMonthData} 
-                options={{ 
-                  maintainAspectRatio: false,
-                  scales: {
-                    y: {
-                      beginAtZero: true,
-                      ticks: {
-                        color: '#e2e8f0'
-                      },
-                      grid: {
-                        color: 'rgba(255, 255, 255, 0.1)'
-                      }
-                    },
-                    x: {
-                      ticks: {
-                        color: '#e2e8f0'
-                      },
-                      grid: {
-                        display: false
-                      }
-                    }
-                  },
-                  plugins: {
-                    legend: {
-                      labels: {
-                        color: '#e2e8f0'
-                      }
-                    }
-                  }
-                }} 
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Course Completion Rate Card */}
-      <Card className="bg-gray-800 border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-lg text-gray-200">Course Completion Rate</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center">
-            <div className="w-full bg-gray-700 rounded-full h-4">
-              <div 
-                className="bg-green-500 h-4 rounded-full" 
-                style={{ width: `${stats.courseCompletionRate}%` }}
-              ></div>
-            </div>
-            <span className="ml-4 text-lg font-medium text-gray-200">
-              {stats.courseCompletionRate.toFixed(1)}%
-            </span>
+      {/* Main Content */}
+      <main className="flex-1 p-6 ml-12 transition-all duration-300 relative z-10">
+        <div className="container mx-auto space-y-8">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+            <p className="text-gray-400 mt-2">Overview of platform statistics and metrics</p>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Stats Overview Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="bg-gray-800/70 border-gray-700 backdrop-blur-sm hover:bg-gray-800/90 transition-colors">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg text-gray-200">Total Users</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-indigo-400">{stats.totalUsers}</div>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gray-800/70 border-gray-700 backdrop-blur-sm hover:bg-gray-800/90 transition-colors">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg text-gray-200">Total Articles</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-indigo-400">{stats.totalArticles}</div>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gray-800/70 border-gray-700 backdrop-blur-sm hover:bg-gray-800/90 transition-colors">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg text-gray-200">Courses</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-indigo-400">{stats.totalCourses}</div>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gray-800/70 border-gray-700 backdrop-blur-sm hover:bg-gray-800/90 transition-colors">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg text-gray-200">Pending Verifications</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-amber-500">{stats.pendingVerifications}</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Charts */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* User Levels Distribution */}
+            <Card className="bg-gray-800/70 border-gray-700 backdrop-blur-sm hover:bg-gray-800/90 transition-colors">
+              <CardHeader>
+                <CardTitle className="text-lg text-gray-200">User Levels Distribution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80">
+                  <Pie 
+                    data={userLevelsData} 
+                    options={{ 
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'bottom',
+                          labels: {
+                            color: '#e2e8f0',
+                            font: {
+                              size: 12
+                            }
+                          }
+                        },
+                        tooltip: {
+                          backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                          titleColor: '#e2e8f0',
+                          bodyColor: '#e2e8f0',
+                          borderColor: '#334155',
+                          borderWidth: 1,
+                          padding: 10,
+                          displayColors: true,
+                          callbacks: {
+                            label: function(context) {
+                              const label = context.label || '';
+                              const value = context.raw || 0;
+                              // Safely calculate total and percentage
+                              let total = 0;
+                              if (context.chart.data.datasets[0].data) {
+                                total = context.chart.data.datasets[0].data.reduce((a: any, b: any) => (a || 0) + (b || 0), 0);
+                              }
+                              const percentage = total > 0 ? Math.round((Number(value) / total) * 100) : 0;
+                              return `${label}: ${value} (${percentage}%)`;
+                            }
+                          }
+                        }
+                      }
+                    }} 
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Articles Published By Month */}
+            <Card className="bg-gray-800/70 border-gray-700 backdrop-blur-sm hover:bg-gray-800/90 transition-colors">
+              <CardHeader>
+                <CardTitle className="text-lg text-gray-200">Articles Published (Last 6 Months)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80">
+                  <Bar 
+                    data={articlesByMonthData} 
+                    options={{ 
+                      maintainAspectRatio: false,
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                          ticks: {
+                            color: '#e2e8f0'
+                          },
+                          grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                          }
+                        },
+                        x: {
+                          ticks: {
+                            color: '#e2e8f0'
+                          },
+                          grid: {
+                            display: false
+                          }
+                        }
+                      },
+                      plugins: {
+                        legend: {
+                          labels: {
+                            color: '#e2e8f0'
+                          }
+                        },
+                        tooltip: {
+                          backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                          titleColor: '#e2e8f0',
+                          bodyColor: '#e2e8f0',
+                          borderColor: '#334155',
+                          borderWidth: 1,
+                          padding: 10
+                        }
+                      }
+                    }} 
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+        </div>
+      </main>
     </div>
   )
 }

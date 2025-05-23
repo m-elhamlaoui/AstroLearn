@@ -14,21 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 // @ts-ignore
 import { toast } from "react-hot-toast"
 import { ArrowLeft, Edit, Plus, PlusCircle, Video, FileText, Trash2, GripVertical, Move, ArrowUpDown } from "lucide-react"
-// @ts-ignore
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
-
-// Add type declarations for DnD
-type DroppableProvided = {
-  innerRef: React.RefObject<HTMLDivElement>
-  droppableProps: any
-  placeholder?: React.ReactElement
-}
-
-type DraggableProvided = {
-  innerRef: React.RefObject<HTMLDivElement>
-  draggableProps: any
-  dragHandleProps: any
-}
+import { DragDropContext, Droppable, Draggable, DroppableProvided as DndDroppableProvided, DraggableProvided as DndDraggableProvided, DroppableStateSnapshot, DraggableStateSnapshot } from '@hello-pangea/dnd'
 
 interface CourseDetailsPageProps {
   params: {
@@ -333,7 +319,7 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
           
           <DragDropContext onDragEnd={handleModuleReorder}>
             <Droppable droppableId="modules">
-              {(provided: DroppableProvided) => (
+              {(provided: DndDroppableProvided, snapshot: DroppableStateSnapshot) => (
                 <div
                   {...provided.droppableProps}
                   ref={provided.innerRef}
@@ -346,7 +332,7 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
                         draggableId={`module-${module.id}`} 
                         index={index}
                       >
-                        {(provided: DraggableProvided) => (
+                        {(provided: DndDraggableProvided, snapshot: DraggableStateSnapshot) => (
                           <Card 
                             ref={provided.innerRef}
                             {...provided.draggableProps}

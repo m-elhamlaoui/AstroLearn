@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "react-hot-toast"
 import { CheckCircle, XCircle, User } from "lucide-react"
+import { MinimalNavigation } from "@/components/minimal-navigation"
+import { BloomingStars } from "@/components/blooming-stars"
+import { useAuthRedirect } from "@/lib/useAuthRedirect"
 
 interface UserVerificationRequest {
   id: number
@@ -25,6 +28,7 @@ export default function VerificationRequestsPage() {
   const [requests, setRequests] = useState<UserVerificationRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const { isLoading: authLoading } = useAuthRedirect()
 
   // Fetch verification requests
   useEffect(() => {
@@ -104,101 +108,117 @@ export default function VerificationRequestsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="w-16 h-16 border-4 border-t-indigo-500 border-r-transparent border-b-indigo-500 border-l-transparent rounded-full animate-spin"></div>
+      <div className="flex min-h-screen bg-black text-white items-center justify-center">
+        <MinimalNavigation />
+        <p className="text-xl">Loading verification requests...</p>
+        <div className="ml-4 w-16 h-16 border-4 border-t-indigo-500 border-r-transparent border-b-indigo-500 border-l-transparent rounded-full animate-spin"></div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="text-center py-10">
-        <h2 className="text-2xl font-bold text-red-500">Error</h2>
-        <p className="mt-2">{error}</p>
-        <button 
-          onClick={() => window.location.reload()}
-          className="mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-md text-white"
-        >
-          Retry
-        </button>
+      <div className="flex min-h-screen bg-black text-white items-center justify-center p-6">
+        <MinimalNavigation />
+        <div className="text-center">
+          <p className="text-xl text-red-500">Error: {error}</p>
+          <Button
+            variant="outline"
+            onClick={() => window.location.reload()}
+            className="mt-4 border-gray-700 text-gray-300 hover:bg-gray-800"
+          >
+            Try Again
+          </Button>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Verification Requests</h1>
-        <p className="text-gray-400 mt-2">Manage user verification requests</p>
-      </div>
+    <div className="flex min-h-screen bg-black text-white relative">
+      {/* Blooming Stars Animation */}
+      <BloomingStars />
+      
+      {/* Minimal Navigation */}
+      <MinimalNavigation />
 
-      {requests.length === 0 ? (
-        <Card className="bg-gray-800 border-gray-700">
-          <CardContent className="p-6 text-center">
-            <p className="text-lg text-gray-300">No pending verification requests</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {requests.map((user) => (
-            <Card key={user.id} className="bg-gray-800 border-gray-700 overflow-hidden">
-              <div className="flex flex-col md:flex-row">
-                <div className="md:w-1/4 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-gray-700">
-                  <div className="relative w-24 h-24 rounded-full overflow-hidden mb-4">
-                    {user.profileImageUrl ? (
-                      <Image 
-                        src={user.profileImageUrl} 
-                        alt={user.username || "User"} 
-                        fill 
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-700 flex items-center justify-center text-2xl text-white">
-                        {user.username?.[0]?.toUpperCase() || "U"}
-                      </div>
-                    )}
-                  </div>
-                  <h3 className="text-lg font-semibold text-white">{user.username}</h3>
-                  <p className="text-sm text-gray-400">{user.email}</p>
-                  <div className="mt-2 flex items-center space-x-2">
-                    <Badge className="bg-indigo-600">{user.level}</Badge>
-                    <Badge className="bg-gray-700">{user.articleCount} articles</Badge>
-                  </div>
-                </div>
-                
-                <div className="md:w-2/4 p-6 border-b md:border-b-0 md:border-r border-gray-700">
-                  <h4 className="font-semibold text-gray-200 mb-2">Bio</h4>
-                  <p className="text-gray-300 text-sm">
-                    {user.bio || "No bio provided"}
-                  </p>
-                </div>
-                
-                <div className="md:w-1/4 p-6 flex flex-col justify-center space-y-4">
-                  <Link href={`/profile/${user.id}`} passHref>
-                    <Button variant="outline" className="w-full">
-                      View Profile
-                    </Button>
-                  </Link>
-                  <Button 
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center gap-2"
-                    onClick={() => handleApproveVerification(user.id)}
-                  >
-                    <CheckCircle size={16} />
-                    <span>Approve</span>
-                  </Button>
-                  <Button 
-                    className="w-full bg-rose-700 hover:bg-rose-800 text-white flex items-center justify-center gap-2"
-                    onClick={() => handleDeclineVerification(user.id)}
-                  >
-                    <XCircle size={16} />
-                    <span>Decline</span>
-                  </Button>
-                </div>
-              </div>
+      {/* Main Content */}
+      <main className="flex-1 p-6 ml-12 transition-all duration-300 relative z-10">
+        <div className="container mx-auto space-y-8">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Verification Requests</h1>
+            <p className="text-gray-400 mt-2">Manage user verification requests</p>
+          </div>
+
+          {requests.length === 0 ? (
+            <Card className="bg-gray-800/70 border-gray-700 backdrop-blur-sm hover:bg-gray-800/90 transition-colors">
+              <CardContent className="p-6 text-center">
+                <p className="text-lg text-gray-300">No pending verification requests</p>
+              </CardContent>
             </Card>
-          ))}
+          ) : (
+            <div className="space-y-4">
+              {requests.map((user) => (
+                <Card key={user.id} className="bg-gray-800/70 border-gray-700 backdrop-blur-sm hover:bg-gray-800/90 transition-colors overflow-hidden">
+                  <div className="flex flex-col md:flex-row">
+                    <div className="md:w-1/4 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-gray-700">
+                      <div className="relative w-24 h-24 rounded-full overflow-hidden mb-4 bg-gray-700/80">
+                        {user.profileImageUrl ? (
+                          <Image 
+                            src={user.profileImageUrl} 
+                            alt={user.username || "User"} 
+                            fill 
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gray-700/80 flex items-center justify-center text-2xl text-white">
+                            {user.username?.[0]?.toUpperCase() || "U"}
+                          </div>
+                        )}
+                      </div>
+                      <h3 className="text-lg font-semibold text-white">{user.username}</h3>
+                      <p className="text-sm text-gray-400">{user.email}</p>
+                      <div className="mt-2 flex items-center space-x-2">
+                        <Badge className="bg-indigo-600/90">{user.level}</Badge>
+                        <Badge className="bg-gray-700/90">{user.articleCount} articles</Badge>
+                      </div>
+                    </div>
+                    
+                    <div className="md:w-2/4 p-6 border-b md:border-b-0 md:border-r border-gray-700">
+                      <h4 className="font-semibold text-gray-200 mb-2">Bio</h4>
+                      <p className="text-gray-300 text-sm">
+                        {user.bio || "No bio provided"}
+                      </p>
+                    </div>
+                    
+                    <div className="md:w-1/4 p-6 flex flex-col justify-center space-y-4">
+                      <Link href={`/profile/${user.id}`} passHref>
+                        <Button variant="outline" className="w-full border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white">
+                          View Profile
+                        </Button>
+                      </Link>
+                      <Button 
+                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center gap-2"
+                        onClick={() => handleApproveVerification(user.id)}
+                      >
+                        <CheckCircle size={16} />
+                        <span>Approve</span>
+                      </Button>
+                      <Button 
+                        className="w-full bg-rose-700 hover:bg-rose-800 text-white flex items-center justify-center gap-2"
+                        onClick={() => handleDeclineVerification(user.id)}
+                      >
+                        <XCircle size={16} />
+                        <span>Decline</span>
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </main>
     </div>
   )
 }

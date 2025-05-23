@@ -182,3 +182,16 @@ variable "backend_asg_desired_capacity" {
 #   type        = string
 #   default     = "user_data_backend.sh"
 # }
+
+# --- Docker Images ---
+variable "docker_image_frontend" {
+  description = "Docker image for the frontend application"
+  type        = string
+  default     = "douaae/astrolearn-frontend:latest"
+}
+
+variable "docker_image_backend" {
+  description = "Docker image for the backend application"
+  type        = string
+  default     = "douaae/astrolearn-backend:latest"
+}

@@ -372,9 +372,8 @@ const handleRequestVerification = async () => {
   }
 
   try {
-    await axiosInstance.put(`/users/${userData.id}/verification`, {
-      verificationStatus: "PENDING"
-    });
+    // Updated URL to match backend endpoint
+    await axiosInstance.put(`/users/${userData.id}/verification/request`);
     
     // Update local state
     setUserData(prev => {

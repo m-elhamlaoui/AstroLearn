@@ -11,6 +11,7 @@ public record CourseDTO(
         String imageUrl,
         Course.DifficultyLevel difficulty,
         int totalLessons,
-        List<Long> moduleIds
+        List<Long> moduleIds,
+        Course.CourseStatus status
 ) {}
 

@@ -381,18 +381,79 @@ public class DatabaseSeeder implements CommandLineRunner {
         System.out.println("Seeding Courses...");
         List<Course> courses = new ArrayList<>();
 
-        // Original 4 Courses with picsum links
-        courses.add(new Course(null, "Introduction to Astrophysics", "Learn the basics of astrophysics, from stars to galaxies.", Course.DifficultyLevel.BEGINNER, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/course1/600/300"));
-        courses.add(new Course(null, "Rocket Science 101", "Understand the principles of rocket propulsion and spaceflight.", Course.DifficultyLevel.INTERMEDIATE, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/course2/600/300"));
-        courses.add(new Course(null, "Planetary Geology", "Explore the geological features of planets in our solar system.", Course.DifficultyLevel.INTERMEDIATE, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/course3/600/300"));
-        courses.add(new Course(null, "Advanced Space Mission Design", "Deep dive into designing complex space missions.", Course.DifficultyLevel.ADVANCED, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/course4/600/300"));
+        // Original 4 Courses with picsum links - all set to PUBLISHED status
+        Course course1 = new Course();
+        course1.setTitle("Introduction to Astrophysics");
+        course1.setDescription("Learn the basics of astrophysics, from stars to galaxies.");
+        course1.setDifficulty(Course.DifficultyLevel.BEGINNER);
+        course1.setImageUrl("https://picsum.photos/seed/course1/600/300");
+        course1.setStatus(Course.CourseStatus.PUBLISHED);
+        courses.add(course1);
+        
+        Course course2 = new Course();
+        course2.setTitle("Rocket Science 101");
+        course2.setDescription("Understand the principles of rocket propulsion and spaceflight.");
+        course2.setDifficulty(Course.DifficultyLevel.INTERMEDIATE);
+        course2.setImageUrl("https://picsum.photos/seed/course2/600/300");
+        course2.setStatus(Course.CourseStatus.PUBLISHED);
+        courses.add(course2);
+        
+        Course course3 = new Course();
+        course3.setTitle("Planetary Geology");
+        course3.setDescription("Explore the geological features of planets in our solar system.");
+        course3.setDifficulty(Course.DifficultyLevel.INTERMEDIATE);
+        course3.setImageUrl("https://picsum.photos/seed/course3/600/300");
+        course3.setStatus(Course.CourseStatus.PUBLISHED);
+        courses.add(course3);
+        
+        Course course4 = new Course();
+        course4.setTitle("Advanced Space Mission Design");
+        course4.setDescription("Deep dive into designing complex space missions.");
+        course4.setDifficulty(Course.DifficultyLevel.ADVANCED);
+        course4.setImageUrl("https://picsum.photos/seed/course4/600/300");
+        course4.setStatus(Course.CourseStatus.PUBLISHED);
+        courses.add(course4);
 
         // New Courses (5 additional) with picsum links for consistency
-        courses.add(new Course(null, "Cosmology: The Study of the Universe", "Delve into the origin, evolution, and ultimate fate of the universe.", Course.DifficultyLevel.ADVANCED, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/cosmology/600/300"));
-        courses.add(new Course(null, "Introduction to Astrobiology", "Search for life beyond Earth: methods, possibilities, and implications.", Course.DifficultyLevel.BEGINNER, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/astrobiology/600/300"));
-        courses.add(new Course(null, "Satellite Systems Engineering", "Learn about the design, launch, and operation of artificial satellites.", Course.DifficultyLevel.INTERMEDIATE, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/satellite_eng/600/300"));
-        courses.add(new Course(null, "Space Law and Policy", "Understand the legal frameworks governing space activities and exploration.", Course.DifficultyLevel.ADVANCED, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/space_law/600/300"));
-        courses.add(new Course(null, "Observational Astronomy Techniques", "Practical guide to using telescopes and analyzing astronomical data.", Course.DifficultyLevel.INTERMEDIATE, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/obs_astro/600/300"));
+        Course course5 = new Course();
+        course5.setTitle("Cosmology: The Study of the Universe");
+        course5.setDescription("Delve into the origin, evolution, and ultimate fate of the universe.");
+        course5.setDifficulty(Course.DifficultyLevel.ADVANCED);
+        course5.setImageUrl("https://picsum.photos/seed/cosmology/600/300");
+        course5.setStatus(Course.CourseStatus.PUBLISHED);
+        courses.add(course5);
+        
+        Course course6 = new Course();
+        course6.setTitle("Introduction to Astrobiology");
+        course6.setDescription("Search for life beyond Earth: methods, possibilities, and implications.");
+        course6.setDifficulty(Course.DifficultyLevel.BEGINNER);
+        course6.setImageUrl("https://picsum.photos/seed/astrobiology/600/300");
+        course6.setStatus(Course.CourseStatus.PUBLISHED);
+        courses.add(course6);
+        
+        Course course7 = new Course();
+        course7.setTitle("Satellite Systems Engineering");
+        course7.setDescription("Learn about the design, launch, and operation of artificial satellites.");
+        course7.setDifficulty(Course.DifficultyLevel.INTERMEDIATE);
+        course7.setImageUrl("https://picsum.photos/seed/satellite_eng/600/300");
+        course7.setStatus(Course.CourseStatus.PUBLISHED);
+        courses.add(course7);
+        
+        Course course8 = new Course();
+        course8.setTitle("Space Law and Policy");
+        course8.setDescription("Understand the legal frameworks governing space activities and exploration.");
+        course8.setDifficulty(Course.DifficultyLevel.ADVANCED);
+        course8.setImageUrl("https://picsum.photos/seed/space_law/600/300");
+        course8.setStatus(Course.CourseStatus.PUBLISHED);
+        courses.add(course8);
+        
+        Course course9 = new Course();
+        course9.setTitle("Observational Astronomy Techniques");
+        course9.setDescription("Practical guide to using telescopes and analyzing astronomical data.");
+        course9.setDifficulty(Course.DifficultyLevel.INTERMEDIATE);
+        course9.setImageUrl("https://picsum.photos/seed/obs_astro/600/300");
+        course9.setStatus(Course.CourseStatus.PUBLISHED);
+        courses.add(course9);
 
         return courseRepository.saveAll(courses);
     }

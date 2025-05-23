@@ -12,7 +12,7 @@ interface Course {
   id: number
   title: string
   summary: string
-  thumbnail: string
+  imageUrl: string
   modulesCount: number
   lessonsCount: number
   status: "DRAFT" | "PUBLISHED"
@@ -117,13 +117,23 @@ export default function AdminCoursesPage() {
           {courses.map((course) => (
             <Card key={course.id} className="bg-gray-800 border-gray-700 overflow-hidden flex flex-col">
               <div 
-                className="h-48 bg-gray-700 relative" 
-                style={{
-                  backgroundImage: course.thumbnail ? `url(${course.thumbnail})` : 'none',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center'
-                }}
+                className="h-48 bg-gray-700 relative overflow-hidden" 
               >
+                {course.imageUrl ? (
+                  <img 
+                    src={course.imageUrl} 
+                    alt={`${course.title} thumbnail`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // On error, replace with a placeholder
+                      (e.target as HTMLImageElement).src = '/placeholder.svg';
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-700 text-gray-500">
+                    <span>No image</span>
+                  </div>
+                )}
                 <div className="absolute top-2 right-2">
                   <span className={`px-2 py-1 rounded text-xs font-semibold ${
                     course.status === 'PUBLISHED' ? 'bg-green-600' : 'bg-amber-600'

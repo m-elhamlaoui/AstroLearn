@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import axios from "axios" // For direct S3 uploads
 import axiosInstance from "@/lib/axiosInstance"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -115,7 +116,8 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
     }
 
     try {
-      const response = await axiosInstance.post(`/courses/${courseId}/modules`, {
+      // Updated URL to match ModuleController endpoint
+      const response = await axiosInstance.post(`/modules/courses/${courseId}`, {
         title: newModuleTitle,
         description: "",
         order: course?.modules?.length || 0
@@ -124,10 +126,10 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
       // Update local state
       setCourse(prevCourse => {
         if (!prevCourse) return null
-        
+        const oldModules = Array.isArray(prevCourse.modules) ? prevCourse.modules : [];
         return {
           ...prevCourse,
-          modules: [...prevCourse.modules, response.data]
+          modules: [...oldModules, response.data]
         }
       })
 
@@ -141,36 +143,62 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
     }
   }
 
-  // Handle adding a new lesson to a module
-  const handleAddLesson = async (moduleId: number) => {
-    try {
-      const moduleIndex = course?.modules.findIndex(m => m.id === moduleId) || -1
-      if (moduleIndex === -1) return
-      
-      const response = await axiosInstance.post(`/courses/${courseId}/modules/${moduleId}/lessons`, {
-        title: "New Lesson",
-        videoUrl: "",
-        description: "",
-        order: course?.modules[moduleIndex].lessons.length || 0
-      })
+  // State for lesson creation per module
+  const [newLessonTitles, setNewLessonTitles] = useState<{ [key: number]: string }>({});
+  const [newLessonContents, setNewLessonContents] = useState<{ [key: number]: string }>({});
+  const [lessonImageFiles, setLessonImageFiles] = useState<{ [key: number]: File | undefined }>({});
+  const [lessonImageUrls, setLessonImageUrls] = useState<{ [key: number]: string }>({});
 
+  // S3 upload logic (adapted from article-edit)
+  const uploadImageToS3 = async (file: File | undefined): Promise<string> => {
+    if (!file) {
+      console.error("No file provided to uploadImageToS3");
+      return "";
+    }
+    
+    try {
+      const response = await axiosInstance.get<{ uploadUrl: string; key: string }>("/generate-upload-url");
+      const { uploadUrl } = response.data;
+      await axios.put(uploadUrl, file, { headers: { "Content-Type": file.type } });
+      return uploadUrl.split("?")[0];
+    } catch (error) {
+      console.error("Error uploading image to S3:", error);
+      toast.error("Image upload failed");
+      return "";
+    }
+  };
+
+  // Handle adding a new lesson to a module
+  const handleAddLesson = async (moduleId: number, title: string, content: string, videoUrl: string) => {
+    try {
+      const moduleIndex = course?.modules.findIndex(m => m.id === moduleId) || -1;
+      if (moduleIndex === -1) return;
+      // Updated URL to match LessonController endpoint
+      const response = await axiosInstance.post(`/lessons/modules/${moduleId}`, {
+        title,
+        content,
+        videoUrl,
+        moduleId
+      });
       // Update local state
       setCourse(prevCourse => {
-        if (!prevCourse) return null
-        
-        const updatedModules = [...prevCourse.modules]
-        updatedModules[moduleIndex].lessons.push(response.data)
-        
+        if (!prevCourse) return null;
+        const updatedModules = [...prevCourse.modules];
+        updatedModules[moduleIndex].lessons.push(response.data);
         return {
           ...prevCourse,
           modules: updatedModules
-        }
-      })
-      
-      toast.success("Lesson added successfully")
+        };
+      });
+      // Reset lesson form for this module
+      setNewLessonTitles(prev => ({ ...prev, [moduleId]: "" }));
+      setNewLessonContents(prev => ({ ...prev, [moduleId]: "" }));
+      setLessonImageFiles(prev => ({ ...prev, [moduleId]: undefined }));
+      setLessonImageUrls(prev => ({ ...prev, [moduleId]: "" }));
+      toast.success("Lesson added successfully");
     } catch (err) {
-      console.error("Error adding lesson:", err)
-      toast.error("Failed to add lesson")
+      console.error("Error adding lesson:", err);
+      toast.error("Failed to add lesson");
     }
   }
 
@@ -338,12 +366,17 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
                               </div>
                               <div className="flex items-center gap-2">
                                 <Button 
-                                  variant="outline" 
+                                  onClick={() => {
+                                    // Set default values for this module before adding
+                                    setNewLessonTitles(prev => ({ ...prev, [module.id]: "New Lesson" }));
+                                    setNewLessonContents(prev => ({ ...prev, [module.id]: "" }));
+                                    handleAddLesson(module.id, "New Lesson", "", "");
+                                  }}
+                                  variant="outline"
                                   size="sm"
-                                  onClick={() => handleAddLesson(module.id)}
                                   className="text-xs"
                                 >
-                                  Add Lesson
+                                  Add Quick Lesson
                                 </Button>
                                 <Button 
                                   variant="ghost" 
@@ -381,6 +414,59 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
                               ) : (
                                 <p className="text-gray-400 text-sm pl-6">No lessons yet. Add a lesson to this module.</p>
                               )}
+                            </CardContent>
+                            <CardContent>
+                              <div className="mt-4 p-4 bg-gray-900 rounded-lg">
+                                <h4 className="text-gray-200 font-semibold mb-2">Add Lesson</h4>
+                                <form
+                                  onSubmit={async (e) => {
+                                    e.preventDefault();
+                                    // Validate lesson title
+                                    if (!newLessonTitles[module.id]?.trim()) {
+                                      toast.error("Lesson title is required");
+                                      return;
+                                    }
+                                    let imageUrl = lessonImageUrls[module.id] || "";
+                                    // If a file is selected, upload to S3
+                                    if (lessonImageFiles[module.id]) {
+                                      imageUrl = await uploadImageToS3(lessonImageFiles[module.id]);
+                                    }
+                                    await handleAddLesson(module.id, newLessonTitles[module.id], newLessonContents[module.id] || "", imageUrl);
+                                  }}
+                                >
+                                  <div className="flex flex-col gap-2 mb-2">
+                                    <Input
+                                      placeholder="Lesson title"
+                                      value={newLessonTitles[module.id] || ""}
+                                      onChange={e => setNewLessonTitles({ ...newLessonTitles, [module.id]: e.target.value })}
+                                      className="bg-gray-800 border-gray-700 text-white"
+                                    />
+                                    <Textarea
+                                      placeholder="Lesson content (optional)"
+                                      value={newLessonContents[module.id] || ""}
+                                      onChange={e => setNewLessonContents({ ...newLessonContents, [module.id]: e.target.value })}
+                                      className="bg-gray-800 border-gray-700 text-white"
+                                    />
+                                    <div className="flex items-center gap-2">
+                                      <Input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={e => setLessonImageFiles({ ...lessonImageFiles, [module.id]: e.target.files?.[0] })}
+                                        className="bg-gray-800 border-gray-700 text-white"
+                                      />
+                                      {lessonImageUrls[module.id] && (
+                                        <img src={lessonImageUrls[module.id]} alt="Lesson" className="w-12 h-12 object-cover rounded" />
+                                      )}
+                                    </div>
+                                  </div>
+                                  <Button
+                                    type="submit"
+                                    className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white"
+                                  >
+                                    Add Lesson
+                                  </Button>
+                                </form>
+                              </div>
                             </CardContent>
                           </Card>
                         )}

@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "react-hot-toast"
+import { CheckCircle, XCircle, User } from "lucide-react"
 
 interface UserVerificationRequest {
   id: number
@@ -32,14 +33,25 @@ export default function VerificationRequestsPage() {
         setLoading(true)
         // Fetch users with PENDING verification status
         const response = await axiosInstance.get("/users?verificationStatus=PENDING")
-        // Ensure we have an array of requests
         const data = response.data
         console.log("Verification requests data:", data)
         
-        if (Array.isArray(data)) {
-          setRequests(data)
+        // Handle paginated response
+        if (data && data.content && Array.isArray(data.content)) {
+          // Filter users with PENDING verification status
+          const pendingUsers = data.content.filter((user: any) => 
+            user && user.verificationStatus === "PENDING"
+          )
+          console.log("Pending verification users:", pendingUsers)
+          setRequests(pendingUsers)
+        } else if (Array.isArray(data)) {
+          // If it's already an array, filter for PENDING status
+          const pendingUsers = data.filter((user: any) => 
+            user && user.verificationStatus === "PENDING"
+          )
+          setRequests(pendingUsers)
         } else {
-          console.error("Expected array for verification requests, got:", typeof data)
+          console.error("Unexpected data format for verification requests:", data)
           setRequests([])
         }
       } catch (err) {
@@ -56,9 +68,8 @@ export default function VerificationRequestsPage() {
   // Handle verification approval
   const handleApproveVerification = async (userId: number) => {
     try {
-      await axiosInstance.put(`/users/${userId}/verification`, {
-        verificationStatus: "VERIFIED"
-      })
+      // Updated URL to match backend controller endpoint
+      await axiosInstance.put(`/users/verification/approve/${userId}`)
       
       // Update the local state
       setRequests(prevRequests => 
@@ -75,9 +86,9 @@ export default function VerificationRequestsPage() {
   // Handle verification decline
   const handleDeclineVerification = async (userId: number) => {
     try {
-      await axiosInstance.put(`/users/${userId}/verification`, {
-        verificationStatus: "UNVERIFIED"
-      })
+      // Updated URL to match backend controller endpoint
+      await axiosInstance.put(`/users/verification/reject/${userId}`)
+      // Note: This endpoint supports an optional 'reason' parameter if needed
       
       // Update the local state
       setRequests(prevRequests => 
@@ -169,16 +180,18 @@ export default function VerificationRequestsPage() {
                     </Button>
                   </Link>
                   <Button 
-                    className="w-full bg-green-600 hover:bg-green-700"
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center gap-2"
                     onClick={() => handleApproveVerification(user.id)}
                   >
-                    Approve
+                    <CheckCircle size={16} />
+                    <span>Approve</span>
                   </Button>
                   <Button 
-                    className="w-full bg-red-600 hover:bg-red-700"
+                    className="w-full bg-rose-700 hover:bg-rose-800 text-white flex items-center justify-center gap-2"
                     onClick={() => handleDeclineVerification(user.id)}
                   >
-                    Decline
+                    <XCircle size={16} />
+                    <span>Decline</span>
                   </Button>
                 </div>
               </div>

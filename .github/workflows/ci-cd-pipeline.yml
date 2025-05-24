@@ -10,6 +10,21 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: db1
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     
     steps:
       - name: Checkout code
@@ -53,7 +68,7 @@ jobs:
       
       - name: Test Backend
         run: |
-          docker run --rm douaae/astrolearn-backend:${{ github.sha }} ./mvnw test
+          docker run --rm --network host -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/db1 douaae/astrolearn-backend:${{ github.sha }} ./mvnw test
       
       # Push images to Docker Hub if on main branch or master branch
       - name: Push Frontend Docker image
@@ -121,3 +136,22 @@ jobs:
                          -var="region=us-east-1" \
                          -var="docker_image_frontend=douaae/astrolearn-frontend:${{ github.sha }}" \
                          -var="docker_image_backend=douaae/astrolearn-backend:${{ github.sha }}"
+      
+      - name: Run Database Migrations
+        if: github.ref == 'refs/heads/production'
+        run: |
+          # Get RDS endpoint from Terraform output
+          cd Terraform
+          DB_ENDPOINT=$(terraform output -raw rds_endpoint)
+          
+          # Run migrations using the backend Docker image
+          docker run --rm \
+            -e SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_ENDPOINT}:5432/${DB_NAME} \
+            -e SPRING_DATASOURCE_USERNAME=${DB_USERNAME} \
+            -e SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD} \
+            douaae/astrolearn-backend:${{ github.sha }} \
+            ./mvnw flyway:migrate
+        env:
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}

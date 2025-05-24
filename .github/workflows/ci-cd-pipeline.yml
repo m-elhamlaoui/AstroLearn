@@ -173,6 +173,6 @@ jobs:
             -e SPRING_DATASOURCE_URL="jdbc:postgresql://${DB_ENDPOINT}:5432/${DB_NAME}" \
             -e SPRING_DATASOURCE_USERNAME="${DB_USERNAME}" \
             -e SPRING_DATASOURCE_PASSWORD="${DB_PASSWORD}" \
-            -e SPRING_PROFILES_ACTIVE=production,dbmigration # Ensure Flyway is enabled for these profiles
+            -e SPRING_PROFILES_ACTIVE=production,dbmigration \
             douaae/astrolearn-backend:${{ github.sha }} \
             -c "./mvnw flyway:migrate -B"

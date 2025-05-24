@@ -227,7 +227,6 @@ public class ArticleServiceImpl implements ArticleService {
                 .orElseThrow(() -> new ResourceNotFoundException("Comment", "id", commentId));
 
         checkCommentPermissions(comment, userId, "delete");
-
         commentRepository.delete(comment);
     }
 
@@ -270,16 +269,13 @@ public class ArticleServiceImpl implements ArticleService {
             finalUserVote = newVoteValue;
         }
 
-        // 3. Explicitly flush changes to the database before refreshing
+        // Explicitly flush changes to the database before refreshing
         articleVoteRepository.flush(); // Ensure vote changes are sent to DB
         
-        // 4. Clear the persistence context to ensure we get fresh data
-        entityManager.clear();
-        
-        // 5. Get a fresh article from the database
-        article = articleRepository.findById(articleId).orElseThrow();
+        // Refresh the article entity to get updated score
+        entityManager.refresh(article);
 
-        // 6. Map the fresh article to DTO
+        // Map the refreshed article to DTO
         ArticleDTO dto = entityMapper.toDTO(article);
         return new ArticleDTO(
                 dto.id(), dto.title(), dto.summary(), dto.content(), dto.imageUrls(),
@@ -287,8 +283,6 @@ public class ArticleServiceImpl implements ArticleService {
                 dto.commentCount(), dto.tags(), finalUserVote
         );
     }
-
-
 
     // --- Tags Implementation ---
     @Override

@@ -68,7 +68,15 @@ jobs:
       
       - name: Test Backend
         run: |
-          docker run --rm --network host -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/db1 douaae/astrolearn-backend:${{ github.sha }} ./mvnw test
+          docker run --rm --network host \
+            -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/db1 \
+            -e SPRING_JPA_SHOW_SQL=true \
+            -e LOGGING_LEVEL_ROOT=INFO \
+            -e LOGGING_LEVEL_COM_EXAMPLE_DEMO=DEBUG \
+            -e LOGGING_LEVEL_ORG_HIBERNATE_SQL=DEBUG \
+            -e LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_TEST=DEBUG \
+            douaae/astrolearn-backend:${{ github.sha }} \
+            ./mvnw test -Dtest="*Test" -Dsurefire.useFile=false --fail-at-end -Dorg.slf4j.simpleLogger.defaultLogLevel=info
       
       # Push images to Docker Hub if on main branch or master branch
       - name: Push Frontend Docker image

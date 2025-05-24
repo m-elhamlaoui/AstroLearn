@@ -131,6 +131,17 @@ variable "backend_health_check_path" {
   default     = "/health" # Common default, adjust if needed.
 }
 
+# --- Docker Images ---
+variable "docker_image_frontend" {
+  description = "Docker image for the frontend service"
+  type        = string
+}
+
+variable "docker_image_backend" {
+  description = "Docker image for the backend service"
+  type        = string
+}
+
 
 # --- Auto Scaling Group Sizes ---
 variable "frontend_asg_min_size" {

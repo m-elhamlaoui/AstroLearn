@@ -6,10 +6,13 @@ import com.example.demo.model.Course;
 import com.example.demo.repository.CourseRepository;
 import com.example.demo.repository.QuizCompletionRepository;
 import com.example.demo.service.CourseService;
-import com.example.demo.util.BaseIntegrationTest;
+import com.example.demo.util.TestLogger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +21,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static com.example.demo.util.TestLogger.*;
 
-public class CourseServiceIntegrationTest extends BaseIntegrationTest {
+@SpringBootTest
+@Transactional
+@ExtendWith(TestLogger.class)
+
+public class CourseServiceIntegrationTest {
 
     @Autowired
     private CourseService courseService;

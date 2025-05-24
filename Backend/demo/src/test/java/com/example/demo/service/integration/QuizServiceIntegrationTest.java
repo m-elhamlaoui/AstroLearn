@@ -19,11 +19,14 @@ import com.example.demo.repository.QuizRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.QuizService;
 import com.example.demo.service.UserService;
+import com.example.demo.util.TestLogger;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.example.demo.util.BaseIntegrationTest;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 import static com.example.demo.util.TestLogger.*;
 
 import java.util.List;
@@ -35,7 +38,11 @@ import java.util.Arrays;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class QuizServiceIntegrationTest extends BaseIntegrationTest {
+@SpringBootTest
+@Transactional
+@ExtendWith(TestLogger.class)
+
+public class QuizServiceIntegrationTest {
 
     @Autowired
     private QuizService quizService;

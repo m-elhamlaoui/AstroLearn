@@ -8,11 +8,14 @@ import com.example.demo.model.User;
 import com.example.demo.repository.SpaceMissionRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.SpaceMissionService;
+import com.example.demo.util.TestLogger;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.example.demo.util.BaseIntegrationTest;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 import static com.example.demo.util.TestLogger.*;
 
 import java.time.LocalDateTime;
@@ -20,7 +23,11 @@ import java.time.LocalDateTime;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class SpaceMissionServiceIntegrationTest extends BaseIntegrationTest {
+@SpringBootTest
+@Transactional
+@ExtendWith(TestLogger.class)
+
+public class SpaceMissionServiceIntegrationTest {
 
     @Autowired
     private SpaceMissionService spaceMissionService;

@@ -41,10 +41,6 @@ public class Course {
 
     // add course imageURL
     private String imageUrl;
-    
-    // Course status (DRAFT or PUBLISHED)
-    @Enumerated(EnumType.STRING)
-    private CourseStatus status = CourseStatus.DRAFT; // Default to DRAFT when created
 
     @Transient // Calculated field, not persisted
     public int getTotalLessons() {
@@ -55,10 +51,6 @@ public class Course {
 
     public enum DifficultyLevel {
         BEGINNER, INTERMEDIATE, ADVANCED
-    }
-    
-    public enum CourseStatus {
-        DRAFT, PUBLISHED
     }
 }
 

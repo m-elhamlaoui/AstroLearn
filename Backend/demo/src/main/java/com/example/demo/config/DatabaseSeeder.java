@@ -381,79 +381,18 @@ public class DatabaseSeeder implements CommandLineRunner {
         System.out.println("Seeding Courses...");
         List<Course> courses = new ArrayList<>();
 
-        // Original 4 Courses with picsum links - all set to PUBLISHED status
-        Course course1 = new Course();
-        course1.setTitle("Introduction to Astrophysics");
-        course1.setDescription("Learn the basics of astrophysics, from stars to galaxies.");
-        course1.setDifficulty(Course.DifficultyLevel.BEGINNER);
-        course1.setImageUrl("https://picsum.photos/seed/course1/600/300");
-        course1.setStatus(Course.CourseStatus.PUBLISHED);
-        courses.add(course1);
-        
-        Course course2 = new Course();
-        course2.setTitle("Rocket Science 101");
-        course2.setDescription("Understand the principles of rocket propulsion and spaceflight.");
-        course2.setDifficulty(Course.DifficultyLevel.INTERMEDIATE);
-        course2.setImageUrl("https://picsum.photos/seed/course2/600/300");
-        course2.setStatus(Course.CourseStatus.PUBLISHED);
-        courses.add(course2);
-        
-        Course course3 = new Course();
-        course3.setTitle("Planetary Geology");
-        course3.setDescription("Explore the geological features of planets in our solar system.");
-        course3.setDifficulty(Course.DifficultyLevel.INTERMEDIATE);
-        course3.setImageUrl("https://picsum.photos/seed/course3/600/300");
-        course3.setStatus(Course.CourseStatus.PUBLISHED);
-        courses.add(course3);
-        
-        Course course4 = new Course();
-        course4.setTitle("Advanced Space Mission Design");
-        course4.setDescription("Deep dive into designing complex space missions.");
-        course4.setDifficulty(Course.DifficultyLevel.ADVANCED);
-        course4.setImageUrl("https://picsum.photos/seed/course4/600/300");
-        course4.setStatus(Course.CourseStatus.PUBLISHED);
-        courses.add(course4);
+        // Original 4 Courses with picsum links
+        courses.add(new Course(null, "Introduction to Astrophysics", "Learn the basics of astrophysics, from stars to galaxies.", Course.DifficultyLevel.BEGINNER, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/course1/600/300"));
+        courses.add(new Course(null, "Rocket Science 101", "Understand the principles of rocket propulsion and spaceflight.", Course.DifficultyLevel.INTERMEDIATE, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/course2/600/300"));
+        courses.add(new Course(null, "Planetary Geology", "Explore the geological features of planets in our solar system.", Course.DifficultyLevel.INTERMEDIATE, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/course3/600/300"));
+        courses.add(new Course(null, "Advanced Space Mission Design", "Deep dive into designing complex space missions.", Course.DifficultyLevel.ADVANCED, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/course4/600/300"));
 
         // New Courses (5 additional) with picsum links for consistency
-        Course course5 = new Course();
-        course5.setTitle("Cosmology: The Study of the Universe");
-        course5.setDescription("Delve into the origin, evolution, and ultimate fate of the universe.");
-        course5.setDifficulty(Course.DifficultyLevel.ADVANCED);
-        course5.setImageUrl("https://picsum.photos/seed/cosmology/600/300");
-        course5.setStatus(Course.CourseStatus.PUBLISHED);
-        courses.add(course5);
-        
-        Course course6 = new Course();
-        course6.setTitle("Introduction to Astrobiology");
-        course6.setDescription("Search for life beyond Earth: methods, possibilities, and implications.");
-        course6.setDifficulty(Course.DifficultyLevel.BEGINNER);
-        course6.setImageUrl("https://picsum.photos/seed/astrobiology/600/300");
-        course6.setStatus(Course.CourseStatus.PUBLISHED);
-        courses.add(course6);
-        
-        Course course7 = new Course();
-        course7.setTitle("Satellite Systems Engineering");
-        course7.setDescription("Learn about the design, launch, and operation of artificial satellites.");
-        course7.setDifficulty(Course.DifficultyLevel.INTERMEDIATE);
-        course7.setImageUrl("https://picsum.photos/seed/satellite_eng/600/300");
-        course7.setStatus(Course.CourseStatus.PUBLISHED);
-        courses.add(course7);
-        
-        Course course8 = new Course();
-        course8.setTitle("Space Law and Policy");
-        course8.setDescription("Understand the legal frameworks governing space activities and exploration.");
-        course8.setDifficulty(Course.DifficultyLevel.ADVANCED);
-        course8.setImageUrl("https://picsum.photos/seed/space_law/600/300");
-        course8.setStatus(Course.CourseStatus.PUBLISHED);
-        courses.add(course8);
-        
-        Course course9 = new Course();
-        course9.setTitle("Observational Astronomy Techniques");
-        course9.setDescription("Practical guide to using telescopes and analyzing astronomical data.");
-        course9.setDifficulty(Course.DifficultyLevel.INTERMEDIATE);
-        course9.setImageUrl("https://picsum.photos/seed/obs_astro/600/300");
-        course9.setStatus(Course.CourseStatus.PUBLISHED);
-        courses.add(course9);
+        courses.add(new Course(null, "Cosmology: The Study of the Universe", "Delve into the origin, evolution, and ultimate fate of the universe.", Course.DifficultyLevel.ADVANCED, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/cosmology/600/300"));
+        courses.add(new Course(null, "Introduction to Astrobiology", "Search for life beyond Earth: methods, possibilities, and implications.", Course.DifficultyLevel.BEGINNER, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/astrobiology/600/300"));
+        courses.add(new Course(null, "Satellite Systems Engineering", "Learn about the design, launch, and operation of artificial satellites.", Course.DifficultyLevel.INTERMEDIATE, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/satellite_eng/600/300"));
+        courses.add(new Course(null, "Space Law and Policy", "Understand the legal frameworks governing space activities and exploration.", Course.DifficultyLevel.ADVANCED, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/space_law/600/300"));
+        courses.add(new Course(null, "Observational Astronomy Techniques", "Practical guide to using telescopes and analyzing astronomical data.", Course.DifficultyLevel.INTERMEDIATE, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/obs_astro/600/300"));
 
         return courseRepository.saveAll(courses);
     }
@@ -572,23 +511,23 @@ public class DatabaseSeeder implements CommandLineRunner {
         if (quizzes.isEmpty()) return;
 
         if (quizzes.size() > 0) {
-            completions.add(new QuizCompletion(null, users.get(0), quizzes.get(0), 100, LocalDateTime.now().minusDays(1))); users.get(0).addExperience(quizzes.get(0).getExperienceReward());
-            completions.add(new QuizCompletion(null, users.get(1), quizzes.get(0), 50, LocalDateTime.now().minusHours(10))); users.get(1).addExperience(quizzes.get(0).getExperienceReward() / 2);
-            completions.add(new QuizCompletion(null, users.get(4), quizzes.get(0), 100, LocalDateTime.now().minusDays(3))); users.get(4).addExperience(quizzes.get(0).getExperienceReward());
+            completions.add(new QuizCompletion(null, users.get(0), quizzes.get(0), 100, quizzes.get(0).getExperienceReward(), LocalDateTime.now().minusDays(1))); users.get(0).addExperience(quizzes.get(0).getExperienceReward());
+            completions.add(new QuizCompletion(null, users.get(1), quizzes.get(0), 50, quizzes.get(0).getExperienceReward() / 2, LocalDateTime.now().minusHours(10))); users.get(1).addExperience(quizzes.get(0).getExperienceReward() / 2);
+            completions.add(new QuizCompletion(null, users.get(4), quizzes.get(0), 100, quizzes.get(0).getExperienceReward(), LocalDateTime.now().minusDays(3))); users.get(4).addExperience(quizzes.get(0).getExperienceReward());
         }
         if (quizzes.size() > 1) {
-            completions.add(new QuizCompletion(null, users.get(1), quizzes.get(1), 100, LocalDateTime.now().minusHours(5))); users.get(1).addExperience(quizzes.get(1).getExperienceReward());
-            completions.add(new QuizCompletion(null, users.get(5), quizzes.get(1), 80, LocalDateTime.now().minusHours(15))); users.get(5).addExperience((int)(quizzes.get(1).getExperienceReward() * 0.80));
+            completions.add(new QuizCompletion(null, users.get(1), quizzes.get(1), 100, quizzes.get(1).getExperienceReward(), LocalDateTime.now().minusHours(5))); users.get(1).addExperience(quizzes.get(1).getExperienceReward());
+            completions.add(new QuizCompletion(null, users.get(5), quizzes.get(1), 80, (int)(quizzes.get(1).getExperienceReward() * 0.80), LocalDateTime.now().minusHours(15))); users.get(5).addExperience((int)(quizzes.get(1).getExperienceReward() * 0.80));
         }
         if (quizzes.size() > 2) {
-            completions.add(new QuizCompletion(null, users.get(2), quizzes.get(2), 75, LocalDateTime.now().minusDays(2))); users.get(2).addExperience((int)(quizzes.get(2).getExperienceReward() * 0.75));
-            completions.add(new QuizCompletion(null, users.get(8), quizzes.get(2), 90, LocalDateTime.now().minusDays(1))); users.get(8).addExperience((int)(quizzes.get(2).getExperienceReward() * 0.90));
+            completions.add(new QuizCompletion(null, users.get(2), quizzes.get(2), 75, (int)(quizzes.get(2).getExperienceReward() * 0.75), LocalDateTime.now().minusDays(2))); users.get(2).addExperience((int)(quizzes.get(2).getExperienceReward() * 0.75));
+            completions.add(new QuizCompletion(null, users.get(8), quizzes.get(2), 90, (int)(quizzes.get(2).getExperienceReward() * 0.90), LocalDateTime.now().minusDays(1))); users.get(8).addExperience((int)(quizzes.get(2).getExperienceReward() * 0.90));
         }
         if (quizzes.size() > 3) {
-            completions.add(new QuizCompletion(null, users.get(6), quizzes.get(3), 100, LocalDateTime.now().minusHours(8))); users.get(6).addExperience(quizzes.get(3).getExperienceReward());
+            completions.add(new QuizCompletion(null, users.get(6), quizzes.get(3), 100, quizzes.get(3).getExperienceReward(), LocalDateTime.now().minusHours(8))); users.get(6).addExperience(quizzes.get(3).getExperienceReward());
         }
         if (quizzes.size() > 4) {
-            completions.add(new QuizCompletion(null, users.get(0), quizzes.get(4), 90, LocalDateTime.now().minusDays(4))); users.get(0).addExperience((int) (quizzes.get(4).getExperienceReward() * 0.9));
+            completions.add(new QuizCompletion(null, users.get(0), quizzes.get(4), 90, (int)(quizzes.get(4).getExperienceReward() * 0.9), LocalDateTime.now().minusDays(4))); users.get(0).addExperience((int)(quizzes.get(4).getExperienceReward() * 0.9));
         }
 
         quizCompletionRepository.saveAll(completions);
@@ -600,18 +539,104 @@ public class DatabaseSeeder implements CommandLineRunner {
         List<CourseProgress> progresses = new ArrayList<>();
 
         Course course0 = courses.get(0); List<Lesson> course0Lessons = allLessons.stream().filter(l -> l.getModule().getCourse().equals(course0)).collect(Collectors.toList());
-        if (course0Lessons.size() > 1) { CourseProgress cp1 = new CourseProgress(); cp1.setUser(users.get(0)); cp1.setCourse(course0); cp1.setCurrentLesson(course0Lessons.get(1)); cp1.getCompletedLessonIds().add(course0Lessons.get(0).getId()); cp1.setLastAccessed(LocalDateTime.now().minusDays(3)); cp1.updateCompletion(); progresses.add(cp1); }
-        if (!course0Lessons.isEmpty()) { CourseProgress cp3 = new CourseProgress(); cp3.setUser(users.get(2)); cp3.setCourse(course0); cp3.setCurrentLesson(course0Lessons.get(0)); cp3.setLastAccessed(LocalDateTime.now().minusHours(5)); cp3.updateCompletion(); progresses.add(cp3); }
+        if (course0Lessons.size() > 1) {
+            CourseProgress cp1 = CourseProgress.builder()
+                    .user(users.get(0))
+                    .course(course0)
+                    .currentLesson(course0Lessons.get(1))
+                    .completedLessonIds(new HashSet<>(Arrays.asList(course0Lessons.get(0).getId())))
+                    .completed(false)
+                    .completionPercentage(33.33)
+                    .lastAccessed(LocalDateTime.now())
+                    .build();
+            progresses.add(cp1);
+        }
+        if (!course0Lessons.isEmpty()) {
+            CourseProgress cp3 = CourseProgress.builder()
+                    .user(users.get(2))
+                    .course(course0)
+                    .currentLesson(course0Lessons.get(0))
+                    .completedLessonIds(new HashSet<>())
+                    .completed(false)
+                    .completionPercentage(0.0)
+                    .lastAccessed(LocalDateTime.now())
+                    .build();
+            progresses.add(cp3);
+        }
 
         Course course1 = courses.get(1); List<Lesson> course1Lessons = allLessons.stream().filter(l -> l.getModule().getCourse().equals(course1)).collect(Collectors.toList());
-        if (!course1Lessons.isEmpty()) { CourseProgress cp2 = new CourseProgress(); cp2.setUser(users.get(1)); cp2.setCourse(course1); cp2.setCurrentLesson(course1Lessons.get(course1Lessons.size() -1)); course1Lessons.forEach(l -> cp2.getCompletedLessonIds().add(l.getId())); cp2.setLastAccessed(LocalDateTime.now().minusDays(1)); cp2.updateCompletion(); progresses.add(cp2); }
+        if (!course1Lessons.isEmpty()) {
+            CourseProgress cp2 = CourseProgress.builder()
+                    .user(users.get(1))
+                    .course(course1)
+                    .currentLesson(course1Lessons.get(course1Lessons.size() - 1))
+                    .completedLessonIds(course1Lessons.stream().map(Lesson::getId).collect(Collectors.toSet()))
+                    .completed(true)
+                    .completionPercentage(100.0)
+                    .lastAccessed(LocalDateTime.now())
+                    .build();
+            progresses.add(cp2);
+        }
 
         Course course2 = courses.get(2); List<Lesson> course2Lessons = allLessons.stream().filter(l -> l.getModule().getCourse().equals(course2)).collect(Collectors.toList());
-        if (course2Lessons.size() > 1) { CourseProgress cp4 = new CourseProgress(); cp4.setUser(users.get(3)); cp4.setCourse(course2); cp4.setCurrentLesson(course2Lessons.get(1)); cp4.getCompletedLessonIds().add(course2Lessons.get(0).getId()); cp4.setLastAccessed(LocalDateTime.now().minusDays(2)); cp4.updateCompletion(); progresses.add(cp4); }
+        if (course2Lessons.size() > 1) {
+            CourseProgress cp4 = CourseProgress.builder()
+                    .user(users.get(3))
+                    .course(course2)
+                    .currentLesson(course2Lessons.get(1))
+                    .completedLessonIds(new HashSet<>(Arrays.asList(course2Lessons.get(0).getId())))
+                    .completed(false)
+                    .completionPercentage(33.33)
+                    .lastAccessed(LocalDateTime.now())
+                    .build();
+            progresses.add(cp4);
+        }
 
-        if (courses.size() > 4 && users.size() > 4) { Course course4 = courses.get(4); List<Lesson> course4Lessons = allLessons.stream().filter(l -> l.getModule().getCourse().equals(course4)).collect(Collectors.toList()); if (!course4Lessons.isEmpty()) { CourseProgress cp5 = new CourseProgress(); cp5.setUser(users.get(4)); cp5.setCourse(course4); cp5.setCurrentLesson(course4Lessons.get(0)); cp5.setLastAccessed(LocalDateTime.now().minusDays(10)); cp5.updateCompletion(); progresses.add(cp5); } }
-        if (courses.size() > 5 && users.size() > 5) { Course course5 = courses.get(5); List<Lesson> course5Lessons = allLessons.stream().filter(l -> l.getModule().getCourse().equals(course5)).collect(Collectors.toList()); if (!course5Lessons.isEmpty()) { CourseProgress cp6 = new CourseProgress(); cp6.setUser(users.get(5)); cp6.setCourse(course5); cp6.setCurrentLesson(course5Lessons.get(course5Lessons.size() - 1)); course5Lessons.forEach(l -> cp6.getCompletedLessonIds().add(l.getId())); cp6.setLastAccessed(LocalDateTime.now().minusDays(5)); cp6.updateCompletion(); progresses.add(cp6); } }
-        if (courses.size() > 6 && users.size() > 8) { Course course6 = courses.get(6); List<Lesson> course6Lessons = allLessons.stream().filter(l -> l.getModule().getCourse().equals(course6)).collect(Collectors.toList()); if (course6Lessons.size() > 1) { CourseProgress cp7 = new CourseProgress(); cp7.setUser(users.get(8)); cp7.setCourse(course6); cp7.setCurrentLesson(course6Lessons.get(1)); cp7.getCompletedLessonIds().add(course6Lessons.get(0).getId()); cp7.setLastAccessed(LocalDateTime.now().minusDays(4)); cp7.updateCompletion(); progresses.add(cp7); } }
+        if (courses.size() > 4 && users.size() > 4) {
+            Course course4 = courses.get(4); List<Lesson> course4Lessons = allLessons.stream().filter(l -> l.getModule().getCourse().equals(course4)).collect(Collectors.toList());
+            if (!course4Lessons.isEmpty()) {
+                CourseProgress cp5 = CourseProgress.builder()
+                        .user(users.get(4))
+                        .course(course4)
+                        .currentLesson(course4Lessons.get(0))
+                        .completedLessonIds(new HashSet<>(Arrays.asList(course4Lessons.get(0).getId())))
+                        .completed(false)
+                        .completionPercentage(33.33)
+                        .lastAccessed(LocalDateTime.now())
+                        .build();
+                progresses.add(cp5);
+            }
+        }
+        if (courses.size() > 5 && users.size() > 5) {
+            Course course5 = courses.get(5); List<Lesson> course5Lessons = allLessons.stream().filter(l -> l.getModule().getCourse().equals(course5)).collect(Collectors.toList());
+            if (!course5Lessons.isEmpty()) {
+                CourseProgress cp6 = CourseProgress.builder()
+                        .user(users.get(5))
+                        .course(course5)
+                        .currentLesson(course5Lessons.get(course5Lessons.size() - 1))
+                        .completedLessonIds(course5Lessons.stream().map(Lesson::getId).collect(Collectors.toSet()))
+                        .completed(true)
+                        .completionPercentage(100.0)
+                        .lastAccessed(LocalDateTime.now())
+                        .build();
+                progresses.add(cp6);
+            }
+        }
+        if (courses.size() > 6 && users.size() > 8) {
+            Course course6 = courses.get(6); List<Lesson> course6Lessons = allLessons.stream().filter(l -> l.getModule().getCourse().equals(course6)).collect(Collectors.toList());
+            if (course6Lessons.size() > 1) {
+                CourseProgress cp7 = CourseProgress.builder()
+                        .user(users.get(8))
+                        .course(course6)
+                        .currentLesson(course6Lessons.get(1))
+                        .completedLessonIds(new HashSet<>(Arrays.asList(course6Lessons.get(0).getId())))
+                        .completed(false)
+                        .completionPercentage(33.33)
+                        .lastAccessed(LocalDateTime.now())
+                        .build();
+                progresses.add(cp7);
+            }
+        }
 
         courseProgressRepository.saveAll(progresses);
     }

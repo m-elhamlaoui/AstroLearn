@@ -36,7 +36,7 @@ variable "availability_zones" {
 variable "frontend_app_port" {
   description = "The port your frontend application container listens on."
   type        = number
-  default     = 80 # Standard HTTP port.
+  default     = 3000 # Matches frontend Dockerfile EXPOSE.
 }
 
 variable "backend_app_port" {
@@ -182,3 +182,16 @@ variable "backend_asg_desired_capacity" {
 #   type        = string
 #   default     = "user_data_backend.sh"
 # }
+
+# --- Docker Images ---
+variable "docker_image_frontend" {
+  description = "Docker image for the frontend application"
+  type        = string
+  default     = "douaae/astrolearn-frontend:latest"
+}
+
+variable "docker_image_backend" {
+  description = "Docker image for the backend application"
+  type        = string
+  default     = "douaae/astrolearn-backend:latest"
+}

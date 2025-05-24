@@ -217,6 +217,96 @@ resource "aws_security_group" "alb_ingress" {
   }
 }
 
+# Security Group for Frontend EC2 instances
+resource "aws_security_group" "frontend_instances_sg" {
+  name        = "frontend-instances-sg-${random_id.suffix.hex}"
+  description = "Allow traffic to Frontend instances from Frontend ALB and allow outbound to Backend ALB"
+  vpc_id      = aws_vpc.app_vpc.id
+
+  ingress {
+    description     = "Frontend App Port from Frontend ALB"
+    from_port       = var.frontend_app_port
+    to_port         = var.frontend_app_port
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb_ingress.id] # Traffic from Frontend ALB
+  }
+
+  # Egress rule to Backend ALB will be defined separately to break cycle
+  egress {
+    description = "Allow all outbound traffic for OS updates etc."
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name      = "Frontend Instances SG"
+    Project   = "Astrolearn"
+    ManagedBy = "Terraform"
+  }
+}
+
+# Security Group for Backend ALB
+resource "aws_security_group" "backend_alb_sg" {
+  name        = "backend-alb-sg-${random_id.suffix.hex}"
+  description = "Allow traffic to Backend ALB from Frontend Instances"
+  vpc_id      = aws_vpc.app_vpc.id
+
+  ingress {
+    description     = "Backend App Port from Frontend Instances"
+    from_port       = var.backend_app_port
+    to_port         = var.backend_app_port
+    protocol        = "tcp"
+    security_groups = [aws_security_group.frontend_instances_sg.id]
+  }
+
+  # Egress rule to Backend Instances will be defined separately to break cycle
+   egress {
+    description = "Allow all outbound traffic if necessary (e.g. health checks to instances)"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name      = "Backend ALB SG"
+    Project   = "Astrolearn"
+    ManagedBy = "Terraform"
+  }
+}
+
+# Security Group for Backend EC2 instances
+resource "aws_security_group" "backend_instances_sg" {
+  name        = "backend-instances-sg-${random_id.suffix.hex}"
+  description = "Allow traffic to Backend instances from Backend ALB and allow outbound to RDS"
+  vpc_id      = aws_vpc.app_vpc.id
+
+  ingress {
+    description     = "Backend App Port from Backend ALB"
+    from_port       = var.backend_app_port
+    to_port         = var.backend_app_port
+    protocol        = "tcp"
+    security_groups = [aws_security_group.backend_alb_sg.id]
+  }
+
+  # Egress rule to RDS will be defined separately to break cycle
+  egress {
+    description = "Allow all outbound traffic for OS updates etc."
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name      = "Backend Instances SG"
+    Project   = "Astrolearn"
+    ManagedBy = "Terraform"
+  }
+}
+
 # Security Group for EC2 instances (Frontend/Backend) allowing traffic from ALBs
 # Fixed Syntax: 'resource', 'aws_security_group'
 resource "aws_security_group" "app_ingress_from_alb" {
@@ -226,39 +316,10 @@ resource "aws_security_group" "app_ingress_from_alb" {
   # Fixed Syntax: Reference to the VPC ID
   vpc_id      = aws_vpc.app_vpc.id
 
-  # Ingress rule for Frontend app port (e.g., 80 or whatever your container exposes)
-  ingress {
-    from_port   = var.frontend_app_port # Variable: Frontend container port
-    to_port     = var.frontend_app_port
-    protocol    = "tcp"
-    # Fixed Syntax: Source is the ALB security group ID (traffic ONLY from the ALB)
-    security_groups = [aws_security_group.alb_ingress.id]
-  }
-
-  # Ingress rule for Backend app port (e.g., 3000 or whatever your container exposes)
-  ingress {
-    from_port   = var.backend_app_port # Variable: Backend container port
-    to_port     = var.backend_app_port
-    protocol    = "tcp"
-    # Fixed Syntax: Source is the ALB security group ID (traffic ONLY from the ALB)
-    security_groups = [aws_security_group.alb_ingress.id] # Backend ALB is also in this SG range
-  }
-
-  # Custom TCP rule for port 3000 from anywhere
-  ingress {
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Custom TCP rule for port 3000 from anywhere
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  # These rules are now handled by more specific SGs (frontend_instances_sg, backend_instances_sg)
+  # and the overly permissive rules are removed.
+  # This SG might become unused or repurposed for other needs if any.
+  # For now, we remove its specific ingress rules related to app ports.
 
   # Egress rule (allow all outbound)
   egress {
@@ -292,10 +353,8 @@ resource "aws_security_group" "rds_ingress_from_backend" {
     to_port   = var.db_port
     protocol  = "tcp"
     # Fixed Syntax: Source is the Security Group ID of the *Backend* EC2 instances
-    # The Backend ASG instances will have the `app_ingress_from_alb` SG attached.
-    # We could create a dedicated SG just for backend instances if needed,
-    # but using the existing one works if the *only* thing allowed FROM that SG TO RDS is the DB port.
-    security_groups = [aws_security_group.app_ingress_from_alb.id]
+    # Source is the Security Group ID of the Backend EC2 instances
+    security_groups = [aws_security_group.backend_instances_sg.id]
   }
 
   # Egress rule (allow all outbound - RDS needs to talk to S3 for backups sometimes)
@@ -314,6 +373,37 @@ resource "aws_security_group" "rds_ingress_from_backend" {
   }
 }
 
+# --- Standalone Security Group Rules to break cycles ---
+
+resource "aws_security_group_rule" "frontend_to_backend_alb_egress" {
+  type                     = "egress"
+  from_port                = var.backend_app_port
+  to_port                  = var.backend_app_port
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.frontend_instances_sg.id
+  source_security_group_id = aws_security_group.backend_alb_sg.id
+  description              = "Egress from Frontend instances to Backend ALB"
+}
+
+resource "aws_security_group_rule" "backend_alb_to_backend_instances_egress" {
+  type                     = "egress"
+  from_port                = var.backend_app_port
+  to_port                  = var.backend_app_port
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.backend_alb_sg.id
+  source_security_group_id = aws_security_group.backend_instances_sg.id
+  description              = "Egress from Backend ALB to Backend instances"
+}
+
+resource "aws_security_group_rule" "backend_instances_to_rds_egress" {
+  type                     = "egress"
+  from_port                = var.db_port
+  to_port                  = var.db_port
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.backend_instances_sg.id
+  source_security_group_id = aws_security_group.rds_ingress_from_backend.id # This is the SG of the RDS
+  description              = "Egress from Backend instances to RDS"
+}
 
 # --- RDS DATABASE ---
 
@@ -494,8 +584,7 @@ resource "aws_lb" "backend_alb" {
   # Fixed Syntax: List of public subnet IDs (internal ALBs can be in public or private subnets)
   # Using public here means Frontend instances (in private subnets) can route to it.
   subnets            = aws_subnet.public[*].id # Or aws_subnet.private[*].id if you prefer to keep ALBs separate
-  # Fixed Syntax: List of Security Group IDs (the one allowing internet ingress - this is okay for internal too)
-  # security_groups = [aws_security_group.alb_ingress.id] # Or a dedicated internal ALB SG
+  security_groups    = [aws_security_group.backend_alb_sg.id]
 
   # Variable: Tags for identification
   tags = {
@@ -568,9 +657,9 @@ resource "aws_launch_template" "frontend_template" {
     # Fixed Syntax: Reference to the list of Security Group IDs (SSH + App Ingress)
     security_groups = [
       aws_security_group.ssh_allowed.id,
-      aws_security_group.app_ingress_from_alb.id,
+      aws_security_group.frontend_instances_sg.id,
     ]
-    # Fixed Setting: Do NOT assign a public IP here, relying on private subnets
+    # Instances in private subnets, temporarily enabling public IP for debugging
     associate_public_ip_address = true
   }
 
@@ -580,7 +669,11 @@ resource "aws_launch_template" "frontend_template" {
   # Variable: User data script to run on instance launch (e.g., install Docker)
   # This script will be executed by cloud-init.
   # You'll need to define this user_data in your variables or a separate file.
-  user_data = base64encode(templatefile("user_data_frontend.sh", {})) # Example using a separate file
+  user_data = base64encode(templatefile("user_data_frontend.sh", {
+    backend_alb_dns_name = aws_lb.backend_alb.dns_name
+    backend_app_port     = var.backend_app_port
+    docker_image_frontend = var.docker_image_frontend
+  }))
 
   # Variable: Tags applied to the instance *and* volumes
   tag_specifications {
@@ -627,8 +720,9 @@ resource "aws_launch_template" "backend_template" {
     # Fixed Syntax: Reference to the list of Security Group IDs (SSH + App Ingress)
     security_groups = [
       aws_security_group.ssh_allowed.id,
-      aws_security_group.app_ingress_from_alb.id, # These instances also need App SG to talk to RDS SG
+      aws_security_group.backend_instances_sg.id,
     ]
+    # Instances in private subnets, temporarily enabling public IP for debugging
     associate_public_ip_address = true
   }
 
@@ -636,7 +730,15 @@ resource "aws_launch_template" "backend_template" {
   key_name = var.key_pair_name
 
   # Variable: User data script to run on instance launch (e.g., install Docker)
-  user_data = base64encode(templatefile("user_data_backend.sh", {})) # Example using a separate file
+  user_data = base64encode(templatefile("user_data_backend.sh", {
+    rds_instance_endpoint = aws_db_instance.app_db.endpoint
+    db_name               = var.db_name
+    db_username           = var.db_username
+    db_password           = var.db_password
+    docker_image_backend  = var.docker_image_backend
+    # backend_app_port is already available via var.backend_app_port if needed by the script directly
+    # but the primary use here is for DB connection.
+  }))
 
   # Variable: Tags applied to the instance *and* volumes
   tag_specifications {
@@ -672,11 +774,11 @@ resource "aws_autoscaling_group" "frontend_asg" {
   # Variable: Name for the ASG
   name                = "frontend-asg-${random_id.suffix.hex}"
   # Fixed Syntax: Reference to the launch template ID
-  desired_capacity    = 1
-  max_size           = 1
-  min_size           = 1
+  desired_capacity    = var.frontend_asg_desired_capacity
+  max_size           = var.frontend_asg_max_size
+  min_size           = var.frontend_asg_min_size
   target_group_arns  = [aws_lb_target_group.frontend_tg.arn]
-  vpc_zone_identifier = aws_subnet.public[*].id  # Changed from private to public subnets
+  vpc_zone_identifier = aws_subnet.public[*].id # Temporarily use public subnets for debugging SSH
   health_check_type  = "ELB"
   health_check_grace_period = 300
 
@@ -715,11 +817,11 @@ resource "aws_autoscaling_group" "backend_asg" {
   # Variable: Name for the ASG
   name                = "backend-asg-${random_id.suffix.hex}"
   # Fixed Syntax: Reference to the launch template ID
-  desired_capacity    = 1
-  max_size           = 1
-  min_size           = 1
+  desired_capacity    = var.backend_asg_desired_capacity
+  max_size           = var.backend_asg_max_size
+  min_size           = var.backend_asg_min_size
   target_group_arns  = [aws_lb_target_group.backend_tg.arn]
-  vpc_zone_identifier = aws_subnet.public[*].id  # Changed from private to public subnets
+  vpc_zone_identifier = aws_subnet.public[*].id # Temporarily use public subnets for debugging SSH
   health_check_type  = "ELB"
   health_check_grace_period = 300
 

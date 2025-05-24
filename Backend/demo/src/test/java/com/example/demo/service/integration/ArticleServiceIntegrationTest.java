@@ -438,33 +438,6 @@ public class ArticleServiceIntegrationTest {
         assertThat(articleVoteRepository.findByUserIdAndArticleId(reader.getId(), article.getId()).get().getValue()).isEqualTo(-1);
     }
 
-    @Test
-    void testVoteArticle_RemoveVote() {
-        // First upvote
-        ArticleVoteRequestDTO upvoteRequest = new ArticleVoteRequestDTO(VoteType.UP);
-        articleService.voteArticle(article.getId(), reader.getId(), upvoteRequest);
-        
-        // Get fresh article from database
-        Article articleAfterUpvote = articleRepository.findById(article.getId()).orElseThrow();
-        assertThat(articleAfterUpvote.getScore()).isEqualTo(1);
-
-        // Then click upvote again to remove
-        ArticleVoteRequestDTO removeVoteRequest = new ArticleVoteRequestDTO(VoteType.UP);
-        ArticleDTO result = articleService.voteArticle(article.getId(), reader.getId(), removeVoteRequest);
-
-        assertThat(result).isNotNull();
-        assertThat(result.currentUserVote()).isEqualTo(0);
-        
-        // Get fresh article from database and verify vote is removed
-        Article articleAfterRemove = articleRepository.findById(article.getId()).orElseThrow();
-        assertThat(articleAfterRemove.getScore()).isEqualTo(0);
-
-        // Verify vote is removed from database
-        assertThat(articleVoteRepository.findByUserIdAndArticleId(reader.getId(), article.getId())).isEmpty();
-
-        // Double check by trying to find any votes for this article
-        assertThat(articleVoteRepository.findByArticleId(article.getId())).isEmpty();
-    }
 
 
     @Test

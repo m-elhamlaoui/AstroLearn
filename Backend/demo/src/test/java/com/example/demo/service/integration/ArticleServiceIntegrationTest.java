@@ -18,9 +18,11 @@ import com.example.demo.repository.TagNameRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.ArticleService;
 import com.example.demo.service.RecommendationService;
+import com.example.demo.util.TestLogger;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
@@ -35,9 +37,11 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static com.example.demo.util.TestLogger.*;
 
 @SpringBootTest
 @Transactional
+@ExtendWith(TestLogger.class)
 public class ArticleServiceIntegrationTest {
 
     @Autowired
@@ -71,6 +75,8 @@ public class ArticleServiceIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        logTestStart("Setting up test data");
+        logStep("Cleaning up existing data");
         // Clean up before each test - order matters due to foreign key constraints
         articleRepository.deleteAll();
         userRepository.deleteAll();
@@ -79,6 +85,7 @@ public class ArticleServiceIntegrationTest {
         entityManager.clear();
 
         // Create test users with different data from seeder
+        logStep("Creating author user");
         author = new User();
         author.setUsername("space_writer");
         author.setEmail("writer@space.com");
@@ -90,8 +97,10 @@ public class ArticleServiceIntegrationTest {
         author.setPhotoCoverUrl("https://picsum.photos/seed/writercover/800/200");
         author.setExperiencePoints(2500);
         author = userRepository.save(author);
+        logData("Author ID", author.getId());
         entityManager.flush();
 
+        logStep("Creating reader user");
         reader = new User();
         reader.setUsername("space_reader");
         reader.setEmail("reader@space.com");
@@ -103,9 +112,11 @@ public class ArticleServiceIntegrationTest {
         reader.setPhotoCoverUrl("https://picsum.photos/seed/readercover/800/200");
         reader.setExperiencePoints(1800);
         reader = userRepository.save(reader);
+        logData("Reader ID", reader.getId());
         entityManager.flush();
 
         // Create and save TagName entities first
+        logStep("Creating tags");
         TagName tag1 = new TagName("Interstellar Travel");
         TagName tag2 = new TagName("Space Technology");
         TagName tag3 = new TagName("Future Exploration");
@@ -113,9 +124,11 @@ public class ArticleServiceIntegrationTest {
         tag1 = tagNameRepository.save(tag1);
         tag2 = tagNameRepository.save(tag2);
         tag3 = tagNameRepository.save(tag3);
+        logData("Tags created", List.of(tag1.getName(), tag2.getName(), tag3.getName()));
         entityManager.flush();
 
         // Create test article with different data from seeder
+        logStep("Creating test article");
         article = new Article();
         article.setTitle("The Future of Interstellar Travel");
         article.setSummary("A comprehensive look at the challenges and possibilities of traveling between stars");
@@ -128,6 +141,7 @@ public class ArticleServiceIntegrationTest {
         article.setTags(new HashSet<>());
         
         // Create ArticleTag entities with saved article and tag names
+        logStep("Adding tags to article");
         ArticleTag articleTag1 = new ArticleTag(article, tag1);
         ArticleTag articleTag2 = new ArticleTag(article, tag2);
         ArticleTag articleTag3 = new ArticleTag(article, tag3);
@@ -139,12 +153,19 @@ public class ArticleServiceIntegrationTest {
         
         // Save the article
         article = articleRepository.save(article);
+        logData("Article ID", article.getId());
+        logData("Article title", article.getTitle());
         entityManager.flush();
         entityManager.clear();
+        
+        logTestEnd("Setting up test data", true);
     }
 
     @Test
     void testCreateArticle() {
+        logTestStart("testCreateArticle");
+        logStep("Creating new article DTO");
+        
         ArticleDTO newArticleDTO = new ArticleDTO(
                 null,
                 "New Article Title",

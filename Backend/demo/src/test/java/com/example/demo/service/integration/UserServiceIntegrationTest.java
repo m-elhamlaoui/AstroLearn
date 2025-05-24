@@ -9,17 +9,15 @@ import com.example.demo.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
+import com.example.demo.util.BaseIntegrationTest;
+import static com.example.demo.util.TestLogger.*;
 
 import java.util.ArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@SpringBootTest
-@Transactional
-public class UserServiceIntegrationTest {
+public class UserServiceIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private UserService userService;
@@ -31,6 +29,7 @@ public class UserServiceIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        logStep("Setting up test data for UserServiceIntegrationTest");
         // Clean up before each test
         userRepository.deleteAll();
 

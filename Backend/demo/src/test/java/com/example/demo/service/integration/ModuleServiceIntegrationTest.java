@@ -11,8 +11,8 @@ import com.example.demo.service.ModuleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
+import com.example.demo.util.BaseIntegrationTest;
+import static com.example.demo.util.TestLogger.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,9 +20,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@SpringBootTest
-@Transactional
-public class ModuleServiceIntegrationTest {
+public class ModuleServiceIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private ModuleService moduleService;
@@ -41,6 +39,7 @@ public class ModuleServiceIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        logStep("Setting up test data for ModuleServiceIntegrationTest");
         // Clean up before each test
         quizCompletionRepository.deleteAll(); // Delete quiz completions first
         moduleRepository.deleteAll();

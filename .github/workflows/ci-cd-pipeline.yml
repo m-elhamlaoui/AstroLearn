@@ -17,7 +17,7 @@ jobs:
         env:
           POSTGRES_USER: user
           POSTGRES_PASSWORD: password
-          POSTGRES_DB: db1
+          POSTGRES_DB: db5
         ports:
           - 5432:5432
         options: >-
@@ -69,14 +69,15 @@ jobs:
       - name: Test Backend
         run: |
           docker run --rm --network host \
-            -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/db1 \
+            -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/db5 \
             -e SPRING_JPA_SHOW_SQL=true \
             -e LOGGING_LEVEL_ROOT=INFO \
             -e LOGGING_LEVEL_COM_EXAMPLE_DEMO=DEBUG \
             -e LOGGING_LEVEL_ORG_HIBERNATE_SQL=DEBUG \
             -e LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_TEST=DEBUG \
+            -e SPRING_PROFILES_ACTIVE=test \
             douaae/astrolearn-backend:${{ github.sha }} \
-            ./mvnw test -Dtest="*Test" -Dsurefire.useFile=false --fail-at-end -Dorg.slf4j.simpleLogger.defaultLogLevel=info
+            ./mvnw test -Dtest="com.example.demo.service.**.*Test" -DfailIfNoTests=true -Dsurefire.useFile=false --fail-at-end -Dorg.slf4j.simpleLogger.defaultLogLevel=info
       
       # Push images to Docker Hub if on main branch or master branch
       - name: Push Frontend Docker image

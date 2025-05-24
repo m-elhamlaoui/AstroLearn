@@ -6,21 +6,19 @@ import com.example.demo.model.Course;
 import com.example.demo.repository.CourseRepository;
 import com.example.demo.repository.QuizCompletionRepository;
 import com.example.demo.service.CourseService;
+import com.example.demo.util.BaseIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static com.example.demo.util.TestLogger.*;
 
-@SpringBootTest
-@Transactional
-public class CourseServiceIntegrationTest {
+public class CourseServiceIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private CourseService courseService;
@@ -36,9 +34,11 @@ public class CourseServiceIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        logStep("Setting up test data for CourseServiceIntegrationTest");
         // Clean up before each test
         quizCompletionRepository.deleteAll(); // Delete quiz completions first
         courseRepository.deleteAll();
+        logStep("Database cleaned up");
 
         // Create test courses
         course1 = new Course();

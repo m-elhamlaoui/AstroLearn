@@ -12,17 +12,15 @@ import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
+import com.example.demo.util.BaseIntegrationTest;
+import static com.example.demo.util.TestLogger.*;
 
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@SpringBootTest
-@Transactional
-public class SpaceMissionServiceIntegrationTest {
+public class SpaceMissionServiceIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private SpaceMissionService spaceMissionService;
@@ -41,6 +39,7 @@ public class SpaceMissionServiceIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        logStep("Setting up test data for SpaceMissionServiceIntegrationTest");
         // Clean up before each test - order matters due to foreign key constraints
         spaceMissionRepository.deleteAll();
         userRepository.deleteAll();

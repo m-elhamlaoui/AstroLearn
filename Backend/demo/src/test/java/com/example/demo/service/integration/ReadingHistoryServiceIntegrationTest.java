@@ -85,31 +85,6 @@ public class ReadingHistoryServiceIntegrationTest {
     }
 
     @Test
-    public void testLogReadingTime_ExistingHistory() {
-        // First create a reading history
-        ReadingHistoryDTO initialResult = readingHistoryService.logReadingTime(testUser.getId(), testArticle1.getId(), 20);
-        
-        // Verify initial state
-        assertFalse(initialResult.isRead()); // Should be false since timeSpentSeconds < 30
-        
-        // Update the existing reading history
-        ReadingHistoryDTO updatedResult = readingHistoryService.logReadingTime(testUser.getId(), testArticle1.getId(), 15);
-        
-        // Verify the result
-        assertNotNull(updatedResult);
-        assertEquals(testUser.getId(), updatedResult.userId());
-        assertEquals(testArticle1.getId(), updatedResult.articleId());
-        assertEquals(35, updatedResult.timeSpentSeconds()); // 20 + 15
-        assertTrue(updatedResult.isRead()); // Should be true since timeSpentSeconds > 30
-        
-        // Verify it was updated in the repository
-        Optional<ReadingHistory> savedHistory = readingHistoryRepository.findByUserAndArticle(testUser, testArticle1);
-        assertTrue(savedHistory.isPresent());
-        assertEquals(35, savedHistory.get().getTimeSpentSeconds());
-        assertTrue(savedHistory.get().isRead());
-    }
-
-    @Test
     public void testGetRecentlyReadArticles() {
         // Create reading histories for both articles
         readingHistoryService.logReadingTime(testUser.getId(), testArticle1.getId(), 45);

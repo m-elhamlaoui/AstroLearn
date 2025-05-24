@@ -67,15 +67,8 @@ jobs:
           cache-to: type=gha,mode=max
       
       - name: Test Backend
-        timeout-minutes: 10
         run: |
-          # First, list the tests that will be run
-          docker run --rm \
-            douaae/astrolearn-backend:${{ github.sha }} \
-            find /app/src/test/java/com/example/demo/service -name "*Test.java" -type f
-            
-          # Then run the tests with improved logging
-          docker run --rm \
+          docker run --rm --network host \
             -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/db5 \
             -e SPRING_JPA_SHOW_SQL=true \
             -e LOGGING_LEVEL_ROOT=INFO \
@@ -84,7 +77,7 @@ jobs:
             -e LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_TEST=DEBUG \
             -e SPRING_PROFILES_ACTIVE=test \
             douaae/astrolearn-backend:${{ github.sha }} \
-            ./mvnw test -Dtest="com.example.demo.service.integration.*Test" -DfailIfNoTests=true -Dsurefire.useFile=false -Dsurefire.timeout=180 --fail-at-end -Dorg.slf4j.simpleLogger.defaultLogLevel=info
+            ./mvnw test -Dtest="com.example.demo.service.**.*Test" -DfailIfNoTests=true -Dsurefire.useFile=false --fail-at-end -Dorg.slf4j.simpleLogger.defaultLogLevel=info
       
       # Push images to Docker Hub if on main branch or master branch
       - name: Push Frontend Docker image

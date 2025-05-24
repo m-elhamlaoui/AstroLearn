@@ -37,22 +37,21 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      # --- 1. RUN BACKEND TESTS NATIVELY (NOT IN DOCKER) ---
+      # --- ADD THIS STEP TO FIX PERMISSIONS ---
+      - name: Make mvnw executable
+        working-directory: ./Backend/demo # Or wherever your mvnw is
+        run: chmod +x ./mvnw
+
+      # --- YOUR EXISTING TEST BACKEND STEP ---
       - name: Test Backend
-        working-directory: ./Backend/demo # Ensure this path points to your Spring Boot project
+        working-directory: ./Backend/demo
         env:
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/db5 # Connect to the 'postgres' service
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/db5
           SPRING_DATASOURCE_USERNAME: user
           SPRING_DATASOURCE_PASSWORD: password
-          SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop # Creates schema for tests, drops after
+          SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
           SPRING_PROFILES_ACTIVE: test
-          # Optional: Add logging for tests
-          # LOGGING_LEVEL_ORG_HIBERNATE_SQL: DEBUG
-          # LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_TEST: DEBUG
-        run: ./mvnw test -B -Dtest="com.example.demo.service.**.*Test" -DfailIfNoTests=true --fail-at-end
-        # -B for batch mode
-        # -Dsurefire.useFile=false is often default/not needed when running directly with -B
-        # --fail-at-end ensures all tests run before failing the job
+        run: ./mvnw test -B -Dtest="com.example.demo.service.**.*Test" -DfailIfNoTests=true --fail-at-end    
 
       # --- 2. BUILD DOCKER IMAGES (ONLY IF TESTS PASS) ---
       - name: Set up Docker Buildx

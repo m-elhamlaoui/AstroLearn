@@ -136,16 +136,19 @@ jobs:
 
       - name: Terraform Plan
         working-directory: ./Terraform
-        env: # Pass variables via TF_VAR_ environment variables for better practice
+        env:
           TF_VAR_docker_image_frontend: "douaae/astrolearn-frontend:${{ github.sha }}"
           TF_VAR_docker_image_backend: "douaae/astrolearn-backend:${{ github.sha }}"
-          # TF_VAR_access_key and TF_VAR_secret_key are NOT needed if aws-actions/configure-aws-credentials is used
-          # TF_VAR_region is also usually picked up by the AWS provider from configure-aws-credentials
-        run: terraform plan -input=false -out=tfplan
+        run: |
+          terraform plan -input=false -out=tfplan \
+            -var="access_key=${{ secrets.AWS_ACCESS_KEY_ID || 'AKIAVRGZUA63XMDEZCAU' }}" \
+            -var="secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY || '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' }}" \
+            -var="key_pair_name=Astrolearn-terraform"
 
       - name: Terraform Apply
         working-directory: ./Terraform
         run: terraform apply -input=false -auto-approve tfplan
+        # Note: Variables are already embedded in the tfplan file from the previous step
 
       - name: Run Database Migrations
         # This step assumes your 'douaae/astrolearn-backend' image contains mvnw, pom.xml, and migration files

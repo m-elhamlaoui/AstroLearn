@@ -62,8 +62,8 @@ jobs:
         if: success()
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}    # <-- USE GITHUB SECRET
-          password: ${{ secrets.DOCKERHUB_TOKEN }}       # <-- USE GITHUB SECRET (PAT recommended)
+          username: douaae    # <-- USE GITHUB SECRET
+          password: dckr_pat_bTU5XTDbhKZE_uTO8c2W9GdR7Sc       # <-- USE GITHUB SECRET (PAT recommended)
 
       - name: Build Frontend Docker image
         if: success()
@@ -125,8 +125,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4 # Use a more recent version
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}       # <-- USE GITHUB SECRET
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }} # <-- USE GITHUB SECRET
+          aws-access-key-id: AKIAVRGZUA63XMDEZCAU    # <-- USE GITHUB SECRET
+          aws-secret-access-key: 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 # <-- USE GITHUB SECRET
           aws-region: us-east-1
           # For enhanced security, consider using IAM Roles for GitHub Actions (OIDC)
 
@@ -152,9 +152,9 @@ jobs:
         # and that its default ENTRYPOINT doesn't prevent './mvnw' from running.
         # If the image is just a JAR, this step will need a different approach (e.g., a dedicated migration image/tool).
         env:
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: db5
+          DB_USERNAME: user
+          DB_PASSWORD: password
         run: |
           cd ./Terraform # Terraform outputs are read from the current working directory of terraform
           DB_ENDPOINT=$(terraform output -raw rds_endpoint)

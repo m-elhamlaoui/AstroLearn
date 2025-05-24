@@ -69,7 +69,9 @@ jobs:
       - name: Test Backend
         run: |
           docker run --rm --network host \
-            -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/db5 \
+            --entrypoint /bin/sh \ # Override the entrypoint to use a shell
+            -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/db5 \ # Corrected for --network host
+            -e SPRING_JPA_HIBERNATE_DDL_AUTO=create-drop \ # Good practice for tests
             -e SPRING_JPA_SHOW_SQL=true \
             -e LOGGING_LEVEL_ROOT=INFO \
             -e LOGGING_LEVEL_COM_EXAMPLE_DEMO=DEBUG \
@@ -77,8 +79,9 @@ jobs:
             -e LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_TEST=DEBUG \
             -e SPRING_PROFILES_ACTIVE=test \
             douaae/astrolearn-backend:${{ github.sha }} \
-            ./mvnw test -Dtest="com.example.demo.service.**.*Test" -DfailIfNoTests=true -Dsurefire.useFile=false --fail-at-end -Dorg.slf4j.simpleLogger.defaultLogLevel=info
-      
+            -c "./mvnw test -B -Dtest=\"com.example.demo.service.**.*Test\" -DfailIfNoTests=true -Dsurefire.useFile=false --fail-at-end"
+
+
       # Push images to Docker Hub if on main branch or master branch
       - name: Push Frontend Docker image
         if: github.event_name == 'push' && github.ref == 'refs/heads/production'

@@ -1,4 +1,5 @@
 // Jenkinsfile pour Jenkins local sur Windows, déployant sur Docker Desktop K8s
+// Trigger build: 1
 
 pipeline {
     // 'agent any' signifie que Jenkins exécutera les étapes sur n'importe quel

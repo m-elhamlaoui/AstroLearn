@@ -16,7 +16,8 @@ pipeline {
         DOCKER_CREDENTIALS_ID = 'dockerhub-creds'
         // Windows path to your kubeconfig
         KUBECONFIG = 'C:\\Users\\Usuario\\.kube\\config'
-
+        // Ajouter une variable pour l'installation de Node.js
+        NODEJS_HOME = tool 'NodeJS'
     }
 
     // Les différentes étapes du pipeline
@@ -26,7 +27,9 @@ pipeline {
         stage('Checkout') {
                 steps {
                     // Spécifie explicitement la branche 'main' à utiliser
-                    git branch: 'main', url: 'https://github.com/m-elhamlaoui/AstroLearn.git' 
+                    git branch: 'main', url: 'https://github.com/m-elhamlaoui/AstroLearn.git', 
+                    credentialsId: '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' // the ID you gave
+
                 }
         }
 
@@ -43,17 +46,16 @@ pipeline {
             }
         }
 
-        // Étape 3 (Optionnelle mais recommandée): Lancer les tests unitaires
-        // stage('Run Tests') {
-        //     steps {
-        //         dir('Backend/demo') {
-        //             bat './mvnw test'
-        //             // Ici, on pourrait ajouter des étapes pour publier les résultats des tests
-        //             // par exemple avec le plugin JUnit:
-        //             // junit 'target/surefire-reports/*.xml'
-        //         }
-        //     }
-        // }
+        // Étape 3: Lancer les tests unitaires pour le backend
+        stage('Run Backend Tests') {
+            steps {
+                dir('Backend/demo') {
+                    bat './mvnw test'
+                    // Publication des résultats des tests avec le plugin JUnit
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
 
         // Étape 4: Construire l'image Docker
         stage('Build Docker Image') {
@@ -107,26 +109,93 @@ pipeline {
                  bat 'kubectl get nodes'
                }
         }
-        // Étape 6: Déployer l'application sur Kubernetes (Docker Desktop)
-        stage('Deploy to K8s') {
+        // Étape 6: Déployer le backend sur Kubernetes (Docker Desktop)
+        stage('Deploy Backend to K8s') {
              steps {
                  // IMPORTANT: Cette étape suppose que votre fichier k8s/backend.yaml
                  // référence l'image avec le tag ':latest' comme ceci :
                  // image: votrenomutilisateur/space-hub-backend:latest
 
-                 // Applique les fichiers de configuration Kubernetes qui sont
-                 // dans le dossier 'k8s/' de votre projet.
-                 // Assurez-vous que 'kubectl' est dans le PATH de Windows.
-                 bat "kubectl --kubeconfig=${env.KUBECONFIG} apply -f k8s/ --validate=false"
+                 // Applique les fichiers de configuration Kubernetes pour le backend
+                 bat "kubectl --kubeconfig=${env.KUBECONFIG} apply -f k8s/backend.yaml --validate=false"
+                 bat "kubectl --kubeconfig=${env.KUBECONFIG} apply -f k8s/postgres.yaml --validate=false"
 
                  // Force le redémarrage des pods du déploiement pour
                  // qu'ils récupèrent la nouvelle image ':latest'.
-                 // Assurez-vous que 'space-hub-backend-deployment' est bien le nom
-                 // de votre Deployment dans k8s/backend.yaml.
                  bat "kubectl --kubeconfig=${env.KUBECONFIG} rollout restart deployment space-hub-backend-deployment"
 
-                 // Optionnel: Attendre et vérifier que le déploiement s'est bien passé
-                 // bat "kubectl rollout status deployment/space-hub-backend-deployment --timeout=2m"
+                 // Attendre et vérifier que le déploiement s'est bien passé
+                 bat "kubectl --kubeconfig=${env.KUBECONFIG} rollout status deployment/space-hub-backend-deployment --timeout=2m"
+             }
+         }
+         
+        // Étape 7: Construire l'image Docker du Frontend
+        stage('Build Frontend Docker Image') {
+            steps {
+                dir('Frontend') {
+                    script {
+                        // On utilise le numéro de build Jenkins comme tag unique
+                        def imageTag = "${env.BUILD_NUMBER}"
+                        def frontendImageName = "${DOCKER_REGISTRY}/astrolearn-frontend"
+                        def fullFrontendImageName = "${frontendImageName}:${imageTag}"
+
+                        // Lance la commande 'docker build'
+                        bat "docker build -t ${fullFrontendImageName} ."
+
+                        // Ajoute aussi le tag ':latest' à la même image
+                        bat "docker tag ${fullFrontendImageName} ${frontendImageName}:latest"
+                    }
+                }
+            }
+        }
+        
+        // Étape 8: Lancer les tests du Frontend
+        stage('Run Frontend Tests') {
+            steps {
+                dir('Frontend') {
+                    // Exécuter les tests lint
+                    bat 'npm run lint'
+                    
+                    // Si vous avez des tests unitaires, vous pouvez les ajouter ici
+                    // bat 'npm test'
+                }
+            }
+        }
+        
+        // Étape 9: Pousser l'image Docker du Frontend vers Docker Hub
+        stage('Push Frontend Docker Image') {
+             steps {
+                 withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                     // Se connecte à Docker Hub en utilisant les variables injectées
+                     bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
+                     
+                     def frontendImageName = "${DOCKER_REGISTRY}/astrolearn-frontend"
+                     
+                     // Pousse l'image avec le tag spécifique (numéro de build)
+                     bat "docker push ${frontendImageName}:${env.BUILD_NUMBER}"
+                     // Pousse l'image avec le tag ':latest'
+                     bat "docker push ${frontendImageName}:latest"
+                 }
+             }
+             post {
+                 always {
+                     // Se déconnecte de Docker Hub
+                     bat "docker logout"
+                 }
+             }
+         }
+         
+        // Étape 10: Déployer le Frontend sur Kubernetes
+        stage('Deploy Frontend to K8s') {
+             steps {
+                 // Applique la configuration Kubernetes pour le frontend
+                 bat "kubectl --kubeconfig=${env.KUBECONFIG} apply -f k8s/frontend.yaml --validate=false"
+
+                 // Force le redémarrage des pods du déploiement frontend
+                 bat "kubectl --kubeconfig=${env.KUBECONFIG} rollout restart deployment astrolearn-frontend-deployment"
+
+                 // Attendre et vérifier que le déploiement s'est bien passé
+                 bat "kubectl --kubeconfig=${env.KUBECONFIG} rollout status deployment/astrolearn-frontend-deployment --timeout=2m"
              }
          }
     } // Fin des stages

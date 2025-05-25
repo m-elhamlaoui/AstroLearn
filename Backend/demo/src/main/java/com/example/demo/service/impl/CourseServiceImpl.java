@@ -72,6 +72,11 @@ public class CourseServiceImpl implements CourseService {
         existingCourse.setTitle(courseDTO.title());
         existingCourse.setDescription(courseDTO.description());
         existingCourse.setDifficulty(courseDTO.difficulty());
+        
+        // Update the course status if provided
+        if (courseDTO.status() != null) {
+            existingCourse.setStatus(courseDTO.status());
+        }
 
         Course updatedCourse = courseRepository.save(existingCourse);
         return entityMapper.toDTO(updatedCourse);

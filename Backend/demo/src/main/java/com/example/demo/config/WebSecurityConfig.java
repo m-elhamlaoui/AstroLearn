@@ -1,5 +1,7 @@
 package com.example.demo.config;
 
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
+
 import com.example.demo.security.JWT.AuthEntryPointJwt;
 import com.example.demo.security.JWT.AuthTokenFilter;
 import com.example.demo.security.UserDetailsServiceImpl;
@@ -95,13 +97,14 @@ public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
                                  .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Permit all OPTIONS requests for CORS preflight
                                  // Add other specific public GET endpoints if needed, e.g.:
                                  // .requestMatchers(HttpMethod.GET, "/articles", "/articles/*").permitAll() 
+                                 .requestMatchers(EndpointRequest.to("health")).permitAll() // Allow unauthenticated access to health endpoint
                                  .anyRequest().authenticated() // Require auth for everything else
                  );
  
          http.authenticationProvider(authenticationProvider());
 
-        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
- 
+         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+
          return http.build();
      }
  

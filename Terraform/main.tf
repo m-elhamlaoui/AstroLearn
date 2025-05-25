@@ -254,11 +254,11 @@ resource "aws_security_group" "backend_alb_sg" {
   vpc_id      = aws_vpc.app_vpc.id
 
   ingress {
-    description     = "Backend App Port from Frontend Instances"
+    description     = "Backend App Port from Internet"
     from_port       = var.backend_app_port
     to_port         = var.backend_app_port
     protocol        = "tcp"
-    security_groups = [aws_security_group.frontend_instances_sg.id]
+    cidr_blocks     = ["0.0.0.0/0"] # Allow from anywhere on the internet
   }
 
   # Egress rule to Backend Instances will be defined separately to break cycle
@@ -580,7 +580,7 @@ resource "aws_lb" "backend_alb" {
   # Fixed Value: Type of load balancer
   load_balancer_type = "application"
   # Fixed Value: Scheme (internal)
-  internal           = true  # This makes it internal-only
+  internal           = false # This makes it internet-facing
   # Fixed Syntax: List of public subnet IDs (internal ALBs can be in public or private subnets)
   # Using public here means Frontend instances (in private subnets) can route to it.
   subnets            = aws_subnet.public[*].id # Or aws_subnet.private[*].id if you prefer to keep ALBs separate

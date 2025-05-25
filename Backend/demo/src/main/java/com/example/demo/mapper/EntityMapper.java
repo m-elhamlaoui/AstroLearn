@@ -83,6 +83,7 @@ public interface EntityMapper {
 
     @Mapping(target = "moduleIds", source = "modules", qualifiedByName = "modulesToModuleIds")
     @Mapping(target = "totalLessons", expression = "java(course.getTotalLessons())") // Use @Transient method
+    @Mapping(target = "status", source = "status") // Map the status field
     CourseDTO toDTO(Course course);
 
     @Mapping(target = "modules", ignore = true) // Handled by service/cascade

@@ -135,11 +135,13 @@ variable "backend_health_check_path" {
 variable "docker_image_frontend" {
   description = "Docker image for the frontend service"
   type        = string
+  default = "omarbdoc/astrolearn-front:latest"
 }
 
 variable "docker_image_backend" {
   description = "Docker image for the backend service"
   type        = string
+  default = "omarbdoc/astrolearn-back:latest"
 }
 
 

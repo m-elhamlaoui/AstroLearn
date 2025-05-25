@@ -50,7 +50,7 @@ class CourseServiceTest {
     @Test
     void testCreateCourse_Success() {
         // Arrange
-        CourseDTO courseDTO = new CourseDTO(null, "Test Course", "Test Description", null, Course.DifficultyLevel.BEGINNER, 0, Collections.emptyList());
+        CourseDTO courseDTO = new CourseDTO(null, "Test Course", "Test Description", null, Course.DifficultyLevel.BEGINNER, Course.CourseStatus.DRAFT, 0, Collections.emptyList());
         Course course = new Course();
         course.setTitle(courseDTO.title());
         course.setDescription(courseDTO.description());
@@ -66,7 +66,7 @@ class CourseServiceTest {
         savedCourse.setModules(Collections.emptyList());
         savedCourse.setProgresses(Collections.emptyList());
 
-        CourseDTO expectedDTO = new CourseDTO(1L, "Test Course", "Test Description", null, Course.DifficultyLevel.BEGINNER, 0, Collections.emptyList());
+        CourseDTO expectedDTO = new CourseDTO(1L, "Test Course", "Test Description", null, Course.DifficultyLevel.BEGINNER, Course.CourseStatus.DRAFT, 0, Collections.emptyList());
 
         when(entityMapper.toEntity(courseDTO)).thenReturn(course);
         when(courseRepository.save(any(Course.class))).thenReturn(savedCourse);
@@ -96,7 +96,7 @@ class CourseServiceTest {
         course.setModules(Collections.emptyList());
         course.setProgresses(Collections.emptyList());
 
-        CourseDTO expectedDTO = new CourseDTO(courseId, "Test Course", "Test Description", null, Course.DifficultyLevel.BEGINNER, 0, Collections.emptyList());
+        CourseDTO expectedDTO = new CourseDTO(courseId, "Test Course", "Test Description", null, Course.DifficultyLevel.BEGINNER, Course.CourseStatus.DRAFT, 0, Collections.emptyList());
 
         when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
         when(entityMapper.toDTO(course)).thenReturn(expectedDTO);
@@ -145,8 +145,8 @@ class CourseServiceTest {
 
         List<Course> courses = List.of(course1, course2);
 
-        CourseDTO dto1 = new CourseDTO(1L, "Course 1", "Description 1", null, Course.DifficultyLevel.BEGINNER, 0, Collections.emptyList());
-        CourseDTO dto2 = new CourseDTO(2L, "Course 2", "Description 2", null, Course.DifficultyLevel.INTERMEDIATE, 0, Collections.emptyList());
+        CourseDTO dto1 = new CourseDTO(1L, "Course 1", "Description 1", null, Course.DifficultyLevel.BEGINNER, Course.CourseStatus.PUBLISHED, 0, Collections.emptyList());
+        CourseDTO dto2 = new CourseDTO(2L, "Course 2", "Description 2", null, Course.DifficultyLevel.INTERMEDIATE, Course.CourseStatus.PUBLISHED, 0, Collections.emptyList());
 
         when(courseRepository.findAll()).thenReturn(courses);
         when(entityMapper.toDTO(course1)).thenReturn(dto1);
@@ -169,7 +169,7 @@ class CourseServiceTest {
     void testUpdateCourse_Success() {
         // Arrange
         Long courseId = 1L;
-        CourseDTO updatedDTO = new CourseDTO(courseId, "Updated Course", "Updated Description", null, Course.DifficultyLevel.INTERMEDIATE, 0, Collections.emptyList());
+        CourseDTO updatedDTO = new CourseDTO(courseId, "Updated Course", "Updated Description", null, Course.DifficultyLevel.INTERMEDIATE, Course.CourseStatus.PUBLISHED, 0, Collections.emptyList());
 
         Course existingCourse = new Course();
         existingCourse.setId(courseId);
@@ -187,7 +187,7 @@ class CourseServiceTest {
         updatedCourse.setModules(Collections.emptyList());
         updatedCourse.setProgresses(Collections.emptyList());
 
-        CourseDTO expectedDTO = new CourseDTO(courseId, "Updated Course", "Updated Description", null, Course.DifficultyLevel.INTERMEDIATE, 0, Collections.emptyList());
+        CourseDTO expectedDTO = new CourseDTO(courseId, "Updated Course", "Updated Description", null, Course.DifficultyLevel.INTERMEDIATE, Course.CourseStatus.PUBLISHED, 0, Collections.emptyList());
 
         when(courseRepository.findById(courseId)).thenReturn(Optional.of(existingCourse));
         when(courseRepository.save(any(Course.class))).thenReturn(updatedCourse);
@@ -211,7 +211,7 @@ class CourseServiceTest {
     void testUpdateCourse_NotFound() {
         // Arrange
         Long courseId = 1L;
-        CourseDTO updatedDTO = new CourseDTO(courseId, "Updated Course", "Updated Description", null, Course.DifficultyLevel.INTERMEDIATE, 0, Collections.emptyList());
+        CourseDTO updatedDTO = new CourseDTO(courseId, "Updated Course", "Updated Description", null, Course.DifficultyLevel.INTERMEDIATE, Course.CourseStatus.PUBLISHED, 0, Collections.emptyList());
 
         when(courseRepository.findById(courseId)).thenReturn(Optional.empty());
 

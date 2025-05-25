@@ -28,10 +28,11 @@ public class Course {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-
-
     @Enumerated(EnumType.STRING)
     private DifficultyLevel difficulty;
+    
+    @Enumerated(EnumType.STRING)
+    private CourseStatus status = CourseStatus.DRAFT; // Default to DRAFT
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<Module> modules = new ArrayList<>();
@@ -39,7 +40,7 @@ public class Course {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<CourseProgress> progresses = new ArrayList<>();
 
-    // add course imageURL
+    // Course image URL
     private String imageUrl;
 
     @Transient // Calculated field, not persisted
@@ -52,7 +53,8 @@ public class Course {
     public enum DifficultyLevel {
         BEGINNER, INTERMEDIATE, ADVANCED
     }
+    
+    public enum CourseStatus {
+        PUBLISHED, DRAFT
+    }
 }
-
-
-

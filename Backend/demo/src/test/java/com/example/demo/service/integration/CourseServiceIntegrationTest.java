@@ -69,6 +69,7 @@ public class CourseServiceIntegrationTest {
                 "New Description",
                 null, // imageUrl
                 Course.DifficultyLevel.ADVANCED,
+                Course.CourseStatus.DRAFT, // status
                 0, // totalLessons
                 null // moduleIds
         );
@@ -113,10 +114,11 @@ public class CourseServiceIntegrationTest {
     void testUpdateCourse() {
         CourseDTO updatedCourseDTO = new CourseDTO(
                 course1.getId(),
-                "Updated Course Title",
+                "Updated Course",
                 "Updated Description",
                 null, // imageUrl
                 Course.DifficultyLevel.ADVANCED,
+                Course.CourseStatus.PUBLISHED, // status
                 0, // totalLessons
                 null // moduleIds
         );
@@ -125,14 +127,14 @@ public class CourseServiceIntegrationTest {
 
         assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo(course1.getId());
-        assertThat(result.title()).isEqualTo("Updated Course Title");
+        assertThat(result.title()).isEqualTo("Updated Course");
         assertThat(result.description()).isEqualTo("Updated Description");
         assertThat(result.difficulty()).isEqualTo(Course.DifficultyLevel.ADVANCED);
 
         // Verify in database
         Optional<Course> updatedCourseOpt = courseRepository.findById(course1.getId());
         assertThat(updatedCourseOpt).isPresent();
-        assertThat(updatedCourseOpt.get().getTitle()).isEqualTo("Updated Course Title");
+        assertThat(updatedCourseOpt.get().getTitle()).isEqualTo("Updated Course");
         assertThat(updatedCourseOpt.get().getDescription()).isEqualTo("Updated Description");
         assertThat(updatedCourseOpt.get().getDifficulty()).isEqualTo(Course.DifficultyLevel.ADVANCED);
     }
@@ -141,10 +143,11 @@ public class CourseServiceIntegrationTest {
     void testUpdateCourse_NotFound() {
         CourseDTO updatedCourseDTO = new CourseDTO(
                 999L,
-                "Updated Course Title",
+                "Updated Course",
                 "Updated Description",
                 null, // imageUrl
                 Course.DifficultyLevel.ADVANCED,
+                Course.CourseStatus.PUBLISHED, // status
                 0, // totalLessons
                 null // moduleIds
         );

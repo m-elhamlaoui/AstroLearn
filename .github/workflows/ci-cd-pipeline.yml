@@ -1,0 +1,178 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ production ]
+  pull_request:
+    branches: [ production ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: db5
+        ports:
+          - 5432:5432 # Mapped to runner's localhost:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17 # Or your project's Java version
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      # --- ADD THIS STEP TO FIX PERMISSIONS ---
+      - name: Make mvnw executable
+        working-directory: ./Backend/demo # Or wherever your mvnw is
+        run: chmod +x ./mvnw
+
+      # --- YOUR EXISTING TEST BACKEND STEP ---
+      - name: Test Backend
+        working-directory: ./Backend/demo
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/db5
+          SPRING_DATASOURCE_USERNAME: user
+          SPRING_DATASOURCE_PASSWORD: password
+          SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+          SPRING_PROFILES_ACTIVE: test
+        run: ./mvnw test -B -Dtest="com.example.demo.service.**.*Test" -DfailIfNoTests=true --fail-at-end    
+
+      # --- 2. BUILD DOCKER IMAGES (ONLY IF TESTS PASS) ---
+      - name: Set up Docker Buildx
+        if: success() # Only run if tests pass
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        if: success()
+        uses: docker/login-action@v2
+        with:
+          username: douaae    # <-- USE GITHUB SECRET
+          password: dckr_pat_bTU5XTDbhKZE_uTO8c2W9GdR7Sc       # <-- USE GITHUB SECRET (PAT recommended)
+
+      - name: Build Frontend Docker image
+        if: success()
+        uses: docker/build-push-action@v4
+        with:
+          context: ./Frontend
+          push: false # Not pushing yet
+          load: true
+          tags: douaae/astrolearn-frontend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build Backend Docker image
+        if: success()
+        uses: docker/build-push-action@v4
+        with:
+          context: ./Backend/demo
+          push: false # Not pushing yet
+          load: true
+          tags: douaae/astrolearn-backend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # --- 3. PUSH IMAGES (ONLY ON 'production' BRANCH PUSH & IF PREVIOUS STEPS SUCCEEDED) ---
+      - name: Push Frontend Docker image
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/production'
+        uses: docker/build-push-action@v4
+        with:
+          context: ./Frontend
+          push: true
+          tags: |
+            douaae/astrolearn-frontend:${{ github.sha }}
+            douaae/astrolearn-frontend:latest
+
+      - name: Push Backend Docker image
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/production'
+        uses: docker/build-push-action@v4
+        with:
+          context: ./Backend/demo
+          push: true
+          tags: |
+            douaae/astrolearn-backend:${{ github.sha }}
+            douaae/astrolearn-backend:latest
+
+  deploy:
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/production' # This job only runs if build-and-test succeeds
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.0.0 # Consider using a newer patch version or 'latest'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4 # Use a more recent version
+        with:
+          aws-access-key-id: AKIAVRGZUA63XMDEZCAU    # <-- USE GITHUB SECRET
+          aws-secret-access-key: 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 # <-- USE GITHUB SECRET
+          aws-region: us-east-1
+          # For enhanced security, consider using IAM Roles for GitHub Actions (OIDC)
+
+      - name: Terraform Init
+        working-directory: ./Terraform
+        run: terraform init -input=false # -input=false for non-interactive
+
+      - name: Terraform Plan
+        working-directory: ./Terraform
+        env:
+          TF_VAR_docker_image_frontend: "douaae/astrolearn-frontend:${{ github.sha }}"
+          TF_VAR_docker_image_backend: "douaae/astrolearn-backend:${{ github.sha }}"
+        run: |
+          terraform plan -input=false -out=tfplan \
+            -var="access_key=${{ secrets.AWS_ACCESS_KEY_ID || 'AKIAVRGZUA63XMDEZCAU' }}" \
+            -var="secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY || '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' }}" \
+            -var="key_pair_name=Astrolearn-terraform"
+
+      - name: Terraform Apply
+        working-directory: ./Terraform
+        run: terraform apply -input=false -auto-approve tfplan
+        # Note: Variables are already embedded in the tfplan file from the previous step
+
+      - name: Run Database Migrations
+        # This step assumes your 'douaae/astrolearn-backend' image contains mvnw, pom.xml, and migration files
+        # and that its default ENTRYPOINT doesn't prevent './mvnw' from running.
+        # If the image is just a JAR, this step will need a different approach (e.g., a dedicated migration image/tool).
+        env:
+          DB_NAME: db5
+          DB_USERNAME: user
+          DB_PASSWORD: password
+        run: |
+          cd ./Terraform # Terraform outputs are read from the current working directory of terraform
+          DB_ENDPOINT=$(terraform output -raw rds_endpoint)
+
+          if [ -z "${DB_ENDPOINT}" ]; then
+            echo "Error: RDS_ENDPOINT is empty. Cannot run migrations."
+            exit 1
+          fi
+          echo "Attempting to run migrations against: ${DB_ENDPOINT}"
+
+          docker run --rm \
+            --entrypoint /bin/sh \
+            -e SPRING_DATASOURCE_URL="jdbc:postgresql://${DB_ENDPOINT}:5432/${DB_NAME}" \
+            -e SPRING_DATASOURCE_USERNAME="${DB_USERNAME}" \
+            -e SPRING_DATASOURCE_PASSWORD="${DB_PASSWORD}" \
+            -e SPRING_PROFILES_ACTIVE=production,dbmigration # Ensure Flyway is enabled for these profiles
+            douaae/astrolearn-backend:${{ github.sha }} \
+            -c "./mvnw flyway:migrate -B"

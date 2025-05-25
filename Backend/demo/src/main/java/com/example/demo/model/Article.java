@@ -31,8 +31,6 @@ public class Article {
     @NotBlank
     private String title;
 
-    @Lob
-    @Column(columnDefinition = "TEXT")
     private String Summary;
 
     @Lob

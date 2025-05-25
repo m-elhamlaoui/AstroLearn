@@ -9,5 +9,6 @@ public record QuizCompletionDTO(
         Long userId,
         String username, // Convenient display field
         Long quizId,
-        String quizTitle // Convenient display field
+        String quizTitle, // Convenient display field
+        int experienceEarned
 ) {}

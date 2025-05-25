@@ -672,6 +672,7 @@ resource "aws_launch_template" "frontend_template" {
   user_data = base64encode(templatefile("user_data_frontend.sh", {
     backend_alb_dns_name = aws_lb.backend_alb.dns_name
     backend_app_port     = var.backend_app_port
+    docker_image_frontend = var.docker_image_frontend
   }))
 
   depends_on = [
@@ -739,6 +740,7 @@ resource "aws_launch_template" "backend_template" {
     db_name               = var.db_name
     db_username           = var.db_username
     db_password           = var.db_password
+    docker_image_backend  = var.docker_image_backend
     # backend_app_port is already available via var.backend_app_port if needed by the script directly
     # but the primary use here is for DB connection.
   }))

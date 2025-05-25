@@ -4,8 +4,8 @@ yum install -y docker
 service docker start
 usermod -a -G docker ec2-user
 
-# Docker image name
-BACKEND_IMAGE="omarbdoc/astrolearn-back:latest"
+# Docker image name from Terraform variable
+BACKEND_IMAGE="${docker_image_backend}"
 
 # Pull the Docker image
 docker pull $BACKEND_IMAGE

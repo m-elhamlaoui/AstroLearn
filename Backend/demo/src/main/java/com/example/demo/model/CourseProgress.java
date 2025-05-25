@@ -1,61 +1,50 @@
 package com.example.demo.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
-
-@AllArgsConstructor
-@NoArgsConstructor
-@Getter
-@Setter
-
 @Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(name = "course_progress")
 public class CourseProgress {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "current_lesson_id")
     private Lesson currentLesson;
 
-    private double completionPercentage;
-
-    private boolean completed;
-
-    // Tracking completed lessons
-
     @ElementCollection
-    @CollectionTable(
-            name = "completed_lessons",
-            joinColumns = @JoinColumn(name = "progress_id"))
+    @CollectionTable(name = "completed_lessons", joinColumns = @JoinColumn(name = "progress_id"))
     @Column(name = "lesson_id")
     private Set<Long> completedLessonIds = new HashSet<>();
 
-    @Column(name = "last_accessed")
-    private LocalDateTime lastAccessed;
+    @Column(nullable = false)
+    private boolean completed;
 
-    @PreUpdate
-    @PrePersist
-    public void updateCompletion() {
-        if (course != null && course.getTotalLessons() > 0) {
-            this.completionPercentage =
-                    ((double) completedLessonIds.size() / course.getTotalLessons()) * 100;
-            this.completed = completionPercentage >= 100;
-        }
-    }
+    @Column(name = "completion_percentage", nullable = false)
+    private double completionPercentage;
+
+    @Column(name = "last_accessed", nullable = false)
+    private LocalDateTime lastAccessed;
 }
 

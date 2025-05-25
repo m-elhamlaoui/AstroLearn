@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.31.2 (a92241f79)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: space-hub-backend
+  name: space-hub-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: space-hub-backend
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.31.2 (a92241f79)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/astrolearn-si-network: "true"
+        io.kompose.service: space-hub-backend
+    spec:
+      containers:
+        - env:
+            - name: SERVER_PORT
+              value: "8088"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: password
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://devopsify-postgres:5432/db1
+            - name: SPRING_DATASOURCE_USERNAME
+              value: user
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: update
+          image: space-hub-backend
+          name: space-hub-backend
+          ports:
+            - containerPort: 8080
+              hostPort: 8080
+              protocol: TCP
+          resources: {}
+      restartPolicy: Always
+status: {}

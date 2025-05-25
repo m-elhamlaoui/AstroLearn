@@ -119,6 +119,7 @@ public class QuizServiceImpl implements QuizService {
             completion.setQuiz(quiz);
         }
         completion.setScore(rawScore); // Use rawScore
+        completion.setExperienceEarned(quiz.getExperienceReward()); // Set experience earned
         completion.setCompletionDate(LocalDateTime.now());
         QuizCompletion savedCompletion = quizCompletionRepository.save(completion);
 
@@ -171,7 +172,7 @@ public class QuizServiceImpl implements QuizService {
                 completedByUser.getUsername(), 
                 quiz.getId(), 
                 quiz.getTitle(), 
-                quiz.getExperienceReward(), 
+                quiz.getExperienceReward(),
                 Collections.emptyList() // Historical attempt details are not stored
         );
     }

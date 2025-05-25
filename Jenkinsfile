@@ -29,7 +29,7 @@ pipeline {
                 steps {
                     // Spécifie explicitement la branche 'production' à utiliser
                     git branch: 'production', url: 'https://github.com/m-elhamlaoui/AstroLearn.git', 
-                    credentialsId: 'github-token' // Use a simpler credential ID configured in Jenkins
+                    credentialsId: 'github-credentials' // Use a simpler credential ID configured in Jenkins
 
                 }
         }

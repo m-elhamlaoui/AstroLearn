@@ -1,4 +1,3 @@
-# k8s/backend.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,34 +13,34 @@ spec:
         app: astrolearn-backend
     spec:
       containers:
-      - name: astrolearn-backend
-        image: douaae/astrolearn-backend:latest
-        ports:
-        - containerPort: 8090
-        env:
-          - name: SPRING_DATASOURCE_URL
-            value: jdbc:postgresql://postgres-service:5432/db1
-          - name: SPRING_DATASOURCE_USERNAME
-            value: user
-          - name: SPRING_DATASOURCE_PASSWORD
-            value: password
-          - name: SPRING_JPA_HIBERNATE_DDL_AUTO
-            value: update
-          - name: SERVER_PORT
-            value: "8090"
-          - name: SPRING_JPA_SHOW_SQL
-            value: "true"
-          - name: LOGGING_LEVEL_ROOT
-            value: "INFO"
-          - name: LOGGING_LEVEL_COM_EXAMPLE_DEMO
-            value: "DEBUG"
-        resources:
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
+        - name: astrolearn-backend
+          image: douaae/astrolearn-backend:latest
+          ports:
+            - containerPort: 8088   # ✅ The internal port your Spring Boot app listens to
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://postgres-service:5432/db1
+            - name: SPRING_DATASOURCE_USERNAME
+              value: user
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: password
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: update
+            - name: SERVER_PORT
+              value: "8088"   # ✅ Spring Boot will start on port 8088
+            - name: SPRING_JPA_SHOW_SQL
+              value: "true"
+            - name: LOGGING_LEVEL_ROOT
+              value: "INFO"
+            - name: LOGGING_LEVEL_COM_EXAMPLE_DEMO
+              value: "DEBUG"
+          resources:
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
 ---
 apiVersion: v1
 kind: Service
@@ -51,7 +50,7 @@ spec:
   selector:
     app: astrolearn-backend
   ports:
-  - protocol: TCP
-    port: 8090
-    targetPort: 8090
+    - protocol: TCP
+      port: 8088        # ✅ The port your frontend expects
+      targetPort: 8088  # ✅ Must match the containerPort
   type: NodePort

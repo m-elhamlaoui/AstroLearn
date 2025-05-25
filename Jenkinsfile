@@ -26,8 +26,8 @@ pipeline {
         // Étape 1: Récupérer le code source depuis Git
         stage('Checkout') {
                 steps {
-                    // Spécifie explicitement la branche 'main' à utiliser
-                    git branch: 'main', url: 'https://github.com/m-elhamlaoui/AstroLearn.git', 
+                    // Spécifie explicitement la branche 'production' à utiliser
+                    git branch: 'production', url: 'https://github.com/m-elhamlaoui/AstroLearn.git', 
                     credentialsId: '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' // the ID you gave
 
                 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import axios from "axios" // For direct S3 uploads
@@ -11,9 +11,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 // @ts-ignore
 import { toast } from "react-hot-toast"
-import { ArrowLeft, Edit, Plus, PlusCircle, Video, FileText, Trash2, GripVertical, Move, ArrowUpDown } from "lucide-react"
+import { ArrowLeft, Edit, Plus, PlusCircle, Video, FileText, Trash2, GripVertical, Move, ArrowUpDown, Upload, Youtube } from "lucide-react"
 import { DragDropContext, Droppable, Draggable, DroppableProvided as DndDroppableProvided, DraggableProvided as DndDraggableProvided, DroppableStateSnapshot, DraggableStateSnapshot } from '@hello-pangea/dnd'
 
 interface CourseDetailsPageProps {
@@ -76,13 +77,48 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
   const [newModuleTitle, setNewModuleTitle] = useState("")
   const [isAddingModule, setIsAddingModule] = useState(false)
   
-  // Fetch course data
+  // Fetch course data with modules and lessons
   useEffect(() => {
-    const fetchCourse = async () => {
+    const fetchCourseWithDetails = async () => {
       try {
         setLoading(true)
-        const response = await axiosInstance.get(`/courses/${courseId}`)
-        setCourse(response.data)
+        
+        // Fetch the course basic data
+        const courseResponse = await axiosInstance.get(`/courses/${courseId}`)
+        const courseData = courseResponse.data
+        
+        // Fetch modules for this course
+        const modulesResponse = await axiosInstance.get(`/modules/courses/${courseId}`)
+        const modulesData = modulesResponse.data || []
+        
+        // For each module, fetch its lessons
+        const modulesWithLessons = await Promise.all(modulesData.map(async (module: any) => {
+          try {
+            const lessonsResponse = await axiosInstance.get(`/lessons/modules/${module.id}`)
+            const lessonsData = lessonsResponse.data || []
+            
+            // Return the module with its lessons
+            return {
+              ...module,
+              lessons: lessonsData
+            }
+          } catch (moduleErr) {
+            console.error(`Error fetching lessons for module ${module.id}:`, moduleErr)
+            return {
+              ...module,
+              lessons: []
+            }
+          }
+        }))
+        
+        // Create the complete course object with modules and lessons
+        const completeData = {
+          ...courseData,
+          modules: modulesWithLessons
+        }
+        
+        console.log("Complete course data with modules and lessons:", completeData)
+        setCourse(completeData)
       } catch (err) {
         console.error("Error fetching course:", err)
         toast.error("Failed to load course")
@@ -91,7 +127,7 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
       }
     }
 
-    fetchCourse()
+    fetchCourseWithDetails()
   }, [courseId])
 
   // Handle adding a new module
@@ -132,59 +168,158 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
   // State for lesson creation per module
   const [newLessonTitles, setNewLessonTitles] = useState<{ [key: number]: string }>({});
   const [newLessonContents, setNewLessonContents] = useState<{ [key: number]: string }>({});
-  const [lessonImageFiles, setLessonImageFiles] = useState<{ [key: number]: File | undefined }>({});
-  const [lessonImageUrls, setLessonImageUrls] = useState<{ [key: number]: string }>({});
+  const [lessonVideoType, setLessonVideoType] = useState<{ [key: number]: 's3' | 'youtube' }>({});
+  const [lessonVideoFiles, setLessonVideoFiles] = useState<{ [key: number]: File | undefined }>({});
+  const [lessonVideoUrls, setLessonVideoUrls] = useState<{ [key: number]: string }>({});
+  const [isUploadingVideo, setIsUploadingVideo] = useState<{ [key: number]: boolean }>({});
+  const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
 
   // S3 upload logic (adapted from article-edit)
-  const uploadImageToS3 = async (file: File | undefined): Promise<string> => {
+  const uploadVideoToS3 = async (moduleId: number, file: File | undefined): Promise<string> => {
     if (!file) {
-      console.error("No file provided to uploadImageToS3");
+      console.error("No file provided to uploadVideoToS3");
       return "";
     }
     
+    setIsUploadingVideo(prev => ({ ...prev, [moduleId]: true }));
+    console.log("[S3 Upload] Starting video upload for file:", file);
+    
     try {
+      // 1. Get pre-signed URL from your backend
+      console.log("[S3 Upload] Fetching pre-signed URL from /generate-upload-url");
       const response = await axiosInstance.get<{ uploadUrl: string; key: string }>("/generate-upload-url");
-      const { uploadUrl } = response.data;
-      await axios.put(uploadUrl, file, { headers: { "Content-Type": file.type } });
-      return uploadUrl.split("?")[0];
-    } catch (error) {
-      console.error("Error uploading image to S3:", error);
-      toast.error("Image upload failed");
+      const presignedUrlData = response.data;
+      console.log("[S3 Upload] Received pre-signed URL data:", presignedUrlData);
+      
+      if (!presignedUrlData || !presignedUrlData.uploadUrl) {
+        console.error("[S3 Upload] Failed to get pre-signed URL or uploadUrl is missing.");
+        throw new Error("Failed to get valid pre-signed URL.");
+      }
+
+      const actualUploadUrl = presignedUrlData.uploadUrl;
+
+      // 2. Upload file to S3 using the pre-signed URL
+      console.log(`[S3 Upload] Attempting PUT to S3 with URL: ${actualUploadUrl}`);
+      console.log(`[S3 Upload] File details: name=${file.name}, size=${file.size}, type=${file.type}`);
+      const s3PutHeaders = { "Content-Type": file.type };
+      console.log("[S3 Upload] Headers for S3 PUT:", s3PutHeaders);
+      
+      await axios.put(actualUploadUrl, file, {
+        headers: s3PutHeaders,
+      });
+      console.log("[S3 Upload] Successfully uploaded file to S3.");
+
+      // 3. The actual URL of the uploaded video is the pre-signed URL without query parameters
+      const videoUrl = actualUploadUrl.split("?")[0];
+      console.log("[S3 Upload] Derived video URL for storage:", videoUrl);
+      return videoUrl;
+    } catch (error: any) {
+      console.error("[S3 Upload] Error uploading video to S3:", error);
+      toast.error(`Video upload failed: ${error.message}`);
       return "";
+    } finally {
+      setIsUploadingVideo(prev => ({ ...prev, [moduleId]: false }));
     }
+  };
+  
+  // Handle file selection for video upload
+  const handleVideoFileSelect = (moduleId: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLessonVideoFiles(prev => ({ ...prev, [moduleId]: file }));
+      // Set video type to S3 when a file is selected
+      setLessonVideoType(prev => ({ ...prev, [moduleId]: 's3' }));
+      // Clear any previously entered YouTube URL
+      setLessonVideoUrls(prev => ({ ...prev, [moduleId]: "" }));
+    }
+  };
+  
+  // Handle YouTube URL input
+  const handleYoutubeUrlChange = (moduleId: number, url: string) => {
+    setLessonVideoUrls(prev => ({ ...prev, [moduleId]: url }));
+    // Set video type to YouTube when URL is entered
+    setLessonVideoType(prev => ({ ...prev, [moduleId]: 'youtube' }));
+    // Clear any previously selected file
+    setLessonVideoFiles(prev => ({ ...prev, [moduleId]: undefined }));
   };
 
   // Handle adding a new lesson to a module
   const handleAddLesson = async (moduleId: number, title: string, content: string, videoUrl: string) => {
     try {
-      const moduleIndex = course?.modules.findIndex(m => m.id === moduleId) || -1;
-      if (moduleIndex === -1) return;
-      // Updated URL to match LessonController endpoint
-      const response = await axiosInstance.post(`/lessons/modules/${moduleId}`, {
+      console.log("[Add Lesson] Starting to add lesson with data:", { moduleId, title, content, videoUrl });
+      
+      // Ensure moduleId is a number
+      const numericModuleId = Number(moduleId);
+      if (isNaN(numericModuleId)) {
+        console.error("[Add Lesson] Invalid module ID format:", moduleId);
+        toast.error("Invalid module ID format");
+        return;
+      }
+      
+      // Find the module in the course
+      const moduleIndex = course?.modules.findIndex(m => m.id === numericModuleId);
+      if (moduleIndex === -1 || moduleIndex === undefined) {
+        console.error("[Add Lesson] Module not found with ID:", numericModuleId);
+        console.log("[Add Lesson] Available modules:", course?.modules.map(m => m.id));
+        toast.error("Module not found. Please refresh the page and try again.");
+        return;
+      }
+      
+      // Prepare the lesson data according to LessonDTO structure
+      const lessonData = {
         title,
         content,
         videoUrl,
-        moduleId
-      });
-      // Update local state
+        moduleId: numericModuleId
+      };
+      
+      console.log(`[Add Lesson] Sending POST request to /lessons/modules/${numericModuleId} with data:`, lessonData);
+      
+      // Make the API call to add the lesson
+      const response = await axiosInstance.post(`/lessons/modules/${numericModuleId}`, lessonData);
+      
+      console.log("[Add Lesson] Response received:", response.data);
+      
+      // Update local state with the new lesson
       setCourse(prevCourse => {
         if (!prevCourse) return null;
+        
         const updatedModules = [...prevCourse.modules];
-        updatedModules[moduleIndex].lessons.push(response.data);
+        // Check if the module exists and has a lessons array
+        if (updatedModules[moduleIndex] && Array.isArray(updatedModules[moduleIndex].lessons)) {
+          updatedModules[moduleIndex].lessons.push(response.data);
+        } else {
+          // If lessons array doesn't exist, initialize it
+          console.log("[Add Lesson] Initializing lessons array for module", numericModuleId);
+          if (updatedModules[moduleIndex]) {
+            updatedModules[moduleIndex].lessons = [response.data];
+          } else {
+            console.error("[Add Lesson] Module index not found in updatedModules array");
+            // Log error and return unchanged state
+            console.log("[Add Lesson] Will need to refresh the page to see the new lesson");
+            toast.error("Lesson added but not displayed. Please refresh the page.");
+            return prevCourse; // Return unchanged state for now
+          }
+        }
+        
         return {
           ...prevCourse,
           modules: updatedModules
         };
       });
+      
       // Reset lesson form for this module
-      setNewLessonTitles(prev => ({ ...prev, [moduleId]: "" }));
-      setNewLessonContents(prev => ({ ...prev, [moduleId]: "" }));
-      setLessonImageFiles(prev => ({ ...prev, [moduleId]: undefined }));
-      setLessonImageUrls(prev => ({ ...prev, [moduleId]: "" }));
+      setNewLessonTitles(prev => ({ ...prev, [numericModuleId]: "" }));
+      setNewLessonContents(prev => ({ ...prev, [numericModuleId]: "" }));
+      setLessonVideoType(prev => ({ ...prev, [numericModuleId]: 's3' }));
+      setLessonVideoFiles(prev => ({ ...prev, [numericModuleId]: undefined }));
+      setLessonVideoUrls(prev => ({ ...prev, [numericModuleId]: "" }));
+      
       toast.success("Lesson added successfully");
-    } catch (err) {
-      console.error("Error adding lesson:", err);
-      toast.error("Failed to add lesson");
+    } catch (err: any) {
+      console.error("[Add Lesson] Error adding lesson:", err);
+      console.error("[Add Lesson] Error details:", err.response?.data || err.message);
+      toast.error(`Failed to add lesson: ${err.response?.data?.message || err.message || 'Unknown error'}`);
     }
   }
 
@@ -353,10 +488,20 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
                               <div className="flex items-center gap-2">
                                 <Button 
                                   onClick={() => {
+                                    // Ensure moduleId is a number
+                                    const numericModuleId = Number(module.id);
+                                    if (isNaN(numericModuleId)) {
+                                      console.error("[Quick Add] Invalid module ID format:", module.id);
+                                      toast.error("Invalid module ID format");
+                                      return;
+                                    }
+                                    
+                                    console.log("[Quick Add] Adding quick lesson to module:", numericModuleId);
+                                    
                                     // Set default values for this module before adding
-                                    setNewLessonTitles(prev => ({ ...prev, [module.id]: "New Lesson" }));
-                                    setNewLessonContents(prev => ({ ...prev, [module.id]: "" }));
-                                    handleAddLesson(module.id, "New Lesson", "", "");
+                                    setNewLessonTitles(prev => ({ ...prev, [numericModuleId]: "New Lesson" }));
+                                    setNewLessonContents(prev => ({ ...prev, [numericModuleId]: "" }));
+                                    handleAddLesson(numericModuleId, "New Lesson", "", "");
                                   }}
                                   variant="outline"
                                   size="sm"
@@ -407,20 +552,65 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
                                 <form
                                   onSubmit={async (e) => {
                                     e.preventDefault();
+                                    console.log("[Form Submit] Form submission started for module:", module.id);
+                                    
                                     // Validate lesson title
                                     if (!newLessonTitles[module.id]?.trim()) {
+                                      console.log("[Form Submit] Validation failed: Title is required");
                                       toast.error("Lesson title is required");
                                       return;
                                     }
-                                    let imageUrl = lessonImageUrls[module.id] || "";
-                                    // If a file is selected, upload to S3
-                                    if (lessonImageFiles[module.id]) {
-                                      imageUrl = await uploadImageToS3(lessonImageFiles[module.id]);
+                                    
+                                    let videoUrl = "";
+                                    const videoType = lessonVideoType[module.id] || 's3';
+                                    console.log("[Form Submit] Selected video type:", videoType);
+                                    
+                                    try {
+                                      // Handle video based on selected type
+                                      if (videoType === 's3') {
+                                        if (lessonVideoFiles[module.id]) {
+                                          console.log("[Form Submit] Uploading video file to S3:", lessonVideoFiles[module.id]?.name);
+                                          // Upload video file to S3
+                                          videoUrl = await uploadVideoToS3(module.id, lessonVideoFiles[module.id]);
+                                          if (!videoUrl) {
+                                            console.error("[Form Submit] S3 upload failed, returned empty URL");
+                                            toast.error("Failed to upload video");
+                                            return;
+                                          }
+                                          console.log("[Form Submit] S3 upload successful, URL:", videoUrl);
+                                        }
+                                        // Allow empty video URL for S3 option if no file is selected
+                                      } else if (videoType === 'youtube') {
+                                        // Use YouTube URL directly
+                                        videoUrl = lessonVideoUrls[module.id] || "";
+                                        console.log("[Form Submit] Using YouTube URL:", videoUrl);
+                                        if (!videoUrl) {
+                                          console.error("[Form Submit] YouTube URL is required but was empty");
+                                          toast.error("YouTube URL is required");
+                                          return;
+                                        }
+                                      }
+                                      
+                                      console.log("[Form Submit] Calling handleAddLesson with:", {
+                                        moduleId: module.id,
+                                        title: newLessonTitles[module.id],
+                                        content: newLessonContents[module.id] || "",
+                                        videoUrl
+                                      });
+                                      
+                                      await handleAddLesson(
+                                        module.id, 
+                                        newLessonTitles[module.id], 
+                                        newLessonContents[module.id] || "", 
+                                        videoUrl
+                                      );
+                                    } catch (error: any) {
+                                      console.error("[Form Submit] Error during form submission:", error);
+                                      toast.error(`Form submission error: ${error.message || 'Unknown error'}`);
                                     }
-                                    await handleAddLesson(module.id, newLessonTitles[module.id], newLessonContents[module.id] || "", imageUrl);
                                   }}
                                 >
-                                  <div className="flex flex-col gap-2 mb-2">
+                                  <div className="flex flex-col gap-3 mb-2">
                                     <Input
                                       placeholder="Lesson title"
                                       value={newLessonTitles[module.id] || ""}
@@ -433,23 +623,79 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
                                       onChange={e => setNewLessonContents({ ...newLessonContents, [module.id]: e.target.value })}
                                       className="bg-gray-800 border-gray-700 text-white"
                                     />
-                                    <div className="flex items-center gap-2">
-                                      <Input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={e => setLessonImageFiles({ ...lessonImageFiles, [module.id]: e.target.files?.[0] })}
-                                        className="bg-gray-800 border-gray-700 text-white"
-                                      />
-                                      {lessonImageUrls[module.id] && (
-                                        <img src={lessonImageUrls[module.id]} alt="Lesson" className="w-12 h-12 object-cover rounded" />
-                                      )}
+                                    
+                                    {/* Video Upload Options */}
+                                    <div className="mt-2">
+                                      <Label className="text-sm text-gray-300 mb-2">Lesson Video</Label>
+                                      <RadioGroup 
+                                        value={lessonVideoType[module.id] || 's3'}
+                                        onValueChange={(value) => setLessonVideoType({ 
+                                          ...lessonVideoType, 
+                                          [module.id]: value as 's3' | 'youtube'
+                                        })}
+                                        className="flex flex-col space-y-2 mt-2"
+                                      >
+                                        <div className="flex items-center space-x-2">
+                                          <RadioGroupItem value="s3" id={`s3-${module.id}`} />
+                                          <Label htmlFor={`s3-${module.id}`} className="flex items-center gap-2">
+                                            <Upload size={16} />
+                                            <span>Upload Video File</span>
+                                          </Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                          <RadioGroupItem value="youtube" id={`youtube-${module.id}`} />
+                                          <Label htmlFor={`youtube-${module.id}`} className="flex items-center gap-2">
+                                            <Youtube size={16} />
+                                            <span>YouTube Video</span>
+                                          </Label>
+                                        </div>
+                                      </RadioGroup>
                                     </div>
+                                    
+                                    {/* Conditional input based on selected video type */}
+                                    {lessonVideoType[module.id] === 's3' ? (
+                                      <div className="mt-2">
+                                        <input
+                                          type="file"
+                                          accept="video/*"
+                                          ref={(el) => {
+                                            if (el) fileInputRefs.current[module.id] = el;
+                                          }}
+                                          onChange={(e) => handleVideoFileSelect(module.id, e)}
+                                          className="bg-gray-800 border border-gray-700 text-white rounded-md p-2 w-full"
+                                        />
+                                        {lessonVideoFiles[module.id] && (
+                                          <div className="mt-2 text-sm text-green-400 flex items-center gap-2">
+                                            <Video size={16} />
+                                            <span>{lessonVideoFiles[module.id]?.name}</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <div className="mt-2">
+                                        <Input
+                                          placeholder="Enter YouTube URL"
+                                          value={lessonVideoUrls[module.id] || ""}
+                                          onChange={(e) => handleYoutubeUrlChange(module.id, e.target.value)}
+                                          className="bg-gray-800 border-gray-700 text-white"
+                                        />
+                                      </div>
+                                    )}
                                   </div>
+                                  
                                   <Button
                                     type="submit"
-                                    className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white"
+                                    className="mt-3 bg-indigo-600 hover:bg-indigo-700 text-white w-full"
+                                    disabled={isUploadingVideo[module.id]}
                                   >
-                                    Add Lesson
+                                    {isUploadingVideo[module.id] ? (
+                                      <>
+                                        <span className="animate-spin mr-2">⏳</span>
+                                        Uploading Video...
+                                      </>
+                                    ) : (
+                                      "Add Lesson"
+                                    )}
                                   </Button>
                                 </form>
                               </div>
@@ -559,9 +805,26 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
                     <div className="pl-4 space-y-1">
                       {module.lessons && module.lessons.length > 0 ? (
                         module.lessons.map((lesson, lessonIndex) => (
-                          <div key={lesson.id} className="flex items-center gap-2 text-sm text-gray-300">
-                            <Video size={14} className="text-indigo-400" />
-                            <span>Lesson {lessonIndex + 1}: {lesson.title}</span>
+                          <div key={lesson.id} className="space-y-1 mb-2">
+                            <div className="flex items-center gap-2 text-sm text-gray-300">
+                              <Video size={14} className="text-indigo-400" />
+                              <span>Lesson {lessonIndex + 1}: {lesson.title}</span>
+                            </div>
+                            {lesson.videoUrl && (
+                              <div className="ml-6 text-xs text-gray-400 flex items-center gap-1">
+                                {lesson.videoUrl.includes('youtube.com') || lesson.videoUrl.includes('youtu.be') ? (
+                                  <>
+                                    <Youtube size={12} />
+                                    <span>YouTube Video</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Upload size={12} />
+                                    <span>Uploaded Video</span>
+                                  </>
+                                )}
+                              </div>
+                            )}
                           </div>
                         ))
                       ) : (

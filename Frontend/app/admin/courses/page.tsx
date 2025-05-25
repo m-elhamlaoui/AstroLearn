@@ -29,13 +29,50 @@ export default function AdminCoursesPage() {
   const [error, setError] = useState("")
   const { isLoading: authLoading } = useAuthRedirect()
 
-  // Fetch courses
+  // Fetch courses with detailed module and lesson counts
   useEffect(() => {
     const fetchCourses = async () => {
       try {
         setLoading(true)
         const response = await axiosInstance.get("/courses")
-        setCourses(response.data)
+        const coursesData = response.data
+        
+        // For each course, fetch modules and their lessons
+        const coursesWithDetails = await Promise.all(coursesData.map(async (course: Course) => {
+          try {
+            // Fetch modules for this course
+            const modulesResponse = await axiosInstance.get(`/modules/courses/${course.id}`)
+            const modules = modulesResponse.data
+            
+            // Count total lessons across all modules
+            let totalLessons = 0
+            
+            // If modules exist, fetch lessons for each module
+            if (modules && modules.length > 0) {
+              await Promise.all(modules.map(async (module: any) => {
+                try {
+                  const lessonsResponse = await axiosInstance.get(`/lessons/modules/${module.id}`)
+                  const lessons = lessonsResponse.data
+                  totalLessons += lessons.length
+                } catch (moduleErr) {
+                  console.error(`Error fetching lessons for module ${module.id}:`, moduleErr)
+                }
+              }))
+            }
+            
+            // Return the course with accurate module and lesson counts
+            return {
+              ...course,
+              modulesCount: modules.length,
+              lessonsCount: totalLessons
+            }
+          } catch (courseErr) {
+            console.error(`Error fetching details for course ${course.id}:`, courseErr)
+            return course // Return original course if there was an error
+          }
+        }))
+        
+        setCourses(coursesWithDetails)
       } catch (err) {
         console.error("Error fetching courses:", err)
         setError("Failed to load courses")
@@ -179,7 +216,7 @@ export default function AdminCoursesPage() {
                   <CardFooter className="flex justify-between border-t border-gray-700 pt-4">
                     <div className="flex space-x-2">
                       <Button 
-                        size="sm" 
+                        size="sm"
                         variant="outline"
                         className="flex items-center gap-1 border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
                         onClick={() => router.push(`/admin/courses/${course.id}/edit`)}
@@ -202,7 +239,7 @@ export default function AdminCoursesPage() {
                       className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700"
                       onClick={() => router.push(`/admin/courses/${course.id}`)}
                     >
-                      <span>Manage</span>
+                      <span>Manage Content</span>
                       <ArrowRight size={14} />
                     </Button>
                   </CardFooter>

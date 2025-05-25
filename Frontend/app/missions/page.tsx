@@ -8,9 +8,11 @@ import { CalendarView } from "@/components/calendar-view"
 import { AnticipatedEventCard } from "@/components/anticipated-event-card" 
 import { CalendarSearchBar } from "@/components/calendar-search-bar"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, Search, Calendar as CalendarIcon } from "lucide-react" 
+import { ChevronLeft, Search, Calendar as CalendarIcon, Plus } from "lucide-react" 
 import { BloomingStars } from "@/components/blooming-stars"
-import { useAuthRedirect } from "@/lib/useAuthRedirect"; // Import the hook
+import { useAuthRedirect } from "@/lib/useAuthRedirect" // Import the hook
+import { MissionCreateForm } from "@/components/mission-create-form" // Import the mission creation form
+import { useToast } from "@/components/ui/use-toast"
 
 interface Event {
   id: number;
@@ -47,7 +49,9 @@ interface Page<T> {
 
 export default function MissionsPage() {
   useAuthRedirect(); // Apply the auth redirect hook
-  const router = useRouter(); 
+  const router = useRouter();
+  const { toast } = useToast();
+  
   const [upcomingMissions, setUpcomingMissions] = useState<Event[]>([])
   const [inProgressMissions, setInProgressMissions] = useState<Event[]>([])
   const [completedMissions, setCompletedMissions] = useState<Event[]>([])
@@ -58,6 +62,8 @@ export default function MissionsPage() {
   
   const [viewMode, setViewMode] = useState<"year" | "month" | "day">("year"); 
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [isCreateFormOpen, setIsCreateFormOpen] = useState(false)
+  const [isVerifiedUser, setIsVerifiedUser] = useState(false)
 
   const dtoToEvent = (dto: SpaceMissionDTO): Event => ({
     id: dto.id,
@@ -71,6 +77,24 @@ export default function MissionsPage() {
     status: dto.status,
   });
 
+  // Check if the current user is verified
+  useEffect(() => {
+    const checkVerificationStatus = async () => {
+      try {
+        const userId = localStorage.getItem("userId");
+        if (userId) {
+          const response = await axiosInstance.get(`/users/${userId}`);
+          setIsVerifiedUser(response.data.verificationStatus === "VERIFIED");
+        }
+      } catch (err) {
+        console.error("Error checking verification status:", err);
+      }
+    };
+    
+    checkVerificationStatus();
+  }, []);
+
+  // Fetch mission data
   useEffect(() => {
     const fetchAllMissionsData = async () => {
       setIsLoading(true);
@@ -111,6 +135,33 @@ export default function MissionsPage() {
     };
     fetchAllMissionsData();
   }, []);
+  
+  // Function to handle mission creation success
+  const handleMissionCreated = () => {
+    // Refresh the mission data
+    setIsLoading(true);
+    axiosInstance.get<Page<SpaceMissionDTO>>("/missions/status/UPCOMING?page=0&size=20")
+      .then(response => {
+        const mapped = response.data.content.map(dtoToEvent);
+        setUpcomingMissions(mapped);
+        // Update the calendar view as well
+        setAllEventsForCalendar(prev => [
+          ...prev.filter(event => event.status !== "UPCOMING"),
+          ...mapped
+        ]);
+        toast({
+          title: "Mission Added",
+          description: "Your mission has been added to the calendar.",
+          duration: 5000
+        });
+      })
+      .catch(err => {
+        console.error("Failed to refresh missions after creation:", err);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
 
   const pageTitle = "Space Missions Calendar"; 
 
@@ -145,19 +196,29 @@ export default function MissionsPage() {
               <h1 className="text-3xl font-bold">{pageTitle}</h1>
             </div>
             <div className="flex gap-2">
-               <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => {
-                    const now = new Date();
-                    router.push(`/missions/month/${now.getFullYear()}/${now.getMonth() + 1}`);
-                  }}
-                  className="h-10 w-10 rounded-full bg-gray-800/50 border-gray-700 hover:bg-indigo-900/50 hover:border-indigo-600 text-gray-300 hover:text-indigo-400 backdrop-blur-sm"
-                  title="View Current Month"
+              {/* Create Mission Button - Only visible to verified users */}
+              {isVerifiedUser && (
+                <Button
+                  onClick={() => setIsCreateFormOpen(true)}
+                  className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 flex items-center gap-2"
                 >
-                  <CalendarIcon className="h-5 w-5" />
-                  <span className="sr-only">View Current Month</span>
+                  <Plus className="h-4 w-4" />
+                  Create Mission
                 </Button>
+              )}
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => {
+                  const now = new Date();
+                  router.push(`/missions/month/${now.getFullYear()}/${now.getMonth() + 1}`);
+                }}
+                className="h-10 w-10 rounded-full bg-gray-800/50 border-gray-700 hover:bg-indigo-900/50 hover:border-indigo-600 text-gray-300 hover:text-indigo-400 backdrop-blur-sm"
+                title="View Current Month"
+              >
+                <CalendarIcon className="h-5 w-5" />
+                <span className="sr-only">View Current Month</span>
+              </Button>
               <Button
                 variant="outline"
                 size="icon"
@@ -227,6 +288,15 @@ export default function MissionsPage() {
       </main>
 
       {isSearchOpen && <CalendarSearchBar onClose={() => setIsSearchOpen(false)} events={allEventsForCalendar} />}
+      
+      {/* Mission Creation Form */}
+      {isCreateFormOpen && (
+        <MissionCreateForm 
+          isOpen={isCreateFormOpen} 
+          onClose={() => setIsCreateFormOpen(false)} 
+          onSuccess={handleMissionCreated} 
+        />
+      )}
     </div>
   )
 }

@@ -674,6 +674,11 @@ resource "aws_launch_template" "frontend_template" {
     backend_app_port     = var.backend_app_port
   }))
 
+  depends_on = [
+    aws_autoscaling_group.backend_asg,
+    aws_lb.backend_alb
+  ]
+
   # Variable: Tags applied to the instance *and* volumes
   tag_specifications {
     resource_type = "instance"
@@ -737,6 +742,11 @@ resource "aws_launch_template" "backend_template" {
     # backend_app_port is already available via var.backend_app_port if needed by the script directly
     # but the primary use here is for DB connection.
   }))
+
+  depends_on = [
+    aws_lb.backend_alb,
+    aws_db_instance.app_db
+  ]
 
   # Variable: Tags applied to the instance *and* volumes
   tag_specifications {

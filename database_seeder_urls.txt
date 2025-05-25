@@ -1,0 +1,83 @@
+Image and Video URLs from DatabaseSeeder.java:
+
+--- Potentially Irrelevant Placeholder URLs (from i.pravatar.cc and picsum.photos) ---
+
+User Profile Images:
+https://i.pravatar.cc/150?u=admin - Admin User Profile Image
+https://i.pravatar.cc/150?u=astro - Verified Astronaut User Profile Image
+https://i.pravatar.cc/150?u=explorer - Space Explorer User Profile Image
+https://i.pravatar.cc/150?u=pending - Pending Genius User Profile Image
+https://i.pravatar.cc/150?u=voyager - Cosmic Voyager User Profile Image
+https://i.pravatar.cc/150?u=stargazer - Star Gazer 99 User Profile Image
+https://i.pravatar.cc/150?u=mod - Mod Squad User Profile Image
+https://i.pravatar.cc/150?u=rejected - Application Denied User Profile Image
+https://i.pravatar.cc/150?u=learner01 - Eager Learner 01 User Profile Image
+
+User Cover Images:
+https://picsum.photos/seed/admincover/800/200 - Admin User Cover Image
+https://picsum.photos/seed/astrocover/800/200 - Verified Astronaut User Cover Image
+https://picsum.photos/seed/explorercover/800/200 - Space Explorer User Cover Image
+https://picsum.photos/seed/pendingcover/800/200 - Pending Genius User Cover Image
+https://picsum.photos/seed/voyagercover/800/200 - Cosmic Voyager User Cover Image
+https://picsum.photos/seed/stargazercover/800/200 - Star Gazer 99 User Cover Image
+https://picsum.photos/seed/modcover/800/200 - Mod Squad User Cover Image
+https://picsum.photos/seed/rejectedcover/800/200 - Application Denied User Cover Image
+https://picsum.photos/seed/learner01cover/800/200 - Eager Learner 01 User Cover Image
+
+Article Images:
+https://t3.ftcdn.net/jpg/02/04/39/40/240_F_204394050_kJTuq2ON7rxyKhcpXFF2Qi6MB69GTfL3.jpg - Article "The Future of Mars Colonization" Image 1
+https://media.istockphoto.com/id/1032889612/photo/base-on-mars-first-colonization-martian-colony-in-desert-landscape-on-the-red-planet.jpg?s=612x612&w=0&k=20&c=qUMk3_Q3MNT-X-aSzlQj_6MT244Br_u3ihzQkteqKfA= - Article "The Future of Mars Colonization" Image 2
+https://cdn.mos.cms.futurecdn.net/cK9mPpNsGv5yAmD7LrbUMQ-970-80.jpg.webp - Article "Understanding Black Holes" Image
+https://revolutionized.com/wp-content/uploads/sites/5/2022/05/rocket-launch-at-sunset.jpg.webp - Article "Advancements in Rocket Propulsion" Image 1
+https://media.wired.com/photos/5cdc9d0d4ef5ad318eea393a/3:2/w_1920,c_limit/science_spacex-starlink_19135749361609.jpg - Article "Starlink and the Future of Global Internet" Image 2
+https://cdn.mos.cms.futurecdn.net/6hPAwHhkcQZ7qvLzJGo4ui-970-80.jpg.webp - Article "Asteroid Mining: The Next Frontier?" Image
+
+Course Images:
+https://cdn.mos.cms.futurecdn.net/CZwwGN84vpwLXivbuMsYSZ-970-80.jpg.webp - Course "Introduction to Astrophysics" Image
+https://img.freepik.com/free-photo/rocket-flying-through-space_23-2150378597.jpg - Course "Rocket Science 101" Image
+https://media.istockphoto.com/id/1298100499/photo/3d-rendered-galaxy-space-scene-with-planets.jpg?s=612x612&w=0&k=20&c=41rOIymfvrvRTpp0xBSv59lxvWgYka4Oh6eJoTN2VuI= - Course "Planetary Geology" Image
+https://www.nasa.gov/wp-content/uploads/2025/05/54492396655-8b425c4045-k.jpg - Course "Advanced Space Mission Design" Image
+https://cdn.mos.cms.futurecdn.net/Xub58vuiCCEKHLGuM4QWBU-1200-80.jpg.webp - Course "Cosmology: The Study of the Universe" Image
+https://img.recraft.ai/-GZyi3n318TYndiRA3LD0laMxBhbEQq1UA3lVVA6lLs/rs:fit:1820:1024:0/q:95/g:no/plain/abs://prod/images/d64e282b-8f0f-4059-a9fd-0da6b823370f@jpg - Course "Introduction to Astrobiology" Image
+https://media.istockphoto.com/id/182062885/photo/space-station-in-earth-orbit.jpg?s=612x612&w=0&k=20&c=F_P2YJ3QDbSW2n6dWkh6JNYeQGI1-2q-wOBk9-sw_Xo= - Course "Satellite Systems Engineering" Image
+https://img.recraft.ai/y1tLzDFiBrj5YMyrV8nx1gyKUqiQ23lkgpcSHSXcBNM/rs:fit:1820:1024:0/q:95/g:no/plain/abs://prod/images/0ccb1753-070e-4f44-9179-836dfdf4b7f7@jpg - Course "Space Law and Policy" Image
+https://img.recraft.ai/SDJkQT9NRVVDJ5YBpbI1YasqGjzNAj91-zxag8X4YVo/rs:fit:1820:1024:0/q:95/g:no/plain/abs://prod/images/8d768fa8-4025-4add-b5bc-555c94b7c2f2@jpg - Course "Observational Astronomy Techniques" Image
+
+--- Other URLs ---
+
+Article Images:
+https://th.bing.com/th/id/OIP.oXb1UmRqtGIMOfMhPH1z6AHaE7?cb=iwc1&rs=1&pid=ImgDetMain - Article "The Search for Extraterrestrial Life" Image
+https://th.bing.com/th/id/OIP.HLpEqrjU6jzS53j3cNAhYgHaE8?cb=iwc1&rs=1&pid=ImgDetMain - Article "James Webb Space Telescope: A New Era of Astronomy" Image 1
+https://webb.nasa.gov/content/webbLaunch/assets/images/deployment/steps/18-deploy-mirror-wing/deploy-mirror-wing-750px.jpg - Article "James Webb Space Telescope: A New Era of Astronomy" Image 2
+https://solar-mems.com/wp-content/uploads/2022/09/MAF_20220830__KSC_Artemis1_epb_005medium.jpg - Article "The Artemis Program: Return to the Moon" Image 1
+https://www.nasa.gov/wp-content/uploads/2023/08/artemis-ii-patch-full-color-vector-logo.png - Article "The Artemis Program: Return to the Moon" Image 2
+https://blogs.cornell.edu/info2040/files/2019/09/Screen-Shot-2019-09-20-at-9.58.36-PM.png - Article "Starlink and the Future of Global Internet" Image 1
+https://lifeboat.com/blog.images/the-role-of-ai-robotics-in-space-exploration.jpg - Article "The Role of AI in Space Exploration" Image
+
+Lesson Videos (YouTube):
+https://www.youtube.com/watch?v=2HoTK_Gqi2Q - Lesson "The Sun: Our Star" Video
+https://www.youtube.com/watch?v=PM9CQDlQI0A - Lesson "Lifecycle of a Star" Video
+https://www.youtube.com/watch?v=tj_QPnO8vpQ - Lesson "The Milky Way Galaxy" Video
+https://www.youtube.com/watch?v=rKexqK3UKdE - Lesson "Types of Galaxies" Video
+https://www.youtube.com/watch?v=3isXaIQ3Lkk - Lesson "Chemical Rockets" Video (changed)
+https://www.youtube.com/watch?v=6H0qsqZjLW0&t - Lesson "Ion Thrusters & Future Propulsion" Video (changed)
+https://www.youtube.com/watch?v=Dvoe8Ib5D1o - Lesson "Kepler's Laws of Planetary Motion" Video
+https://www.youtube.com/watch?v=bcvnfQlz1x4 - Lesson "Understanding Orbits" Video (changed)
+https://www.youtube.com/watch?v=xtrYF_hxxUM - Lesson "Evidence for the Big Bang" Video (changed)
+https://www.youtube.com/watch?v=x8qLBE8qPv0 - Lesson "Variables of the Drake Equation" Video (changed)
+https://www.youtube.com/watch?v=NFc3oU_wq7I - Lesson "LEO, MEO, GEO Orbits" Video (changed)
+
+Space Mission Images and Videos/Links:
+https://th.bing.com/th/id/R.34b5555b4b6985cf7d7c22d062087218?rik=ul470SGlVBLjtA&riu=http%3a%2f%2feng.auburn.edu%2fimages%2fnews%2fartemis.jpg&ehk=4ci2T0TMahmbZwZcgUkQ4cJEY14lGonoJ5AmdsfgwHY%3d&risl=&pid=ImgRaw&r=0 - Space Mission "Artemis I" Image
+https://www.youtube.com/watch?v=AvVFy3Feb1U - Space Mission "Artemis I" Video
+https://th.bing.com/th/id/R.33eacd53caf9f320085318a6bf5c1887?rik=tbqz%2bLyWgvNLQw&pid=ImgRaw&r=0 - Space Mission "Mars Perseverance Rover" Image
+https://i.ytimg.com/vi/YdYnoyeV74o/hqdefault.jpg - Space Mission "Starlink Group 6-1 Launch" Image
+https://www.spacex.com/launches/ - Space Mission "Starlink Group 6-1 Launch" Link
+https://cdn.siasat.com/wp-content/uploads/2023/08/sf-f.jpg - Space Mission "Chandrayaan-3" Image
+https://cdn.mos.cms.futurecdn.net/qpAkShLp2kqGCkfGqGBMuf-1200-80.jpg - Space Mission "James Webb Space Telescope (JWST) Launch" Image
+https://www.youtube.com/watch?v=v6ihVeEoUdo - Space Mission "James Webb Space Telescope (JWST) Launch" Video
+https://th.bing.com/th/id/R.c4f8e84c6e282d6804587d47eb0bdf81?rik=BUTTZJht%2fpZ9MA&pid=ImgRaw&r=0 - Space Mission "Europa Clipper" Image
+https://scitechdaily.com/images/Psyche-Spacecraft-Asteroid-Composite-2048x1152.jpg - Space Mission "Psyche Mission" Image
+https://www.youtube.com/watch?v=y__vwRQ3PVg - Space Mission "Psyche Mission" Video (changed)
+https://cdn.futura-sciences.com/sources/images/bepicolombo-esa-jaxa-atg-medialab1.jpg - Space Mission "BepiColombo" Image
+https://science.nasa.gov/wp-content/uploads/2023/05/47789379502-ce1e07c969-o-jpg.webp?resize=768,510 - Space Mission "Hubble Space Telescope (HST) Servicing Mission 4 (SM4)" Image (changed)

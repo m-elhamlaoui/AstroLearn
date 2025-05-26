@@ -307,6 +307,10 @@ pipeline {
     post {
         // 'always' s'exécute toujours
         always {
+            // Terminer tous les processus kubectl pour éviter les problèmes de nettoyage
+            bat(script: "taskkill /F /IM kubectl.exe", returnStatus: true)
+            // Attendre un peu pour que les processus se terminent
+            sleep(time: 5, unit: 'SECONDS')
             // Nettoie l'espace de travail Jenkins pour le prochain build
             // Pas besoin de node block car le pipeline est déjà dans un agent
             cleanWs()

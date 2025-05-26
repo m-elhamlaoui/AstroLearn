@@ -41,12 +41,14 @@ interface LessonDTO {
 }
 
 interface CourseProgressDTO {
-  id: number;
+  courseId: number;
+  courseTitle: string;
+  userId: number;
+  username: string;
+  totalLessons: number;
+  completedLessons: number;
   completionPercentage: number;
   completed: boolean;
-  lastAccessed: string; // ISO DateTime string
-  userId: number;
-  courseId: number;
   currentLessonId: number | null;
   completedLessonIds: number[];
 }
@@ -108,14 +110,15 @@ export default function CoursePage({ params: paramsPromise }: { params: Promise<
       }
       
       // Set up a global function to refresh course progress
-      window.updateCourseProgress = () => {
+      // Define the type for the window object with our custom property
+      (window as any).updateCourseProgress = () => {
         console.log('Course progress update triggered from lesson page')
         setRefreshTrigger(prev => prev + 1)
       }
       
       // Clean up the global function when component unmounts
       return () => {
-        window.updateCourseProgress = undefined
+        (window as any).updateCourseProgress = undefined
       }
     }
   }, [])
@@ -153,7 +156,7 @@ export default function CoursePage({ params: paramsPromise }: { params: Promise<
         const userId = localStorage.getItem('userId')
         if (userId) {
           try {
-              const progressResponse = await axiosInstance.get<CourseProgressDTO>(`/course-progress/${userId}/${courseData.id}/progress`)
+              const progressResponse = await axiosInstance.get<CourseProgressDTO>(`/api/course-progress/${userId}/${courseData.id}/progress`)
               if (progressResponse.data) {
                   const progressData = progressResponse.data;
                   overallProgressPercentage = progressData.completionPercentage;

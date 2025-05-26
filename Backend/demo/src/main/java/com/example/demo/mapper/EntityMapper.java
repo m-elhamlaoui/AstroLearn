@@ -156,6 +156,22 @@ public interface EntityMapper {
     @Mapping(target = "user", ignore = true) // Handled by service
     @Mapping(target = "quiz", ignore = true) // Handled by service
     QuizCompletion toEntity(QuizCompletionDTO quizCompletionDTO);
+    
+    
+    // ==================== LessonCompletion Mappings ====================
+
+    @Mapping(target = "userId", source = "user.id")
+    @Mapping(target = "username", source = "user.username")
+    @Mapping(target = "lessonId", source = "lesson.id")
+    @Mapping(target = "lessonTitle", source = "lesson.title")
+    @Mapping(target = "courseId", source = "course.id")
+    @Mapping(target = "courseTitle", source = "course.title")
+    LessonCompletionDTO toDTO(LessonCompletion lessonCompletion);
+
+    @Mapping(target = "user", ignore = true) // Handled by service
+    @Mapping(target = "lesson", ignore = true) // Handled by service
+    @Mapping(target = "course", ignore = true) // Handled by service
+    LessonCompletion toEntity(LessonCompletionDTO lessonCompletionDTO);
 
 
     // ==================== QuizQuestion Mappings ====================

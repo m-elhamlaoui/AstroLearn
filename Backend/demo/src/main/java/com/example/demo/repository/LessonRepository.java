@@ -18,5 +18,5 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
     int countByModuleCourseId(@Param("courseId") Long courseId);
     
     // Find lessons by module ID ordered by their sequence
-    List<Lesson> findByModuleIdOrderByOrderAsc(Long moduleId);
+    List<Lesson> findByModuleIdOrderByOrderIndexAsc(Long moduleId);
 }

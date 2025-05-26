@@ -1,8 +1,6 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.CourseProgressDTO;
-import com.example.demo.model.Lesson;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 

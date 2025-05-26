@@ -1,10 +1,6 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.CourseDTO;
-import com.example.demo.dto.ModuleDTO;
-import com.example.demo.dto.LessonDTO;
-import com.example.demo.dto.QuizDTO;
-import com.example.demo.model.Course; // For Enum
 
 import java.util.List;
 

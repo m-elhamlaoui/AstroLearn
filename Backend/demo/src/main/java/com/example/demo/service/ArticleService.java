@@ -3,7 +3,6 @@ package com.example.demo.service;
 import com.example.demo.dto.ArticleDTO;
 import com.example.demo.dto.ArticleVoteRequestDTO;
 import com.example.demo.dto.CommentDTO;
-import com.example.demo.dto.ArticleRatingDTO;
 import com.example.demo.model.VoteType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

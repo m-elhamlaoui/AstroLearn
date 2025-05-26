@@ -98,6 +98,7 @@ public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
                                  // Add other specific public GET endpoints if needed, e.g.:
                                  // .requestMatchers(HttpMethod.GET, "/articles", "/articles/*").permitAll() 
                                  .requestMatchers(EndpointRequest.to("health")).permitAll() // Allow unauthenticated access to health endpoint
+                                 .requestMatchers("/api/course-progress/**").authenticated() // Require authentication for course progress endpoints
                                  .anyRequest().authenticated() // Require auth for everything else
                  );
  

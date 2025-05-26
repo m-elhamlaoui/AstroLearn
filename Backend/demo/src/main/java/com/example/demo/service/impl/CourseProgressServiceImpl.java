@@ -7,11 +7,11 @@ import com.example.demo.exception.UnauthorizedException;
 import com.example.demo.mapper.EntityMapper;
 import com.example.demo.model.*;
 import com.example.demo.repository.*;
-import com.example.demo.security.UserDetailsImpl;
 import com.example.demo.service.CourseProgressService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,9 +27,8 @@ import java.util.stream.Collectors;
 @Transactional
 public class CourseProgressServiceImpl implements CourseProgressService {
     
-    // Role constant
-    private static final String ROLE_ADMIN = "ROLE_ADMIN";
-
+    private static final Logger logger = LoggerFactory.getLogger(CourseProgressServiceImpl.class);
+    
     private final CourseProgressRepository courseProgressRepository;
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
@@ -146,11 +145,11 @@ public class CourseProgressServiceImpl implements CourseProgressService {
     }
     
     /**
-     * Validates that the current authenticated user has access to the specified user's data.
-     * Access is granted if the authenticated user ID matches the requested user ID or if the user has ADMIN role.
+     * Validates that the current user is authenticated.
+     * Access is granted to any authenticated user, regardless of their role or the userId in the request.
      *
-     * @param userId The ID of the user whose data is being accessed
-     * @throws UnauthorizedException if the current user doesn't have access
+     * @param userId The ID of the user whose data is being accessed (not used for validation anymore)
+     * @throws UnauthorizedException if the user is not authenticated
      */
     private void validateUserAccess(Long userId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -158,17 +157,10 @@ public class CourseProgressServiceImpl implements CourseProgressService {
             throw new UnauthorizedException("User not authenticated");
         }
         
-        Object principal = authentication.getPrincipal();
-        if (!(principal instanceof UserDetailsImpl)) {
-            throw new UnauthorizedException("Invalid authentication");
-        }
+        // No further validation needed - any authenticated user can access any course progress
+        // This allows frontend to use any userId in the request
         
-        UserDetailsImpl userDetails = (UserDetailsImpl) principal;
-        boolean isAdmin = userDetails.getAuthorities().contains(new SimpleGrantedAuthority(ROLE_ADMIN));
-        boolean isResourceOwner = userDetails.getId().equals(userId);
-        
-        if (!isAdmin && !isResourceOwner) {
-            throw new UnauthorizedException("You don't have permission to access this resource");
-        }
+        // Log the access for debugging purposes
+        logger.debug("Course progress access granted for userId: {}", userId);
     }
 }

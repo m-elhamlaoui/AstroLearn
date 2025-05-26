@@ -220,17 +220,6 @@ public class UserServiceImpl implements UserService {
               .collect(Collectors.toList());
     }
 
-
-    // --- Helper methods for verification ---
-    private User findUserAndCheckAdmin(Long adminUserId) {
-        User admin = userRepository.findById(adminUserId)
-                .orElseThrow(() -> new ResourceNotFoundException("Admin User", "id", adminUserId));
-        if (admin.getRole() != User.UserRole.ADMIN) {
-            throw new UnauthorizedException("User does not have ADMIN privileges.");
-        }
-        return admin;
-    }
-
     private User findUserAndCheckPending(Long targetUserId) {
         User targetUser = userRepository.findById(targetUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("Target User", "id", targetUserId));
@@ -238,15 +227,5 @@ public class UserServiceImpl implements UserService {
             throw new VerificationException("User verification status is not PENDING.");
         }
         return targetUser;
-    }
-
-    // --- Helper method for Security (Placeholder) ---
-    private void checkAuthentication(Long resourceOwnerId) {
-        // TODO: Implement security check using Spring Security
-        // Get authenticated user principal
-        // Compare principal's ID with resourceOwnerId
-        // Check if principal has ADMIN role
-        // Throw UnauthorizedException if access denied
-        System.out.println("Placeholder: Security check needed for user ID: " + resourceOwnerId);
     }
 }

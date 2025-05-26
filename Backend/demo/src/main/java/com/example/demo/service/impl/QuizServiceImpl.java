@@ -2,7 +2,6 @@ package com.example.demo.service.impl;
 
 import com.example.demo.dto.AugmentedQuizCompletionDTO;
 import com.example.demo.dto.QuizAttemptDetailDTO;
-import com.example.demo.dto.QuizCompletionDTO;
 import com.example.demo.dto.QuizDTO;
 import com.example.demo.dto.QuizQuestionAnswerDTO;
 import com.example.demo.dto.QuizSubmissionDTO;

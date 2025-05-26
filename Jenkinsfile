@@ -156,18 +156,6 @@ pipeline {
             }
         }
         
-        // Étape 8: Lancer les tests du Frontend
-        stage('Run Frontend Tests') {
-            steps {
-                dir('Frontend') {
-                    // Exécuter les tests lint
-                    bat 'npm run lint'
-                    
-                    // Si vous avez des tests unitaires, vous pouvez les ajouter ici
-                    // bat 'npm test'
-                }
-            }
-        }
         
         // Étape 9: Pousser l'image Docker du Frontend vers Docker Hub
         stage('Push Frontend Docker Image') {

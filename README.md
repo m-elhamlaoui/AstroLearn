@@ -61,9 +61,7 @@ AstroLearn is a comprehensive platform designed for space enthusiasts to explore
 - **Performance**: Optimized queries and indexing for fast data retrieval
 
 ### Media Storage
-- **Cloud Storage**: AWS S3 integration for storing images, videos, and documents
-- **CDN Integration**: Content delivery network for fast media serving
-
+- **Cloud Storage**: AWS S3 integration for storing images
 ## Development Setup
 
 ### Prerequisites

@@ -28,7 +28,7 @@ spec:
       containers:
         - env:
             - name: POSTGRES_DB
-              value: db1
+              value: db11
             - name: POSTGRES_PASSWORD
               value: password
             - name: POSTGRES_USER

@@ -31,7 +31,7 @@ spec:
             - name: SPRING_DATASOURCE_PASSWORD
               value: password
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:postgresql://devopsify-postgres:5432/db1
+              value: jdbc:postgresql://devopsify-postgres:5432/db11
             - name: SPRING_DATASOURCE_USERNAME
               value: user
             - name: SPRING_JPA_HIBERNATE_DDL_AUTO

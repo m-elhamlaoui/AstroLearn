@@ -17,10 +17,10 @@ spec:
       - name: astrolearn-frontend
         image: douaae/astrolearn-frontend:latest
         ports:
-        - containerPort: 3000  # ✅ Fix this to 3000
+        - containerPort: 3000
         env:
-          - name: REACT_APP_API_URL
-            value: "http://astrolearn-backend-service:8090"
+          - name: NEXT_PUBLIC_API_URL
+            value: "http://astrolearn-backend-service:8088"
         resources:
           limits:
             memory: "512Mi"

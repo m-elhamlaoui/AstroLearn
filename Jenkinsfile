@@ -17,8 +17,8 @@ pipeline {
         DOCKER_CREDENTIALS_ID = 'dockerhub-creds'
         // Windows path to your kubeconfig
         KUBECONFIG = 'C:\\Users\\Usuario\\.kube\\config'
-        // Ajouter une variable pour l'installation de Node.js
-        NODEJS_HOME = tool 'NodeJS'
+        // Commenté car l'outil NodeJS n'est pas configuré dans Jenkins
+        // NODEJS_HOME = tool 'NodeJS'
     }
 
     // Les différentes étapes du pipeline
@@ -207,8 +207,10 @@ pipeline {
     post {
         // 'always' s'exécute toujours
         always {
-            // 'cleanWs' nettoie l'espace de travail Jenkins pour le prochain build
-            cleanWs()
+            node {
+                // 'cleanWs' nettoie l'espace de travail Jenkins pour le prochain build
+                cleanWs()
+            }
         }
     }
 } // Fin du pipeline

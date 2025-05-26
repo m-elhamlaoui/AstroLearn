@@ -19,15 +19,18 @@ export function SignUpModal({ open, onOpenChange, onOpenSignIn }: SignUpModalPro
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("") // New state for confirm password
   const [role, setRole] = useState("USER") // Default role
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  // const router = useRouter(); // Not used directly for navigation in this version
   // const router = useRouter(); // Not used directly for navigation in this version
 
   const clearForm = () => {
     setUsername("")
     setEmail("")
     setPassword("")
+    setConfirmPassword("")
     setRole("USER")
     setError(null)
   }
@@ -35,6 +38,10 @@ export function SignUpModal({ open, onOpenChange, onOpenSignIn }: SignUpModalPro
   const handleSignUp = async () => {
     setError(null)
     setSuccessMessage(null)
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
     try {
       const response = await axiosInstance.post("/auth/signup", {
         username,
@@ -113,18 +120,17 @@ export function SignUpModal({ open, onOpenChange, onOpenSignIn }: SignUpModalPro
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="role-signup">Role</Label>
-            <Select value={role} onValueChange={setRole}>
-              <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                <SelectValue placeholder="Select a role" />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-800 text-white border-gray-700">
-                <SelectItem value="USER" className="hover:bg-gray-700">USER</SelectItem>
-                <SelectItem value="ADMIN" className="hover:bg-gray-700">ADMIN</SelectItem> 
-                {/* Consider if ADMIN role should be selectable by users during signup */}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="confirm-password-signup">Confirm Password</Label>
+            <Input
+              id="confirm-password-signup"
+              type="password"
+              placeholder="Confirm your password"
+              className="bg-gray-800 border-gray-700 text-white"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
           </div>
+          
           {error && <p className="text-sm text-red-500">{error}</p>}
           {successMessage && <p className="text-sm text-green-500">{successMessage}</p>}
         </div>

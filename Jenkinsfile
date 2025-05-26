@@ -170,12 +170,14 @@ pipeline {
                      // Se connecte à Docker Hub en utilisant les variables injectées
                      bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
                      
-                     def frontendImageName = "${DOCKER_REGISTRY}/astrolearn-frontend"
-                     
-                     // Pousse l'image avec le tag spécifique (numéro de build)
-                     bat "docker push ${frontendImageName}:${env.BUILD_NUMBER}"
-                     // Pousse l'image avec le tag ':latest'
-                     bat "docker push ${frontendImageName}:latest"
+                     script {
+                         def frontendImageName = "${DOCKER_REGISTRY}/astrolearn-frontend"
+                         
+                         // Pousse l'image avec le tag spécifique (numéro de build)
+                         bat "docker push ${frontendImageName}:${env.BUILD_NUMBER}"
+                         // Pousse l'image avec le tag ':latest'
+                         bat "docker push ${frontendImageName}:latest"
+                     }
                  }
              }
              post {

@@ -207,10 +207,9 @@ pipeline {
     post {
         // 'always' s'exécute toujours
         always {
-            node {
-                // 'cleanWs' nettoie l'espace de travail Jenkins pour le prochain build
-                cleanWs()
-            }
+            // Nettoie l'espace de travail Jenkins pour le prochain build
+            // Pas besoin de node block car le pipeline est déjà dans un agent
+            cleanWs()
         }
     }
 } // Fin du pipeline

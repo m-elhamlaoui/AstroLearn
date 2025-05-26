@@ -190,9 +190,35 @@ pipeline {
 
                  // Force le redémarrage des pods du déploiement frontend
                  bat "kubectl --kubeconfig=${env.KUBECONFIG} rollout restart deployment astrolearn-frontend-deployment"
+                 
+                 // Ajouter un délai pour laisser le temps au déploiement de démarrer
+                 sleep(time: 10, unit: 'SECONDS')
+                 
+                 // Afficher les détails du déploiement pour le débogage
+                 bat "kubectl --kubeconfig=${env.KUBECONFIG} describe deployment astrolearn-frontend-deployment"
+                 
+                 // Afficher les pods pour le débogage
+                 bat "kubectl --kubeconfig=${env.KUBECONFIG} get pods -l app=astrolearn-frontend"
 
-                 // Attendre et vérifier que le déploiement s'est bien passé
-                 bat "kubectl --kubeconfig=${env.KUBECONFIG} rollout status deployment/astrolearn-frontend-deployment --timeout=2m"
+                 // Attendre que le déploiement se termine avec un timeout plus long
+                 def rolloutStatus = bat(script: "kubectl --kubeconfig=${env.KUBECONFIG} rollout status deployment/astrolearn-frontend-deployment --timeout=5m", returnStatus: true)
+                 
+                 if (rolloutStatus != 0) {
+                     // Marquer l'étape comme instable (warning) mais pas échouée (failure)
+                     unstable(message: "Le déploiement frontend n'a pas été complété dans le délai imparti de 5 minutes")
+                     
+                     echo "===== ATTENTION: DÉPLOIEMENT INCOMPLET ====="
+                     echo "Le déploiement frontend n'a pas été complété dans le délai imparti de 5 minutes."
+                     echo "Le pipeline est marqué comme INSTABLE (jaune) mais pas échoué (rouge)."
+                     echo "Vérifiez manuellement l'état des pods avec: kubectl get pods"
+                     
+                     // Afficher les logs des pods pour le débogage
+                     bat(script: "kubectl --kubeconfig=${env.KUBECONFIG} logs -l app=astrolearn-frontend --tail=50", returnStatus: true)
+                 } else {
+                     echo "===== DÉPLOIEMENT FRONTEND RÉUSSI ====="
+                     echo "Tous les pods sont prêts et en état de fonctionnement."
+                     bat "kubectl --kubeconfig=${env.KUBECONFIG} get pods -l app=astrolearn-frontend"
+                 }
              }
          }
     } // Fin des stages

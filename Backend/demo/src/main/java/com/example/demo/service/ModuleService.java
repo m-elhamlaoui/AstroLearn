@@ -10,4 +10,5 @@ public interface ModuleService {
     ModuleDTO updateModule(Long moduleId, ModuleDTO moduleDTO);
     void deleteModule(Long moduleId);
     List<ModuleDTO> getModulesByCourseId(Long courseId);
+    List<ModuleDTO> reorderModules(Long courseId, List<Long> moduleIds);
 }

@@ -1,4 +1,5 @@
 package com.example.demo.config;
+
 import com.example.demo.model.*;
 import com.example.demo.model.Module;
 import com.example.demo.repository.*;
@@ -462,48 +463,154 @@ public class DatabaseSeeder implements CommandLineRunner {
         System.out.println("Seeding Modules...");
         List<Module> modules = new ArrayList<>();
 
-        modules.add(new Module(null, "Stars and Stellar Evolution", courses.get(0), new ArrayList<>(), 0));
-        modules.add(new Module(null, "Galaxies and Cosmology Basics", courses.get(0), new ArrayList<>(), 0));
-        modules.add(new Module(null, "Propulsion Systems", courses.get(1), new ArrayList<>(), 0));
-        modules.add(new Module(null, "Orbital Mechanics", courses.get(1), new ArrayList<>(), 0));
-        modules.add(new Module(null, "Terrestrial Planets", courses.get(2), new ArrayList<>(), 0));
-        modules.add(new Module(null, "Gas Giants and Moons", courses.get(2), new ArrayList<>(), 0));
-        modules.add(new Module(null, "Mission Planning & Objectives", courses.get(3), new ArrayList<>(), 0));
-        modules.add(new Module(null, "Spacecraft Systems Engineering", courses.get(3), new ArrayList<>(), 0));
-        modules.add(new Module(null, "The Big Bang Theory", courses.get(4), new ArrayList<>(), 0));
-        modules.add(new Module(null, "Dark Matter and Dark Energy", courses.get(4), new ArrayList<>(), 0));
-        modules.add(new Module(null, "The Drake Equation", courses.get(5), new ArrayList<>(), 0));
-        modules.add(new Module(null, "Extremophiles on Earth", courses.get(5), new ArrayList<>(), 0));
-        modules.add(new Module(null, "Satellite Orbits and Trajectories", courses.get(6), new ArrayList<>(), 0));
-        modules.add(new Module(null, "Communication Subsystems", courses.get(6), new ArrayList<>(), 0));
-        modules.add(new Module(null, "International Space Treaties", courses.get(7), new ArrayList<>(), 0));
-        modules.add(new Module(null, "Telescope Optics", courses.get(8), new ArrayList<>(), 0));
-        modules.add(new Module(null, "Data Reduction Techniques", courses.get(8), new ArrayList<>(), 0));
+        // Create modules with proper order index
+        for (int i = 0; i < 2; i++) {
+            Module module = new Module();
+            module.setId(null);
+            module.setTitle(i == 0 ? "Stars and Stellar Evolution" : "Galaxies and Cosmology Basics");
+            module.setCourse(courses.get(0));
+            module.setLessons(new ArrayList<>());
+            module.setOrderIndex(i);
+            modules.add(module);
+        }
+        
+        for (int i = 0; i < 2; i++) {
+            Module module = new Module();
+            module.setId(null);
+            module.setTitle(i == 0 ? "Propulsion Systems" : "Orbital Mechanics");
+            module.setCourse(courses.get(1));
+            module.setLessons(new ArrayList<>());
+            module.setOrderIndex(i);
+            modules.add(module);
+        }
+        
+        for (int i = 0; i < 2; i++) {
+            Module module = new Module();
+            module.setId(null);
+            module.setTitle(i == 0 ? "Terrestrial Planets" : "Gas Giants and Moons");
+            module.setCourse(courses.get(2));
+            module.setLessons(new ArrayList<>());
+            module.setOrderIndex(i);
+            modules.add(module);
+        }
+        
+        for (int i = 0; i < 2; i++) {
+            Module module = new Module();
+            module.setId(null);
+            module.setTitle(i == 0 ? "Mission Planning & Objectives" : "Spacecraft Systems Engineering");
+            module.setCourse(courses.get(3));
+            module.setLessons(new ArrayList<>());
+            module.setOrderIndex(i);
+            modules.add(module);
+        }
+        
+        for (int i = 0; i < 2; i++) {
+            Module module = new Module();
+            module.setId(null);
+            module.setTitle(i == 0 ? "The Big Bang Theory" : "Dark Matter and Dark Energy");
+            module.setCourse(courses.get(4));
+            module.setLessons(new ArrayList<>());
+            module.setOrderIndex(i);
+            modules.add(module);
+        }
+        
+        for (int i = 0; i < 2; i++) {
+            Module module = new Module();
+            module.setId(null);
+            module.setTitle(i == 0 ? "The Drake Equation" : "Extremophiles on Earth");
+            module.setCourse(courses.get(5));
+            module.setLessons(new ArrayList<>());
+            module.setOrderIndex(i);
+            modules.add(module);
+        }
+        
+        for (int i = 0; i < 2; i++) {
+            Module module = new Module();
+            module.setId(null);
+            module.setTitle(i == 0 ? "Satellite Orbits and Trajectories" : "Communication Subsystems");
+            module.setCourse(courses.get(6));
+            module.setLessons(new ArrayList<>());
+            module.setOrderIndex(i);
+            modules.add(module);
+        }
+        
+        // Single module for course 7
+        Module spaceModule = new Module();
+        spaceModule.setId(null);
+        spaceModule.setTitle("International Space Treaties");
+        spaceModule.setCourse(courses.get(7));
+        spaceModule.setLessons(new ArrayList<>());
+        spaceModule.setOrderIndex(0);
+        modules.add(spaceModule);
+        
+        for (int i = 0; i < 2; i++) {
+            Module module = new Module();
+            module.setId(null);
+            module.setTitle(i == 0 ? "Telescope Optics" : "Data Reduction Techniques");
+            module.setCourse(courses.get(8));
+            module.setLessons(new ArrayList<>());
+            module.setOrderIndex(i);
+            modules.add(module);
+        }
 
         return moduleRepository.saveAll(modules);
     }
-
 
     private List<Lesson> seedLessons(List<Module> modules) {
         System.out.println("Seeding Lessons...");
         List<Lesson> lessons = new ArrayList<>();
         String sampleContent = "This lesson covers fundamental concepts related to the topic. We will explore various aspects and examples. This content is illustrative and should be expanded for a real course.";
 
-        lessons.add(new Lesson(null, "The Sun: Our Star", sampleContent, "https://www.youtube.com/watch?v=2HoTK_Gqi2Q", modules.get(0), null));
-        lessons.add(new Lesson(null, "Lifecycle of a Star", sampleContent, "https://www.youtube.com/watch?v=PM9CQDlQI0A", modules.get(0), null));
-        lessons.add(new Lesson(null, "The Milky Way Galaxy", sampleContent, "https://www.youtube.com/watch?v=tj_QPnO8vpQ", modules.get(1), null));
-        lessons.add(new Lesson(null, "Types of Galaxies", sampleContent, "https://www.youtube.com/watch?v=rKexqK3UKdE", modules.get(1), null));
-        lessons.add(new Lesson(null, "Chemical Rockets", sampleContent, "https://www.youtube.com/watch?v=3isXaIQ3Lkk", modules.get(2), null));
-        lessons.add(new Lesson(null, "Ion Thrusters & Future Propulsion", sampleContent, "https://www.youtube.com/watch?v=6H0qsqZjLW0&t", modules.get(2), null));
-        lessons.add(new Lesson(null, "Kepler's Laws of Planetary Motion", sampleContent, "https://www.youtube.com/watch?v=Dvoe8Ib5D1o", modules.get(3), null));
-        lessons.add(new Lesson(null, "Understanding Orbits", sampleContent, "https://www.youtube.com/watch?v=bcvnfQlz1x4", modules.get(3), null));
-        lessons.add(new Lesson(null, "Evidence for the Big Bang", sampleContent, "https://www.youtube.com/watch?v=xtrYF_hxxUM", modules.get(8), null));
-        lessons.add(new Lesson(null, "Cosmic Microwave Background", sampleContent, null, modules.get(8), null));
-        lessons.add(new Lesson(null, "Variables of the Drake Equation", sampleContent, "https://www.youtube.com/watch?v=x8qLBE8qPv0", modules.get(10), null));
-        lessons.add(new Lesson(null, "LEO, MEO, GEO Orbits", sampleContent, "https://www.youtube.com/watch?v=NFc3oU_wq7I", modules.get(12), null));
-        lessons.add(new Lesson(null, "Reflecting vs Refracting Telescopes", sampleContent, null, modules.get(15), null));
+        // Module 0 - Stars and Stellar Evolution
+        addLessonToList(lessons, "The Sun: Our Star", sampleContent, "https://www.youtube.com/watch?v=2HoTK_Gqi2Q", modules.get(0), 0);
+        addLessonToList(lessons, "Lifecycle of a Star", sampleContent, "https://www.youtube.com/watch?v=PM9CQDlQI0A", modules.get(0), 1);
+        
+        // Module 1 - Galaxies and Cosmology Basics
+        addLessonToList(lessons, "The Milky Way Galaxy", sampleContent, "https://www.youtube.com/watch?v=tj_QPnO8vpQ", modules.get(1), 0);
+        addLessonToList(lessons, "Types of Galaxies", sampleContent, "https://www.youtube.com/watch?v=rKexqK3UKdE", modules.get(1), 1);
+        
+        // Module 2 - Propulsion Systems
+        addLessonToList(lessons, "Chemical Rockets", sampleContent, "https://www.youtube.com/watch?v=3isXaIQ3Lkk", modules.get(2), 0);
+        addLessonToList(lessons, "Ion Thrusters & Future Propulsion", sampleContent, "https://www.youtube.com/watch?v=6H0qsqZjLW0&t", modules.get(2), 1);
+        
+        // Module 3 - Orbital Mechanics
+        addLessonToList(lessons, "Kepler's Laws of Planetary Motion", sampleContent, "https://www.youtube.com/watch?v=Dvoe8Ib5D1o", modules.get(3), 0);
+        addLessonToList(lessons, "Understanding Orbits", sampleContent, "https://www.youtube.com/watch?v=bcvnfQlz1x4", modules.get(3), 1);
+        
+        // Module 8 - The Big Bang Theory
+        if (modules.size() > 8) {
+            addLessonToList(lessons, "Evidence for the Big Bang", sampleContent, "https://www.youtube.com/watch?v=xtrYF_hxxUM", modules.get(8), 0);
+            addLessonToList(lessons, "Cosmic Microwave Background", sampleContent, null, modules.get(8), 1);
+        }
+        
+        // Module 10 - The Drake Equation
+        if (modules.size() > 10) {
+            addLessonToList(lessons, "Variables of the Drake Equation", sampleContent, "https://www.youtube.com/watch?v=x8qLBE8qPv0", modules.get(10), 0);
+        }
+        
+        // Module 12 - Satellite Orbits and Trajectories
+        if (modules.size() > 12) {
+            addLessonToList(lessons, "LEO, MEO, GEO Orbits", sampleContent, "https://www.youtube.com/watch?v=NFc3oU_wq7I", modules.get(12), 0);
+        }
+        
+        // Module 15 - Telescope Optics
+        if (modules.size() > 15) {
+            addLessonToList(lessons, "Reflecting vs Refracting Telescopes", sampleContent, null, modules.get(15), 0);
+        }
 
         return lessonRepository.saveAll(lessons);
+    }
+    
+    private void addLessonToList(List<Lesson> lessons, String title, String content, String videoUrl, Module module, int orderIndex) {
+        Lesson lesson = new Lesson();
+        lesson.setId(null);
+        lesson.setTitle(title);
+        lesson.setContent(content);
+        lesson.setVideoUrl(videoUrl);
+        lesson.setModule(module);
+        lesson.setQuiz(null);
+        lesson.setOrderIndex(orderIndex);
+        lessons.add(lesson);
     }
 
 

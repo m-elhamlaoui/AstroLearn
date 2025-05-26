@@ -71,4 +71,37 @@ public class ModuleServiceImpl implements ModuleService {
                 .map(entityMapper::toDTO)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    @Transactional
+    public List<ModuleDTO> reorderModules(Long courseId, List<Long> moduleIds) {
+        // Verify course exists
+        if (!courseRepository.existsById(courseId)) {
+            throw new ResourceNotFoundException("Course", "id", courseId);
+        }
+        
+        // Fetch all modules for this course
+        List<Module> modules = moduleRepository.findByCourseId(courseId);
+        
+        // Create a map of module ID to module for quick lookup
+        java.util.Map<Long, Module> moduleMap = modules.stream()
+                .collect(Collectors.toMap(Module::getId, module -> module));
+        
+        // Update the order of each module based on its position in the moduleIds list
+        for (int i = 0; i < moduleIds.size(); i++) {
+            Long moduleId = moduleIds.get(i);
+            Module module = moduleMap.get(moduleId);
+            
+            if (module != null) {
+                module.setOrderIndex(i);
+                moduleRepository.save(module);
+            }
+        }
+        
+        // Return the updated modules
+        return moduleRepository.findByCourseId(courseId).stream()
+                .sorted((m1, m2) -> Integer.compare(m1.getOrderIndex(), m2.getOrderIndex()))
+                .map(entityMapper::toDTO)
+                .collect(Collectors.toList());
+    }
 }

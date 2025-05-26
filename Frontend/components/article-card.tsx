@@ -126,7 +126,14 @@ export function ArticleCard({ article }: ArticleCardProps) {
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
             <Avatar className="h-8 w-8 border-2 border-indigo-500">
-              <AvatarImage src={article.author.profileImage || "/placeholder.svg"} alt={article.author.name} />
+              <AvatarImage 
+                src={article.author.profileImage} 
+                alt={article.author.name} 
+                onError={(e) => {
+                  e.currentTarget.onerror = null; // Prevent infinite loop
+                  e.currentTarget.src = "/placeholder.svg?height=50&width=50";
+                }}
+              />
               <AvatarFallback>{article.author.name.charAt(0)}</AvatarFallback>
             </Avatar>
             <span className="text-sm text-gray-300">{article.author.name}</span>

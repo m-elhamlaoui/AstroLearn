@@ -47,7 +47,7 @@ class LessonServiceTest {
     @Test
     void testAddLessonToModule_Success() {
         Long moduleId = 1L;
-        LessonDTO lessonDTO = new LessonDTO(null, "Test Lesson", "Test Content", "http://video.url", null, null);
+        LessonDTO lessonDTO = new LessonDTO(null, "Test Lesson", "Test Content", "http://video.url", null, null, 0);
 
         Module module = new Module();
         module.setId(moduleId);
@@ -64,7 +64,7 @@ class LessonServiceTest {
         savedLesson.setVideoUrl(lessonDTO.videoUrl());
         savedLesson.setModule(module);
 
-        LessonDTO expectedDTO = new LessonDTO(1L, "Test Lesson", "Test Content", "http://video.url", moduleId, null);
+        LessonDTO expectedDTO = new LessonDTO(1L, "Test Lesson", "Test Content", "http://video.url", moduleId, null, 0);
 
         when(moduleRepository.findById(moduleId)).thenReturn(Optional.of(module));
         when(entityMapper.toEntity(lessonDTO)).thenReturn(lesson);
@@ -87,7 +87,7 @@ class LessonServiceTest {
     @Test
     void testAddLessonToModule_ModuleNotFound() {
         Long moduleId = 1L;
-        LessonDTO lessonDTO = new LessonDTO(null, "Test Lesson", "Test Content", "http://video.url", null, null);
+        LessonDTO lessonDTO = new LessonDTO(null, "Test Lesson", "Test Content", "http://video.url", null, null, 0);
 
         when(moduleRepository.findById(moduleId)).thenReturn(Optional.empty());
 
@@ -105,7 +105,7 @@ class LessonServiceTest {
         lesson.setContent("Test Content");
         lesson.setVideoUrl("http://video.url");
 
-        LessonDTO expectedDTO = new LessonDTO(lessonId, "Test Lesson", "Test Content", "http://video.url", 1L, null);
+        LessonDTO expectedDTO = new LessonDTO(lessonId, "Test Lesson", "Test Content", "http://video.url", 1L, null, 0);
 
         when(lessonRepository.findById(lessonId)).thenReturn(Optional.of(lesson));
         when(entityMapper.toDTO(lesson)).thenReturn(expectedDTO);
@@ -134,7 +134,7 @@ class LessonServiceTest {
     @Test
     void testUpdateLesson_Success() {
         Long lessonId = 1L;
-        LessonDTO updatedDTO = new LessonDTO(lessonId, "Updated Lesson", "Updated Content", "http://updated.video.url", 1L, null);
+        LessonDTO updatedDTO = new LessonDTO(lessonId, "Updated Lesson", "Updated Content", "http://updated.video.url", 1L, null, 0);
 
         Lesson existingLesson = new Lesson();
         existingLesson.setId(lessonId);
@@ -148,7 +148,7 @@ class LessonServiceTest {
         updatedLesson.setContent(updatedDTO.content());
         updatedLesson.setVideoUrl(updatedDTO.videoUrl());
 
-        LessonDTO expectedDTO = new LessonDTO(lessonId, "Updated Lesson", "Updated Content", "http://updated.video.url", 1L, null);
+        LessonDTO expectedDTO = new LessonDTO(lessonId, "Updated Lesson", "Updated Content", "http://updated.video.url", 1L, null, 0);
 
         when(lessonRepository.findById(lessonId)).thenReturn(Optional.of(existingLesson));
         when(lessonRepository.save(any(Lesson.class))).thenReturn(updatedLesson);
@@ -169,7 +169,7 @@ class LessonServiceTest {
     @Test
     void testUpdateLesson_NotFound() {
         Long lessonId = 1L;
-        LessonDTO updatedDTO = new LessonDTO(lessonId, "Updated Lesson", "Updated Content", "http://updated.video.url", 1L, null);
+        LessonDTO updatedDTO = new LessonDTO(lessonId, "Updated Lesson", "Updated Content", "http://updated.video.url", 1L, null, 0);
 
         when(lessonRepository.findById(lessonId)).thenReturn(Optional.empty());
 
@@ -217,8 +217,8 @@ class LessonServiceTest {
 
         List<Lesson> lessons = List.of(lesson1, lesson2);
 
-        LessonDTO dto1 = new LessonDTO(1L, "Lesson 1", "Content 1", "http://video1.url", moduleId, null);
-        LessonDTO dto2 = new LessonDTO(2L, "Lesson 2", "Content 2", "http://video2.url", moduleId, null);
+        LessonDTO dto1 = new LessonDTO(1L, "Lesson 1", "Content 1", "http://video1.url", moduleId, null, 0);
+        LessonDTO dto2 = new LessonDTO(2L, "Lesson 2", "Content 2", "http://video2.url", moduleId, null, 1);
 
         when(moduleRepository.existsById(moduleId)).thenReturn(true);
         when(lessonRepository.findByModuleId(moduleId)).thenReturn(lessons);

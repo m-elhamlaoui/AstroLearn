@@ -27,6 +27,8 @@ public class Lesson {
     private String content;
 
     private String videoUrl;
+    
+    private Integer orderIndex = 0;
 
     @ManyToOne
     @JoinColumn(name = "module_id")

@@ -24,6 +24,8 @@ public class Module {
 
     @NotBlank
     private String title;
+    
+    private Integer orderIndex = 0;
 
     @ManyToOne
     @JoinColumn(name = "course_id")

@@ -375,6 +375,7 @@ export function ProfileClient({ profileId }: { profileId: string }) {
       // Prepare data for backend PUT request
       // Send S3 URLs if uploads occurred, otherwise send existing URLs (or null)
       const updateData = {
+        username: profileEditData.username,
         bio: profileEditData.bio,
         profileImageUrl: finalProfileImageUrl.startsWith('data:') ? userData.profileImage : (finalProfileImageUrl || null),
         photoCoverUrl: finalCoverImageUrl.startsWith('data:') ? userData.coverImage : (finalCoverImageUrl || null),
@@ -388,6 +389,7 @@ export function ProfileClient({ profileId }: { profileId: string }) {
       // Update main userData state to reflect changes immediately
        setUserData(prev => prev ? ({
            ...prev,
+           username: updateData.username,
            bio: updateData.bio,
            profileImage: updateData.profileImageUrl,
            coverImage: updateData.photoCoverUrl
@@ -576,7 +578,7 @@ const handleRequestVerification = async () => {
           {profileEditError && !isUploadingCover && !isUploadingProfile && ( <div className="mb-4 p-3 bg-red-900/30 border border-red-700 text-red-300 rounded-md"><p>{profileEditError}</p></div> )}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6">
             <div className="mb-4 md:mb-0">
-              {editMode ? ( <Input value={profileEditData.username} readOnly className="text-3xl font-bold mb-1 bg-gray-800/50 border-gray-700 w-full md:w-auto cursor-not-allowed"/> ) : ( <h1 className="text-3xl font-bold mb-1">{userData.username}</h1> )}
+              {editMode ? ( <Input value={profileEditData.username} onChange={e => setProfileEditData({ ...profileEditData, username: e.target.value })} className="text-3xl font-bold mb-1 bg-gray-800/50 border-gray-700 w-full md:w-auto"/> ) : ( <h1 className="text-3xl font-bold mb-1">{userData.username}</h1> )}
               <div className="flex items-center space-x-4 text-gray-400 text-sm">
                 <UserBadge level={badgeLevel} />
                 <span>XP: {userData.xp.toLocaleString()}</span>

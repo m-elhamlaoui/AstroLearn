@@ -7,6 +7,7 @@ public record ModuleDTO(
         String title,
         Long courseId,
         int lessonCount,
-        List<Long> lessonIds
+        List<Long> lessonIds,
+        Integer orderIndex
 ) {
 }

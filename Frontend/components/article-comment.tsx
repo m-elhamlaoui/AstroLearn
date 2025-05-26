@@ -53,7 +53,14 @@ export function ArticleComment({ comment, onVote }: ArticleCommentProps) {
   return (
     <div className="flex gap-4">
       <Avatar className="h-10 w-10">
-        <AvatarImage src={comment.author.profileImage || "/placeholder.svg"} alt={comment.author.name} />
+        <AvatarImage 
+          src={comment.author.profileImage} 
+          alt={comment.author.name} 
+          onError={(e) => {
+            e.currentTarget.onerror = null; // Prevent infinite loop
+            e.currentTarget.src = "/placeholder.svg?height=50&width=50";
+          }}
+        />
         <AvatarFallback>{comment.author.name.charAt(0)}</AvatarFallback>
       </Avatar>
 

@@ -251,16 +251,7 @@ export default function MissionsPage() {
             </div>
           )}
 
-          {inProgressMissions.length > 0 && (
-            <div className="mb-10">
-              <h2 className="text-2xl font-bold mb-4">Current Missions</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {inProgressMissions.map((event) => (
-                  <AnticipatedEventCard key={event.id} event={event} />
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Current Missions section removed as it was displaying irrelevant past missions */}
 
           {completedMissions.length > 0 && (
             <div className="mb-10">

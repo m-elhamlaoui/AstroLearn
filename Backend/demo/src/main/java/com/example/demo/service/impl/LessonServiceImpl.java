@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -69,6 +70,40 @@ public class LessonServiceImpl implements LessonService {
             throw new ResourceNotFoundException("Module", "id", moduleId);
         }
         return lessonRepository.findByModuleId(moduleId).stream()
+                .sorted((l1, l2) -> Integer.compare(l1.getOrderIndex(), l2.getOrderIndex()))
+                .map(entityMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional
+    public List<LessonDTO> reorderLessons(Long moduleId, List<Long> lessonIds) {
+        // Verify module exists
+        if (!moduleRepository.existsById(moduleId)) {
+            throw new ResourceNotFoundException("Module", "id", moduleId);
+        }
+        
+        // Fetch all lessons for this module
+        List<Lesson> lessons = lessonRepository.findByModuleId(moduleId);
+        
+        // Create a map of lesson ID to lesson for quick lookup
+        Map<Long, Lesson> lessonMap = lessons.stream()
+                .collect(Collectors.toMap(Lesson::getId, lesson -> lesson));
+        
+        // Update the order of each lesson based on its position in the lessonIds list
+        for (int i = 0; i < lessonIds.size(); i++) {
+            Long lessonId = lessonIds.get(i);
+            Lesson lesson = lessonMap.get(lessonId);
+            
+            if (lesson != null) {
+                lesson.setOrderIndex(i);
+                lessonRepository.save(lesson);
+            }
+        }
+        
+        // Return the updated lessons
+        return lessonRepository.findByModuleId(moduleId).stream()
+                .sorted((l1, l2) -> Integer.compare(l1.getOrderIndex(), l2.getOrderIndex()))
                 .map(entityMapper::toDTO)
                 .collect(Collectors.toList());
     }

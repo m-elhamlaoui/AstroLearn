@@ -111,6 +111,7 @@ public interface EntityMapper {
 
     @Mapping(target = "courseId", source = "course.id")
     @Mapping(target = "lessonIds", source = "lessons", qualifiedByName = "lessonsToLessonIds")
+    @Mapping(target = "orderIndex", source = "orderIndex")
         // lessonCount is mapped implicitly via @Formula field
     ModuleDTO toDTO(com.example.demo.model.Module module);
 
@@ -123,6 +124,7 @@ public interface EntityMapper {
 
     @Mapping(target = "moduleId", source = "module.id")
     @Mapping(target = "quizId", source = "quiz.id") // Handles null quiz
+    @Mapping(target = "orderIndex", source = "orderIndex")
     LessonDTO toDTO(Lesson lesson);
 
     @Mapping(target = "module", ignore = true) // Handled by service

@@ -3,11 +3,16 @@ package com.example.demo.service.impl;
 import com.example.demo.dto.CourseProgressDTO;
 import com.example.demo.exception.BadRequestException;
 import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.exception.UnauthorizedException;
 import com.example.demo.mapper.EntityMapper;
 import com.example.demo.model.*;
 import com.example.demo.repository.*;
+import com.example.demo.security.UserDetailsImpl;
 import com.example.demo.service.CourseProgressService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
@@ -21,6 +26,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class CourseProgressServiceImpl implements CourseProgressService {
+    
+    // Role constant
+    private static final String ROLE_ADMIN = "ROLE_ADMIN";
 
     private final CourseProgressRepository courseProgressRepository;
     private final UserRepository userRepository;
@@ -30,7 +38,8 @@ public class CourseProgressServiceImpl implements CourseProgressService {
 
     @Override
     public CourseProgressDTO getOrCreateCourseProgress(Long userId, Long courseId) {
-        // TODO: Add security check: Ensure requesting user ID matches userId
+        // Security check: Ensure requesting user ID matches userId or user is admin
+        validateUserAccess(userId);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
@@ -57,7 +66,8 @@ public class CourseProgressServiceImpl implements CourseProgressService {
 
     @Override
     public CourseProgressDTO markLessonCompleted(Long userId, Long courseId, Long lessonId) {
-        // TODO: Add security check: Ensure requesting user ID matches userId
+        // Security check: Ensure requesting user ID matches userId or user is admin
+        validateUserAccess(userId);
 
         CourseProgress progress = courseProgressRepository.findByUserIdAndCourseId(userId, courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("CourseProgress for user " + userId + " and course " + courseId));
@@ -92,7 +102,8 @@ public class CourseProgressServiceImpl implements CourseProgressService {
     @Override
     @Transactional(readOnly = true)
     public List<CourseProgressDTO> getProgressByUserId(Long userId) {
-        // TODO: Add security check: Ensure requesting user ID matches userId OR user is ADMIN
+        // Security check: Ensure requesting user ID matches userId or user is admin
+        validateUserAccess(userId);
 
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User", "id", userId);
@@ -105,7 +116,8 @@ public class CourseProgressServiceImpl implements CourseProgressService {
     @Override
     @Transactional(readOnly = true)
     public CourseProgressDTO getProgressByUserAndCourse(Long userId, Long courseId) {
-        // TODO: Add security check: Ensure requesting user ID matches userId OR user is ADMIN
+        // Security check: Ensure requesting user ID matches userId or user is admin
+        validateUserAccess(userId);
 
         CourseProgress progress = courseProgressRepository.findByUserIdAndCourseId(userId, courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("CourseProgress for user " + userId + " and course " + courseId));
@@ -114,7 +126,8 @@ public class CourseProgressServiceImpl implements CourseProgressService {
 
     @Override
     public CourseProgressDTO setCurrentLesson(Long userId, Long courseId, Long lessonId) {
-        // TODO: Add security check: Ensure requesting user ID matches userId
+        // Security check: Ensure requesting user ID matches userId or user is admin
+        validateUserAccess(userId);
 
         CourseProgress progress = courseProgressRepository.findByUserIdAndCourseId(userId, courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("CourseProgress for user " + userId + " and course " + courseId));
@@ -130,5 +143,32 @@ public class CourseProgressServiceImpl implements CourseProgressService {
         progress.setLastAccessed(LocalDateTime.now());
         CourseProgress savedProgress = courseProgressRepository.save(progress);
         return entityMapper.toDTO(savedProgress);
+    }
+    
+    /**
+     * Validates that the current authenticated user has access to the specified user's data.
+     * Access is granted if the authenticated user ID matches the requested user ID or if the user has ADMIN role.
+     *
+     * @param userId The ID of the user whose data is being accessed
+     * @throws UnauthorizedException if the current user doesn't have access
+     */
+    private void validateUserAccess(Long userId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedException("User not authenticated");
+        }
+        
+        Object principal = authentication.getPrincipal();
+        if (!(principal instanceof UserDetailsImpl)) {
+            throw new UnauthorizedException("Invalid authentication");
+        }
+        
+        UserDetailsImpl userDetails = (UserDetailsImpl) principal;
+        boolean isAdmin = userDetails.getAuthorities().contains(new SimpleGrantedAuthority(ROLE_ADMIN));
+        boolean isResourceOwner = userDetails.getId().equals(userId);
+        
+        if (!isAdmin && !isResourceOwner) {
+            throw new UnauthorizedException("You don't have permission to access this resource");
+        }
     }
 }

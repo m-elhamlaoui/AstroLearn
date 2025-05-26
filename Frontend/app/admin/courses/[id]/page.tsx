@@ -45,6 +45,7 @@ interface Lesson {
   description: string
   order: number
   quizzes: Quiz[]
+  moduleId?: number
 }
 
 interface Module {
@@ -76,6 +77,8 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
   const [activeTab, setActiveTab] = useState("content")
   const [newModuleTitle, setNewModuleTitle] = useState("")
   const [isAddingModule, setIsAddingModule] = useState(false)
+  const [editingLesson, setEditingLesson] = useState<Lesson | null>(null)
+  const [isEditingLesson, setIsEditingLesson] = useState(false)
   
   // Fetch course data with modules and lessons
   useEffect(() => {
@@ -114,7 +117,8 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
         // Create the complete course object with modules and lessons
         const completeData = {
           ...courseData,
-          modules: modulesWithLessons
+          modules: modulesWithLessons,
+          thumbnail: courseData.imageUrl // Use the imageUrl from CourseDTO as the thumbnail
         }
         
         console.log("Complete course data with modules and lessons:", completeData)
@@ -173,6 +177,17 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
   const [lessonVideoUrls, setLessonVideoUrls] = useState<{ [key: number]: string }>({});
   const [isUploadingVideo, setIsUploadingVideo] = useState<{ [key: number]: boolean }>({});
   const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
+  
+  // State to track which modules have their "Add Lesson" form expanded
+  const [expandedAddLessonForms, setExpandedAddLessonForms] = useState<{ [key: number]: boolean }>({});
+  
+  // Function to toggle the visibility of a module's Add Lesson form
+  const toggleAddLessonForm = (moduleId: number) => {
+    setExpandedAddLessonForms(prev => ({
+      ...prev,
+      [moduleId]: !prev[moduleId]
+    }));
+  };
 
   // S3 upload logic (adapted from article-edit)
   const uploadVideoToS3 = async (moduleId: number, file: File | undefined): Promise<string> => {
@@ -349,13 +364,95 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
         return { ...prevCourse, modules: updatedModules }
       })
       
+      // Log the auth token being used
+      const authToken = localStorage.getItem('authToken')
+      console.log('Module Reorder - Auth Token:', authToken ? `${authToken.substring(0, 10)}...` : 'No token found')
+      
+      // Log request details
+      const requestUrl = `/modules/courses/${courseId}/reorder`
+      const requestData = updatedModules.map(m => m.id) // Send array directly
+      console.log('Module Reorder - Request URL:', requestUrl)
+      console.log('Module Reorder - Request Data:', requestData)
+      
       // Call API to persist the new order
-      await axiosInstance.put(`/courses/${courseId}/modules/reorder`, {
-        moduleIds: updatedModules.map(m => m.id)
-      })
+      const response = await axiosInstance.put(requestUrl, requestData)
+      
+      // Log response
+      console.log('Module Reorder - Response Status:', response.status)
+      console.log('Module Reorder - Response Data:', response.data)
     } catch (err) {
       console.error("Error reordering modules:", err)
       toast.error("Failed to reorder modules")
+    }
+  }
+  
+  // Handle reordering lessons within a module
+  const handleLessonReorder = async (result: any) => {
+    if (!result.destination) return
+    
+    // Extract module ID from droppable ID (format: 'lessons-{moduleId}')
+    const moduleId = parseInt(result.source.droppableId.split('-')[1])
+    const fromIndex = result.source.index
+    const toIndex = result.destination.index
+    
+    if (fromIndex === toIndex) return
+    
+    try {
+      // Find the module containing these lessons
+      const moduleIndex = course?.modules.findIndex(m => m.id === moduleId) ?? -1
+      if (moduleIndex === -1 || !course) return
+      
+      // Get the lessons from the module
+      const moduleLessons = Array.from(course.modules[moduleIndex].lessons || [])
+      
+      // Reorder the lessons
+      const [movedLesson] = moduleLessons.splice(fromIndex, 1)
+      moduleLessons.splice(toIndex, 0, movedLesson)
+      
+      // Update order property
+      const updatedLessons = moduleLessons.map((lesson, index) => ({
+        ...lesson,
+        order: index
+      }))
+      
+      // Update local state immediately for better UX
+      setCourse(prevCourse => {
+        if (!prevCourse) return null
+        
+        const updatedModules = [...prevCourse.modules]
+        updatedModules[moduleIndex] = {
+          ...updatedModules[moduleIndex],
+          lessons: updatedLessons
+        }
+        
+        return { ...prevCourse, modules: updatedModules }
+      })
+      
+      // Log the auth token being used
+      const authToken = localStorage.getItem('authToken')
+      console.log('Lesson Reorder - Auth Token:', authToken ? `${authToken.substring(0, 10)}...` : 'No token found')
+      
+      // Log the axios instance headers
+      console.log('Lesson Reorder - Axios Default Headers:', axiosInstance.defaults.headers)
+      
+      // Log request details
+      const requestUrl = `/lessons/modules/${moduleId}/reorder`
+      const requestData = updatedLessons.map(l => l.id) // Send array directly
+      console.log('Lesson Reorder - Request URL:', requestUrl)
+      console.log('Lesson Reorder - Request Data:', requestData)
+      console.log('Lesson Reorder - Module ID:', moduleId)
+      
+      // Call API to persist the new order
+      const response = await axiosInstance.put(requestUrl, requestData)
+      
+      // Log response
+      console.log('Lesson Reorder - Response Status:', response.status)
+      console.log('Lesson Reorder - Response Data:', response.data)
+      
+      toast.success("Lessons reordered successfully")
+    } catch (err) {
+      console.error("Error reordering lessons:", err)
+      toast.error("Failed to reorder lessons")
     }
   }
 
@@ -408,6 +505,58 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
     )
   }
 
+  // Handle lesson update
+  const handleUpdateLesson = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!editingLesson) return;
+    
+    try {
+      const lessonData = {
+        title: editingLesson.title,
+        description: editingLesson.description,
+        videoUrl: editingLesson.videoUrl,
+        moduleId: editingLesson.moduleId
+      };
+      
+      // Make API call to update the lesson
+      const response = await axiosInstance.put(`/lessons/${editingLesson.id}`, lessonData);
+      
+      // Update local state with the updated lesson
+      setCourse(prevCourse => {
+        if (!prevCourse) return null;
+        
+        const updatedModules = [...prevCourse.modules];
+        const moduleIndex = updatedModules.findIndex(m => m.id === editingLesson.moduleId);
+        
+        if (moduleIndex !== -1) {
+          const lessonIndex = updatedModules[moduleIndex].lessons.findIndex(l => l.id === editingLesson.id);
+          
+          if (lessonIndex !== -1) {
+            updatedModules[moduleIndex].lessons[lessonIndex] = {
+              ...updatedModules[moduleIndex].lessons[lessonIndex],
+              ...lessonData
+            };
+          }
+        }
+        
+        return {
+          ...prevCourse,
+          modules: updatedModules
+        };
+      });
+      
+      // Close the edit modal
+      setIsEditingLesson(false);
+      setEditingLesson(null);
+      
+      toast.success("Lesson updated successfully");
+    } catch (err: any) {
+      console.error("Error updating lesson:", err);
+      toast.error(`Failed to update lesson: ${err.response?.data?.message || err.message || 'Unknown error'}`);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-4">
@@ -452,8 +601,16 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
             <h2 className="text-2xl font-semibold">Modules</h2>
           </div>
           
-          <DragDropContext onDragEnd={handleModuleReorder}>
-            <Droppable droppableId="modules">
+          <DragDropContext onDragEnd={(result) => {
+            // Check which type of item is being dragged
+            if (result.type === 'lesson') {
+              handleLessonReorder(result);
+            } else {
+              // Default to module reordering
+              handleModuleReorder(result);
+            }
+          }}>
+            <Droppable droppableId="modules" type="module">
               {(provided: DndDroppableProvided, snapshot: DroppableStateSnapshot) => (
                 <div
                   {...provided.droppableProps}
@@ -521,35 +678,84 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
                             </CardHeader>
                             <CardContent>
                               {module.lessons && module.lessons.length > 0 ? (
-                                <div className="space-y-3 pl-6">
-                                  {module.lessons.map((lesson) => (
+                                <Droppable droppableId={`lessons-${module.id}`} type="lesson">
+                                  {(provided, snapshot) => (
                                     <div 
-                                      key={lesson.id}
-                                      className="flex items-center justify-between p-3 bg-gray-700 rounded-md"
+                                      ref={provided.innerRef}
+                                      {...provided.droppableProps}
+                                      className={`space-y-3 pl-6 ${snapshot.isDraggingOver ? 'bg-gray-750 rounded-md p-2' : ''}`}
                                     >
-                                      <div className="flex items-center gap-2">
-                                        <Video size={16} className="text-indigo-400" />
-                                        <span>{lesson.title}</span>
-                                      </div>
-                                      <Button 
-                                        variant="ghost" 
-                                        size="sm"
-                                        onClick={() => router.push(`/admin/courses/${courseId}/modules/${module.id}/lessons/${lesson.id}`)}
-                                        className="text-xs"
-                                      >
-                                        Edit
-                                      </Button>
+                                      {module.lessons.map((lesson, lessonIndex) => (
+                                        <Draggable 
+                                          key={lesson.id} 
+                                          draggableId={`lesson-${lesson.id}`} 
+                                          index={lessonIndex}
+                                        >
+                                          {(provided, snapshot) => (
+                                            <div 
+                                              ref={provided.innerRef}
+                                              {...provided.draggableProps}
+                                              className={`flex items-center justify-between p-3 bg-gray-700 rounded-md ${snapshot.isDragging ? 'ring-2 ring-indigo-500' : ''}`}
+                                            >
+                                              <div className="flex items-center gap-2">
+                                                <div 
+                                                  {...provided.dragHandleProps}
+                                                  className="cursor-move text-gray-500 hover:text-gray-300 mr-1"
+                                                >
+                                                  <GripVertical size={16} />
+                                                </div>
+                                                <Video size={16} className="text-indigo-400" />
+                                                <span>{lesson.title}</span>
+                                              </div>
+                                              <Button 
+                                                variant="ghost" 
+                                                size="sm"
+                                                onClick={() => {
+                                                  // Store lesson data in localStorage for editing
+                                                  localStorage.setItem('editingLesson', JSON.stringify({
+                                                    id: lesson.id,
+                                                    title: lesson.title,
+                                                    description: lesson.description,
+                                                    videoUrl: lesson.videoUrl,
+                                                    moduleId: module.id
+                                                  }));
+                                                  
+                                                  // Open edit modal or navigate to edit view
+                                                  setEditingLesson(lesson);
+                                                  setIsEditingLesson(true);
+                                                }}
+                                                className="text-xs"
+                                              >
+                                                Edit
+                                              </Button>
+                                            </div>
+                                          )}
+                                        </Draggable>
+                                      ))}
+                                      {provided.placeholder}
                                     </div>
-                                  ))}
-                                </div>
+                                  )}
+                                </Droppable>
                               ) : (
                                 <p className="text-gray-400 text-sm pl-6">No lessons yet. Add a lesson to this module.</p>
                               )}
                             </CardContent>
                             <CardContent>
                               <div className="mt-4 p-4 bg-gray-900 rounded-lg">
-                                <h4 className="text-gray-200 font-semibold mb-2">Add Lesson</h4>
-                                <form
+                                <div className="flex justify-between items-center mb-3">
+                                  <h4 className="text-gray-200 font-semibold">Add Lesson</h4>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => toggleAddLessonForm(module.id)}
+                                    className="text-xs text-gray-400 hover:text-white"
+                                  >
+                                    {expandedAddLessonForms[module.id] ? 'Hide Form' : 'Show Form'}
+                                  </Button>
+                                </div>
+                                {expandedAddLessonForms[module.id] && (
+                                  <form
                                   onSubmit={async (e) => {
                                     e.preventDefault();
                                     console.log("[Form Submit] Form submission started for module:", module.id);
@@ -698,6 +904,7 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
                                     )}
                                   </Button>
                                 </form>
+                                )}
                               </div>
                             </CardContent>
                           </Card>
@@ -767,11 +974,22 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
             <CardContent className="p-6">
               <div className="aspect-video bg-gray-700 rounded-md flex items-center justify-center mb-4">
                 {course.thumbnail ? (
-                  <img 
-                    src={course.thumbnail} 
-                    alt={course.title} 
-                    className="w-full h-full object-cover rounded-md"
-                  />
+                  <div className="w-full h-full relative">
+                    <img 
+                      src={course.thumbnail} 
+                      alt={course.title} 
+                      className="w-full h-full object-cover rounded-md"
+                      onError={(e) => {
+                        console.error('Image failed to load:', course.thumbnail);
+                        e.currentTarget.onerror = null; // Prevent infinite loop
+                        e.currentTarget.style.display = 'none';
+                        // Check if parentElement exists before accessing its innerHTML
+                        if (e.currentTarget.parentElement) {
+                          e.currentTarget.parentElement.innerHTML = '<p class="text-gray-400 absolute inset-0 flex items-center justify-center">Failed to load image</p>';
+                        }
+                      }}
+                    />
+                  </div>
                 ) : (
                   <p className="text-gray-400">No thumbnail image</p>
                 )}
@@ -840,6 +1058,67 @@ export default function CourseDetailsPage({ params }: CourseDetailsPageProps) {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Lesson Edit Modal */}
+      {isEditingLesson && editingLesson && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg shadow-lg w-full max-w-2xl overflow-hidden">
+            <div className="p-6 border-b border-gray-700">
+              <h3 className="text-xl font-semibold">Edit Lesson</h3>
+            </div>
+            
+            <form onSubmit={handleUpdateLesson} className="p-6 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-lesson-title">Lesson Title</Label>
+                <Input
+                  id="edit-lesson-title"
+                  value={editingLesson.title}
+                  onChange={(e) => setEditingLesson({...editingLesson, title: e.target.value})}
+                  className="bg-gray-700 border-gray-600 text-white"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-lesson-description">Description</Label>
+                <Textarea
+                  id="edit-lesson-description"
+                  value={editingLesson.description}
+                  onChange={(e) => setEditingLesson({...editingLesson, description: e.target.value})}
+                  className="bg-gray-700 border-gray-600 text-white min-h-32"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-lesson-video">Video URL</Label>
+                <Input
+                  id="edit-lesson-video"
+                  value={editingLesson.videoUrl}
+                  onChange={(e) => setEditingLesson({...editingLesson, videoUrl: e.target.value})}
+                  className="bg-gray-700 border-gray-600 text-white"
+                  placeholder="YouTube URL or S3 video URL"
+                />
+              </div>
+              
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-700 mt-6">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsEditingLesson(false);
+                    setEditingLesson(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700">
+                  Save Changes
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

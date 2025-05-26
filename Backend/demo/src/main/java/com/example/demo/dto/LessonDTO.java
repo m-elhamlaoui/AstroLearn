@@ -6,6 +6,7 @@ public record LessonDTO(
         String content,
         String videoUrl,
         Long moduleId,
-        Long quizId
+        Long quizId,
+        Integer orderIndex
 ) {
 }

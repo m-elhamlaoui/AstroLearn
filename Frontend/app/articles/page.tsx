@@ -77,25 +77,54 @@ export default function ArticlesPage() {
         
         const fetchedArticlesDTO = response.data.content || [] // Ensure it's an array
 
-        // Transform DTOs to the Article interface expected by the frontend
-        const transformedArticles: Article[] = fetchedArticlesDTO.map((dto: ArticleDTO) => ({
-          id: dto.id,
-          title: dto.title,
-          summary: dto.summary,
-          image: dto.imageUrls && dto.imageUrls.length > 0 ? dto.imageUrls[0] : "/placeholder.svg?height=300&width=500", // Use first image or placeholder
-          author: {
-            id: dto.authorId,
-            name: dto.authorUsername,
-            profileImage: "/placeholder.svg?height=50&width=50", // Placeholder for profile image
-          },
-          publishDate: dto.createdAt, // Assuming createdAt is a string like "2023-11-15T14:30:00Z"
-          votes: dto.score,
-          tags: dto.tags || [],
-          currentUserVote: dto.currentUserVote, // Map the new field
-        }))
+        // Create an array of promises to fetch user data for each article author
+        const articlesWithAuthors = await Promise.all(
+          fetchedArticlesDTO.map(async (dto: ArticleDTO) => {
+            try {
+              // Fetch the complete user data for the article author
+              const userResponse = await axiosInstance.get(`/users/${dto.authorId}`)
+              const userData = userResponse.data
+              
+              return {
+                id: dto.id,
+                title: dto.title,
+                summary: dto.summary,
+                image: dto.imageUrls && dto.imageUrls.length > 0 ? dto.imageUrls[0] : "/placeholder.svg?height=300&width=500",
+                author: {
+                  id: dto.authorId,
+                  name: dto.authorUsername,
+                  // Use the profileImageUrl from the user data, or fall back to the API endpoint
+                  profileImage: userData?.profileImageUrl || `/users/${dto.authorId}/profile-image`,
+                },
+                publishDate: dto.createdAt,
+                votes: dto.score,
+                tags: dto.tags || [],
+                currentUserVote: dto.currentUserVote,
+              }
+            } catch (userError) {
+              console.error(`Failed to fetch user data for author ID ${dto.authorId}:`, userError)
+              // Fall back to the original data without the complete user info
+              return {
+                id: dto.id,
+                title: dto.title,
+                summary: dto.summary,
+                image: dto.imageUrls && dto.imageUrls.length > 0 ? dto.imageUrls[0] : "/placeholder.svg?height=300&width=500",
+                author: {
+                  id: dto.authorId,
+                  name: dto.authorUsername,
+                  profileImage: `/api/users/${dto.authorId}/profile-image`,
+                },
+                publishDate: dto.createdAt,
+                votes: dto.score,
+                tags: dto.tags || [],
+                currentUserVote: dto.currentUserVote,
+              }
+            }
+          })
+        )
 
-        setAllArticles(transformedArticles)
-        setFilteredArticles(transformedArticles)
+        setAllArticles(articlesWithAuthors)
+        setFilteredArticles(articlesWithAuthors)
       } catch (err: any) {
         console.error("Failed to fetch articles:", err)
         setError(err.message || "Failed to load articles. Please try again later.")

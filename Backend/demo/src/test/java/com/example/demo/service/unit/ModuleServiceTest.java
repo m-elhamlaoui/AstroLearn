@@ -47,7 +47,7 @@ package com.example.demo.service.unit;
         void testAddModuleToCourse_Success() {
             // Arrange
             Long courseId = 1L;
-            ModuleDTO moduleDTO = new ModuleDTO(null, "Test Module", null, 0, Collections.emptyList());
+            ModuleDTO moduleDTO = new ModuleDTO(null, "Test Module", null, 0, Collections.emptyList(), 0);
 
             Course course = new Course();
             course.setId(courseId);
@@ -62,7 +62,7 @@ package com.example.demo.service.unit;
             savedModule.setCourse(course);
             savedModule.setLessons(Collections.emptyList());
 
-            ModuleDTO expectedDTO = new ModuleDTO(1L, "Test Module", courseId, 0, Collections.emptyList());
+            ModuleDTO expectedDTO = new ModuleDTO(1L, "Test Module", courseId, 0, Collections.emptyList(), 0);
 
             when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
             when(entityMapper.toEntity(moduleDTO)).thenReturn(module);
@@ -87,7 +87,7 @@ package com.example.demo.service.unit;
         void testAddModuleToCourse_CourseNotFound() {
             // Arrange
             Long courseId = 1L;
-            ModuleDTO moduleDTO = new ModuleDTO(null, "Test Module", null, 0, Collections.emptyList());
+            ModuleDTO moduleDTO = new ModuleDTO(null, "Test Module", null, 0, Collections.emptyList(), 0);
 
             when(courseRepository.findById(courseId)).thenReturn(Optional.empty());
 
@@ -106,7 +106,7 @@ package com.example.demo.service.unit;
             module.setTitle("Test Module");
             module.setLessons(Collections.emptyList());
 
-            ModuleDTO expectedDTO = new ModuleDTO(moduleId, "Test Module", 1L, 0, Collections.emptyList());
+            ModuleDTO expectedDTO = new ModuleDTO(moduleId, "Test Module", 1L, 0, Collections.emptyList(), 0);
 
             when(moduleRepository.findById(moduleId)).thenReturn(Optional.of(module));
             when(entityMapper.toDTO(module)).thenReturn(expectedDTO);
@@ -138,7 +138,7 @@ package com.example.demo.service.unit;
         void testUpdateModule_Success() {
             // Arrange
             Long moduleId = 1L;
-            ModuleDTO updatedDTO = new ModuleDTO(moduleId, "Updated Module", 1L, 0, Collections.emptyList());
+            ModuleDTO updatedDTO = new ModuleDTO(moduleId, "Updated Module", 1L, 0, Collections.emptyList(), 0);
 
             Module existingModule = new Module();
             existingModule.setId(moduleId);
@@ -150,7 +150,7 @@ package com.example.demo.service.unit;
             updatedModule.setTitle(updatedDTO.title());
             updatedModule.setLessons(Collections.emptyList());
 
-            ModuleDTO expectedDTO = new ModuleDTO(moduleId, "Updated Module", 1L, 0, Collections.emptyList());
+            ModuleDTO expectedDTO = new ModuleDTO(moduleId, "Updated Module", 1L, 0, Collections.emptyList(), 0);
 
             when(moduleRepository.findById(moduleId)).thenReturn(Optional.of(existingModule));
             when(moduleRepository.save(any(Module.class))).thenReturn(updatedModule);
@@ -172,7 +172,7 @@ package com.example.demo.service.unit;
         void testUpdateModule_NotFound() {
             // Arrange
             Long moduleId = 1L;
-            ModuleDTO updatedDTO = new ModuleDTO(moduleId, "Updated Module", 1L, 0, Collections.emptyList());
+            ModuleDTO updatedDTO = new ModuleDTO(moduleId, "Updated Module", 1L, 0, Collections.emptyList(), 0);
 
             when(moduleRepository.findById(moduleId)).thenReturn(Optional.empty());
 
@@ -225,8 +225,8 @@ package com.example.demo.service.unit;
 
             List<Module> modules = List.of(module1, module2);
 
-            ModuleDTO dto1 = new ModuleDTO(1L, "Module 1", courseId, 0, Collections.emptyList());
-            ModuleDTO dto2 = new ModuleDTO(2L, "Module 2", courseId, 0, Collections.emptyList());
+            ModuleDTO dto1 = new ModuleDTO(1L, "Module 1", courseId, 0, Collections.emptyList(), 0);
+            ModuleDTO dto2 = new ModuleDTO(2L, "Module 2", courseId, 0, Collections.emptyList(), 1);
 
             when(courseRepository.existsById(courseId)).thenReturn(true);
             when(moduleRepository.findByCourseId(courseId)).thenReturn(modules);

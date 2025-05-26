@@ -49,4 +49,13 @@ public class ModuleController {
         moduleService.deleteModule(moduleId);
         return ResponseEntity.noContent().build();
     }
+
+    // Reorder modules within a course
+    @PutMapping("/courses/{courseId}/reorder")
+    public ResponseEntity<List<ModuleDTO>> reorderModules(
+            @PathVariable Long courseId,
+            @RequestBody List<Long> moduleIds) {
+        List<ModuleDTO> reorderedModules = moduleService.reorderModules(courseId, moduleIds);
+        return ResponseEntity.ok(reorderedModules);
+    }
 }

@@ -10,4 +10,5 @@ public interface LessonService {
     LessonDTO updateLesson(Long lessonId, LessonDTO lessonDTO);
     void deleteLesson(Long lessonId);
     List<LessonDTO> getLessonsByModuleId(Long moduleId);
+    List<LessonDTO> reorderLessons(Long moduleId, List<Long> lessonIds);
 }

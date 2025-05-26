@@ -73,7 +73,8 @@ public class ModuleServiceIntegrationTest {
                 "New Module",
                 null,
                 0,
-                null
+                null,
+                0
         );
 
         ModuleDTO createdModule = moduleService.addModuleToCourse(course.getId(), newModuleDTO);
@@ -96,7 +97,8 @@ public class ModuleServiceIntegrationTest {
                 "New Module",
                 null,
                 0,
-                null
+                null,
+                0
         );
 
         assertThrows(ResourceNotFoundException.class, () ->
@@ -124,7 +126,8 @@ public class ModuleServiceIntegrationTest {
                 "Updated Module Title",
                 module1.getCourse().getId(),
                 0,
-                null
+                null,
+                0
         );
 
         ModuleDTO result = moduleService.updateModule(module1.getId(), updatedModuleDTO);
@@ -146,7 +149,8 @@ public class ModuleServiceIntegrationTest {
                 "Updated Module Title",
                 course.getId(),
                 0,
-                null
+                null,
+                0
         );
         assertThrows(ResourceNotFoundException.class, () -> moduleService.updateModule(999L, updatedModuleDTO));
     }

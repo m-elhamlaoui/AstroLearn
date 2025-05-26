@@ -88,7 +88,8 @@ public class LessonServiceIntegrationTest {
                 "New Content",
                 "http://example.com/video",
                 null,
-                null
+                null,
+                0
         );
 
         LessonDTO createdLesson = lessonService.addLessonToModule(module.getId(), newLessonDTO);
@@ -114,7 +115,8 @@ public class LessonServiceIntegrationTest {
                 "New Content",
                 "http://example.com/video",
                 null,
-                null
+                null,
+                0
         );
 
         assertThrows(ResourceNotFoundException.class, () ->
@@ -143,7 +145,8 @@ public class LessonServiceIntegrationTest {
                 "Updated Content",
                 "http://example.com/updated_video",
                 lesson1.getModule().getId(),
-                null
+                null,
+                0
         );
 
         LessonDTO result = lessonService.updateLesson(lesson1.getId(), updatedLessonDTO);
@@ -170,7 +173,8 @@ public class LessonServiceIntegrationTest {
                 "Updated Content",
                 "http://example.com/updated_video",
                 module.getId(),
-                null
+                null,
+                0
         );
         assertThrows(ResourceNotFoundException.class, () -> lessonService.updateLesson(999L, updatedLessonDTO));
     }

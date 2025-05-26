@@ -277,53 +277,6 @@ export default function HomePage() {
                   </li>
                 </ul>
               </div>
-
-              <div>
-                <h4 className="text-white font-medium mb-3">Company</h4>
-                <ul className="space-y-2 text-gray-400">
-                  <li>
-                    <Link href="#" className="hover:text-white transition-colors">
-                      About
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="#" className="hover:text-white transition-colors">
-                      Team
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="#" className="hover:text-white transition-colors">
-                      Careers
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="#" className="hover:text-white transition-colors">
-                      Contact
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="text-white font-medium mb-3">Legal</h4>
-                <ul className="space-y-2 text-gray-400">
-                  <li>
-                    <Link href="#" className="hover:text-white transition-colors">
-                      Privacy
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="#" className="hover:text-white transition-colors">
-                      Terms
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="#" className="hover:text-white transition-colors">
-                      Cookie Policy
-                    </Link>
-                  </li>
-                </ul>
-              </div>
             </div>
           </div>
 

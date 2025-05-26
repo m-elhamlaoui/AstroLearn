@@ -105,6 +105,18 @@ export default function ArticlePage({ params: paramsPromise }: { params: Promise
       try {
         const articleResponse = await axiosInstance.get<ArticleDTO>(`/articles/${articleId}`)
         const dto = articleResponse.data
+        let authorProfileImage = `/api/users/${dto.authorId}/profile-image`;
+        try {
+          const userResponse = await axiosInstance.get(`/users/${dto.authorId}`);
+          const userData = userResponse.data;
+          if (userData && userData.profileImageUrl) {
+            authorProfileImage = userData.profileImageUrl;
+          }
+        } catch (userError) {
+          console.error(`Failed to fetch user data for author ID ${dto.authorId}:`, userError);
+          // Continue with the default profile image URL
+        }
+
         const transformedArticle: Article = {
           id: dto.id,
           title: dto.title,
@@ -113,7 +125,7 @@ export default function ArticlePage({ params: paramsPromise }: { params: Promise
           author: {
             id: dto.authorId,
             name: dto.authorUsername,
-            profileImage: "/placeholder.svg?height=50&width=50", 
+            profileImage: authorProfileImage, 
           },
           publishDate: dto.createdAt,
           votes: dto.score,
@@ -124,18 +136,37 @@ export default function ArticlePage({ params: paramsPromise }: { params: Promise
         setUserVote(dto.currentUserVote === 1 ? "up" : dto.currentUserVote === -1 ? "down" : null);
 
         const commentsResponse = await axiosInstance.get<CommentDTO[]>(`/articles/${articleId}/comments`)
-        const transformedComments: Comment[] = commentsResponse.data.map(commentDto => ({
-          id: commentDto.id,
-          author: {
-            id: commentDto.userId,
-            name: commentDto.authorUsername,
-            profileImage: "/placeholder.svg?height=50&width=50", 
-          },
-          content: commentDto.content,
-          publishDate: commentDto.createdAt,
-          votes: 0, 
-        }))
-        setComments(transformedComments)
+        
+        // Fetch user data for each comment author
+        const commentsWithAuthors = await Promise.all(
+          commentsResponse.data.map(async (commentDto) => {
+            let authorProfileImage = `/api/users/${commentDto.userId}/profile-image`;
+            try {
+              const userResponse = await axiosInstance.get(`/users/${commentDto.userId}`);
+              const userData = userResponse.data;
+              if (userData && userData.profileImageUrl) {
+                authorProfileImage = userData.profileImageUrl;
+              }
+            } catch (userError) {
+              console.error(`Failed to fetch user data for comment author ID ${commentDto.userId}:`, userError);
+              // Continue with the default profile image URL
+            }
+            
+            return {
+              id: commentDto.id,
+              author: {
+                id: commentDto.userId,
+                name: commentDto.authorUsername,
+                profileImage: authorProfileImage,
+              },
+              content: commentDto.content,
+              publishDate: commentDto.createdAt,
+              votes: 0,
+            };
+          })
+        );
+        
+        setComments(commentsWithAuthors)
 
       } catch (err: any) {
         console.error("Failed to fetch article data:", err)
@@ -396,7 +427,14 @@ export default function ArticlePage({ params: paramsPromise }: { params: Promise
             <div className="mb-8">
               <div className="flex gap-4">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src="/placeholder.svg?height=50&width=50" alt="Your Avatar" />
+                  <AvatarImage 
+                    src={userId ? `/api/users/${userId}/profile-image` : "/placeholder.svg?height=50&width=50"} 
+                    alt="Your Avatar" 
+                    onError={(e) => {
+                      e.currentTarget.onerror = null; // Prevent infinite loop
+                      e.currentTarget.src = "/placeholder.svg?height=50&width=50";
+                    }}
+                  />
                   <AvatarFallback>YA</AvatarFallback>
                 </Avatar>
                 <div className="flex-1">

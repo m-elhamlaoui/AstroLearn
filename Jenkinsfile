@@ -117,19 +117,33 @@ pipeline {
                  // référence l'image avec le tag ':latest' comme ceci :
                  // image: votrenomutilisateur/space-hub-backend:latest
 
-                 // Applique les fichiers de configuration Kubernetes pour le backend
                  bat "kubectl --kubeconfig=${env.KUBECONFIG} apply -f k8s/backend.yaml --validate=false"
-                 bat "kubectl --kubeconfig=${env.KUBECONFIG} apply -f k8s/postgres.yaml --validate=false"
+
+                 script {
+                     // Vérifier si le StatefulSet existe déjà
+                     def statefulSetExists = bat(script: "kubectl --kubeconfig=${env.KUBECONFIG} get statefulset astrolearn-postgres -o name 2>nul", returnStatus: true) == 0
+
+                     if (statefulSetExists) {
+                         // Appliquer uniquement le service PostgreSQL
+                         bat "kubectl --kubeconfig=${env.KUBECONFIG} apply -f k8s/postgres.yaml --validate=false -l 'app!=postgres'"
+                         echo "Le StatefulSet PostgreSQL existe déjà. Seul le service a été mis à jour."
+                         echo "Pour appliquer des modifications au StatefulSet, vous devez le supprimer d'abord."
+                     } else {
+                         // Appliquer la configuration complète de PostgreSQL
+                         bat "kubectl --kubeconfig=${env.KUBECONFIG} apply -f k8s/postgres.yaml --validate=false"
+                         echo "StatefulSet PostgreSQL créé avec succès."
+                     }
+                 }
 
                  // Force le redémarrage des pods du déploiement pour
                  // qu'ils récupèrent la nouvelle image ':latest'.
-                 bat "kubectl --kubeconfig=${env.KUBECONFIG} rollout restart deployment space-hub-backend-deployment"
+                 bat "kubectl --kubeconfig=${env.KUBECONFIG} rollout restart deployment astrolearn-backend-deployment"
 
                  // Attendre et vérifier que le déploiement s'est bien passé
-                 bat "kubectl --kubeconfig=${env.KUBECONFIG} rollout status deployment/space-hub-backend-deployment --timeout=2m"
+                 bat "kubectl --kubeconfig=${env.KUBECONFIG} rollout status deployment/astrolearn-backend-deployment --timeout=2m"
              }
          }
-         
+
         // Étape 7: Construire l'image Docker du Frontend
         stage('Build Frontend Docker Image') {
             steps {

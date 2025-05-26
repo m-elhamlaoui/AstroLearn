@@ -285,9 +285,13 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 script {
-                    // Obtenir les NodePorts pour accéder aux services
-                    def frontendNodePort = bat(script: "kubectl --kubeconfig=${env.KUBECONFIG} get service astrolearn-frontend-service -o jsonpath='{.spec.ports[0].nodePort}'", returnStdout: true).trim()
-                    def backendNodePort = bat(script: "kubectl --kubeconfig=${env.KUBECONFIG} get service astrolearn-backend-service -o jsonpath='{.spec.ports[0].nodePort}'", returnStdout: true).trim()
+                    // Obtenir les NodePorts pour accéder aux services et les stocker dans des variables
+                    def frontendNodePortCmd = bat(script: "kubectl --kubeconfig=${env.KUBECONFIG} get service astrolearn-frontend-service -o jsonpath='{.spec.ports[0].nodePort}'", returnStdout: true).trim()
+                    def backendNodePortCmd = bat(script: "kubectl --kubeconfig=${env.KUBECONFIG} get service astrolearn-backend-service -o jsonpath='{.spec.ports[0].nodePort}'", returnStdout: true).trim()
+                    
+                    // Extraire uniquement le numéro de port (dernier mot de la sortie)
+                    def frontendNodePort = frontendNodePortCmd.tokenize('\r\n').last().replaceAll("'", "")
+                    def backendNodePort = backendNodePortCmd.tokenize('\r\n').last().replaceAll("'", "")
                     
                     echo "\n===== DÉPLOIEMENT TERMINÉ AVEC SUCCÈS ====="
                     echo "Application AstroLearn déployée avec succès sur Kubernetes!"

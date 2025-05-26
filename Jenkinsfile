@@ -53,13 +53,24 @@ pipeline {
             steps {
                 // Déployer PostgreSQL d'abord pour les tests
                 bat "kubectl --kubeconfig=${env.KUBECONFIG} apply -f k8s/postgres.yaml --validate=false"
-                echo "Attente de 10 secondes pour que PostgreSQL démarre..."
-                sleep(time: 10, unit: 'SECONDS')
+                echo "Attente de 15 secondes pour que PostgreSQL démarre..."
+                sleep(time: 15, unit: 'SECONDS')
+                
+                // Vérifier que le pod PostgreSQL est prêt
+                bat "kubectl --kubeconfig=${env.KUBECONFIG} get pods -l app=postgres"
+                
+                // Arrêter tout port-forward existant pour éviter les conflits
+                bat(script: "taskkill /F /IM kubectl.exe", returnStatus: true)
+                sleep(time: 2, unit: 'SECONDS')
                 
                 // Configurer le port-forward pour que les tests puissent accéder à la base de données
-                bat(script: "start /B kubectl --kubeconfig=${env.KUBECONFIG} port-forward service/postgres 5432:5432", returnStatus: true)
+                // Utiliser cmd /c start pour démarrer le processus en arrière-plan
+                bat(script: "cmd /c start cmd /c kubectl --kubeconfig=${env.KUBECONFIG} port-forward service/postgres 5432:5432", returnStatus: true)
                 echo "Port-forward configuré pour PostgreSQL: localhost:5432 -> service/postgres:5432"
-                sleep(time: 5, unit: 'SECONDS')
+                sleep(time: 10, unit: 'SECONDS')
+                
+                // Vérifier que le port-forward fonctionne
+                bat "netstat -ano | findstr 5432"
             }
         }
         

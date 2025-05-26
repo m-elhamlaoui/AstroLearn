@@ -20,7 +20,7 @@ const getRuntimeConfig = () => {
   
   // In Kubernetes, use the internal service name
   if (process.env.NODE_ENV === 'production') {
-    return { API_URL: 'http://astrolearn-backend-service:8088' };
+    return { API_URL: 'http://localhost:8088' };
   }
   
   // For local development

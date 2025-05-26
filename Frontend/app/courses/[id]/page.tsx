@@ -90,20 +90,34 @@ export default function CoursePage({ params: paramsPromise }: { params: Promise<
   const [error, setError] = useState<string | null>(null)
   const [expandedModules, setExpandedModules] = useState<string[]>([])
 
+  // State to store user ID from localStorage
+  const [userId, setUserId] = useState<number | null>(null)
+  // State to store overall course progress percentage
+  const [courseProgress, setCourseProgress] = useState<number>(0)
+  // State to store API-tracked completed lessons count
+  const [apiCompletedLessons, setApiCompletedLessons] = useState<number>(0)
+
+  useEffect(() => {
+    // Get user ID from localStorage
+    if (typeof window !== 'undefined') {
+      const storedUserId = localStorage.getItem('userId')
+      if (storedUserId) {
+        setUserId(parseInt(storedUserId, 10))
+      }
+    }
+  }, [])
+
   useEffect(() => {
     const fetchCourseData = async () => {
       // Check for token before fetching
       if (typeof window !== 'undefined' && !localStorage.getItem('authToken')) {
         // No token, useAuthRedirect will handle redirection.
-        // Set loading to false and potentially an error, or just return.
-        // setError("Authentication required to view this course."); // Optional: set an error
         setIsLoading(false); // Stop loading as we won't fetch
         return; 
       }
 
       setIsLoading(true)
       setError(null)
-      const userIdForProgress = 1 // TODO: Replace with actual logged-in user ID
 
       try {
         // 1. Fetch Course Details
@@ -116,14 +130,33 @@ export default function CoursePage({ params: paramsPromise }: { params: Promise<
 
         // 3. Fetch Course Progress
         let completedLessonIdsSet = new Set<number>()
-        try {
-            const progressResponse = await axiosInstance.get<CourseProgressDTO>(`/course-progress/${userIdForProgress}/${courseData.id}`)
-            if (progressResponse.data && progressResponse.data.completedLessonIds) {
-                completedLessonIdsSet = new Set(progressResponse.data.completedLessonIds)
-            }
-        } catch (progressError) {
-            console.warn(`Could not fetch course progress for user ${userIdForProgress} and course ${courseData.id}:`, progressError)
-            // Continue without progress data if it fails
+        let overallProgressPercentage = 0
+        let totalCompletedLessons = 0
+        
+        // Get user ID from localStorage
+        const userId = localStorage.getItem('userId')
+        if (userId) {
+          try {
+              const progressResponse = await axiosInstance.get<CourseProgressDTO>(`/course-progress/${userId}/${courseData.id}/progress`)
+              if (progressResponse.data) {
+                  const progressData = progressResponse.data;
+                  overallProgressPercentage = progressData.completionPercentage;
+                  setCourseProgress(overallProgressPercentage);
+                  
+                  // Update completed lessons tracking based on API data
+                  if (progressData.completedLessonIds && progressData.completedLessonIds.length > 0) {
+                    completedLessonIdsSet = new Set(progressData.completedLessonIds);
+                    totalCompletedLessons = progressData.completedLessonIds.length;
+                    setApiCompletedLessons(totalCompletedLessons);
+                  }
+                  
+                  console.log('Course progress fetched successfully:', progressData);
+              }
+          } catch (err) {
+              console.error('Error fetching course progress:', err)
+              // Don't set progress to 0 if there's an error
+              // Continue without progress data if it fails
+          }
         }
 
         // 4. Fetch Lessons for each Module and map
@@ -182,7 +215,7 @@ export default function CoursePage({ params: paramsPromise }: { params: Promise<
     if (params.id) {
       fetchCourseData()
     }
-  }, [params.id])
+  }, [params.id, userId])
 
   if (isLoading) {
     return (
@@ -280,18 +313,21 @@ export default function CoursePage({ params: paramsPromise }: { params: Promise<
 
                 <div className="flex items-center gap-1 text-gray-300">
                   <Clock className="h-5 w-5" />
-                  <span>{course.duration}</span> {/* This will show N/A if not available */}
+                  <span>{course.duration}</span>
                 </div>
               </div>
 
-              {/* Progress Bar */}
+              {/* Course Progress */}
               <div className="mb-6">
                 <div className="flex justify-between text-sm mb-1">
-                  <span>Course Progress</span>
-                  <span>{progressPercentage}% Complete</span>
+                  <span>Your Progress</span>
+                  <span>{Math.max(courseProgress, progressPercentage)}% Complete</span>
                 </div>
                 <div className="w-full bg-gray-800 rounded-full h-2.5">
-                  <div className="bg-green-600 h-2.5 rounded-full" style={{ width: `${progressPercentage}%` }}></div>
+                  <div 
+                    className="bg-green-600 h-2.5 rounded-full" 
+                    style={{ width: `${Math.max(courseProgress, progressPercentage)}%` }}
+                  ></div>
                 </div>
               </div>
 
@@ -299,12 +335,11 @@ export default function CoursePage({ params: paramsPromise }: { params: Promise<
               <Link href={startLessonLink}>
                 <Button className="bg-white text-black hover:bg-gray-200 px-6 py-2 rounded-lg">
                   <Play className="h-4 w-4 mr-2" />
-                  {completedLessons > 0 ? "Continue Course" : "Start Course"}
+                  {apiCompletedLessons > 0 || completedLessons > 0 ? "Continue Course" : "Start Course"}
                 </Button>
               </Link>
             </div>
           </div>
-
           {/* Instructor Info */}
           <div className="bg-gray-900 rounded-xl p-6 mb-10">
             <div className="flex items-start gap-4">

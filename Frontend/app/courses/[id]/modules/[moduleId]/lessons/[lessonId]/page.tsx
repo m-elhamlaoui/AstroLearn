@@ -83,7 +83,14 @@ interface NavLesson {
 }
 
 interface CourseProgressDTO {
-  completedLessonIds: number[]
+  id?: number;
+  completionPercentage?: number;
+  completed?: boolean;
+  lastAccessed?: string;
+  userId?: number;
+  courseId?: number;
+  currentLessonId?: number | null;
+  completedLessonIds: number[];
 }
 
 interface LessonPageParams {
@@ -110,9 +117,18 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
   const [nextLesson, setNextLesson] = useState<NavLesson | null>(null)
   const [prevLesson, setPrevLesson] = useState<NavLesson | null>(null)
 
-  const userIdForProgress = 1 
+  // Get the current user ID from localStorage
+  const [userId, setUserId] = useState<number | null>(null)
 
   useEffect(() => {
+    // Get user ID from localStorage
+    if (typeof window !== 'undefined') {
+      const storedUserId = localStorage.getItem('userId')
+      if (storedUserId) {
+        setUserId(parseInt(storedUserId, 10))
+      }
+    }
+
     if (!params.id || !params.moduleId || !params.lessonId) {
       setError("Missing course, module, or lesson ID.")
       setIsLoading(false)
@@ -133,14 +149,36 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
         const currentLesson = lessonResponse.data
         setLessonDetails(currentLesson)
 
+        // Set current lesson for the user and ensure we don't lose progress
+        if (userId) {
+          try {
+            // First get existing progress to check if this lesson is already completed
+            const progressResponse = await axiosInstance.get<CourseProgressDTO>(
+              `/course-progress/${userId}/${params.id}/progress`
+            )
+            
+            const completedIds = new Set(progressResponse.data.completedLessonIds || [])
+            const lessonAlreadyMarkedCompletedInSystem = completedIds.has(Number(params.lessonId))
+            setIsCompleted(lessonAlreadyMarkedCompletedInSystem)
+            
+            // Set current lesson regardless of completion status
+            await axiosInstance.post(`/course-progress/${userId}/${params.id}/lessons/${params.lessonId}/current`)
+            console.log('Current lesson set successfully')
+          } catch (err) {
+            console.error('Error setting current lesson:', err)
+          }
+        }
+
         let lessonAlreadyMarkedCompletedInSystem = false
         try {
-          const progressResponse = await axiosInstance.get<CourseProgressDTO>(
-            `/course-progress/${userIdForProgress}/${params.id}`,
-          )
-          const completedIds = new Set(progressResponse.data.completedLessonIds || [])
-          lessonAlreadyMarkedCompletedInSystem = completedIds.has(Number(params.lessonId))
-          setIsCompleted(lessonAlreadyMarkedCompletedInSystem)
+          if (userId) {
+            const progressResponse = await axiosInstance.get<CourseProgressDTO>(
+              `/course-progress/${userId}/${params.id}/progress`
+            )
+            const completedIds = new Set(progressResponse.data.completedLessonIds || [])
+            lessonAlreadyMarkedCompletedInSystem = completedIds.has(Number(params.lessonId))
+            setIsCompleted(lessonAlreadyMarkedCompletedInSystem)
+          }
         } catch (progressError) {
           console.warn("Failed to fetch course progress:", progressError)
         }
@@ -150,10 +188,10 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
             const quizResponse = await axiosInstance.get<QuizDTO>(`/quizzes/lessons/${currentLesson.id}`)
             setQuizDetails(quizResponse.data)
 
-            if (lessonAlreadyMarkedCompletedInSystem) {
+            if (lessonAlreadyMarkedCompletedInSystem && userId) {
               try {
                 const completionResponse = await axiosInstance.get<AugmentedQuizCompletionDTO>(
-                  `/quizzes/${currentLesson.quizId}/completion?userId=${userIdForProgress}`
+                  `/quizzes/${currentLesson.quizId}/completion?userId=${userId}`
                 )
                 if (completionResponse.data && completionResponse.data.rawScore === completionResponse.data.totalQuestions) {
                   setQuizReviewData(completionResponse.data)
@@ -172,10 +210,10 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
             console.error("Failed to load quiz details:", quizFetchError)
             setQuizSpecificError("Could not load quiz details.")
           }
-        } else if (currentLesson && !currentLesson.quizId && !lessonAlreadyMarkedCompletedInSystem) {
+        } else if (currentLesson && !currentLesson.quizId && !lessonAlreadyMarkedCompletedInSystem && userId) {
           try {
             await axiosInstance.post(
-              `/course-progress/${userIdForProgress}/${params.id}/lessons/${params.lessonId}/complete`,
+              `/course-progress/${userId}/${params.id}/lessons/${params.lessonId}/complete`
             )
             setIsCompleted(true)
           } catch (completionError) {
@@ -200,7 +238,7 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
         }
 
         const currentLessonIndex = allLessonsInCourseFlat.findIndex(
-          (l) => l.lessonId === params.lessonId && l.moduleId === params.moduleId,
+          (l) => l.lessonId === params.lessonId && l.moduleId === params.moduleId
         )
 
         if (currentLessonIndex !== -1) {
@@ -220,11 +258,11 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
     }
 
     fetchLessonAllData()
-  }, [params.id, params.moduleId, params.lessonId, userIdForProgress])
+  }, [params.id, params.moduleId, params.lessonId, userId])
 
   useEffect(() => {
     const fetchReviewData = async () => {
-      if (!currentCompletionId || quizProgressState !== 'reviewing' || !lessonDetails) return;
+      if (!currentCompletionId || quizProgressState !== 'reviewing' || !lessonDetails || !userId) return;
       if (quizReviewData && quizReviewData.id === currentCompletionId) return;
 
       setQuizSpecificError(null);
@@ -239,7 +277,7 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
           if (!isCompleted) {
             try {
               await axiosInstance.post(
-                `/course-progress/${userIdForProgress}/${params.id}/lessons/${lessonDetails.id}/complete`
+                `/course-progress/${userId}/${params.id}/lessons/${lessonDetails.id}/complete`
               );
               setIsCompleted(true);
             } catch (lessonCompleteError) {
@@ -257,7 +295,7 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
     };
 
     fetchReviewData();
-  }, [currentCompletionId, quizProgressState, lessonDetails, userIdForProgress, params.id, isCompleted, quizReviewData]);
+  }, [currentCompletionId, quizProgressState, lessonDetails, userId, params.id, isCompleted, quizReviewData]);
 
   const handleNavigation = (navLesson: NavLesson | null) => {
     if (navLesson) {
@@ -267,48 +305,71 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
     }
   }
 
-  const handleQuizSubmit = async (answers: Map<number, number>) => {
-    if (!quizDetails || !lessonDetails) return
+  // Function to mark lesson as completed
+  const markLessonAsCompleted = async () => {
+    if (!userId) {
+      console.error('User ID not found')
+      return
+    }
 
-    setIsSubmittingQuiz(true)
-    setQuizSpecificError(null)
-
-    const submissionAnswers: QuizQuestionAnswerDTO[] = []
-    answers.forEach((chosenOptionIndex, questionId) => {
-      submissionAnswers.push({ questionId, chosenOptionIndex })
-    })
-
-    const submissionPayload: QuizSubmissionPayload = {
-      answers: submissionAnswers,
+    // Don't send the request if the lesson is already marked as completed
+    if (isCompleted) {
+      console.log('Lesson already marked as completed')
+      return
     }
 
     try {
+      await axiosInstance.post(`/course-progress/${userId}/${params.id}/lessons/${params.lessonId}/complete`)
+      setIsCompleted(true)
+      console.log('Lesson marked as completed')
+    } catch (err) {
+      console.error('Error marking lesson as completed:', err)
+    }
+  };
+
+  const handleQuizSubmit = async (answers: Map<number, number>) => {
+    if (!quizDetails || !lessonDetails || !userId) return;
+
+    setIsSubmittingQuiz(true);
+    setQuizSpecificError(null);
+
+    const submissionAnswers: QuizQuestionAnswerDTO[] = [];
+    answers.forEach((chosenOptionIndex, questionId) => {
+      submissionAnswers.push({ questionId, chosenOptionIndex });
+    });
+
+    const submissionPayload: QuizSubmissionPayload = {
+      answers: submissionAnswers,
+    };
+
+    try {
       const response = await axiosInstance.post<QuizSubmissionResultDTO>(
-        `/quizzes/${quizDetails.id}/submit?userId=${userIdForProgress}`,
-        submissionPayload,
+        `/quizzes/${quizDetails.id}/submit?userId=${userId}`,
+        submissionPayload
       );
+      
       const result = response.data;
-      setCurrentCompletionId(result.completionId); 
+      setCurrentCompletionId(result.completionId);
 
       if (result.isPerfected) {
         setQuizProgressState('perfected');
-        setQuizReviewData({ 
-            id: result.completionId,
-            rawScore: result.rawScore,
-            totalQuestions: result.totalQuestions,
-            completionDate: new Date().toISOString(), 
-            userId: userIdForProgress,
-            username: "User", 
-            quizId: quizDetails.id,
-            quizTitle: quizDetails.title,
-            experienceEarned: result.experienceEarned,
-            attemptDetails: [] 
+        setQuizReviewData({
+          id: result.completionId,
+          rawScore: result.rawScore,
+          totalQuestions: result.totalQuestions,
+          completionDate: new Date().toISOString(),
+          userId: userId,
+          username: "User",
+          quizId: quizDetails.id,
+          quizTitle: quizDetails.title,
+          experienceEarned: result.experienceEarned,
+          attemptDetails: []
         });
 
         if (!isCompleted) {
           try {
             await axiosInstance.post(
-              `/course-progress/${userIdForProgress}/${params.id}/lessons/${lessonDetails.id}/complete`,
+              `/course-progress/${userId}/${params.id}/lessons/${lessonDetails.id}/complete`
             );
             setIsCompleted(true);
           } catch (lessonCompleteError) {
@@ -317,17 +378,17 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
         }
       } else {
         setQuizProgressState('show_score_retake');
-        setQuizReviewData({ 
-            id: result.completionId,
-            rawScore: result.rawScore,
-            totalQuestions: result.totalQuestions,
-            completionDate: new Date().toISOString(),
-            userId: userIdForProgress,
-            username: "User", 
-            quizId: quizDetails.id,
-            quizTitle: quizDetails.title,
-            experienceEarned: result.experienceEarned, 
-            attemptDetails: [] 
+        setQuizReviewData({
+          id: result.completionId,
+          rawScore: result.rawScore,
+          totalQuestions: result.totalQuestions,
+          completionDate: new Date().toISOString(),
+          userId: userId,
+          username: "User",
+          quizId: quizDetails.id,
+          quizTitle: quizDetails.title,
+          experienceEarned: result.experienceEarned,
+          attemptDetails: []
         });
       }
     } catch (err: any) {
@@ -335,19 +396,19 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
       if (err.response) {
         console.error("Backend Error Response:", err.response.data);
       }
-      const errorMessage = err.response?.data?.message || "Failed to submit quiz. Please try again."
-      setQuizSpecificError(errorMessage)
+      const errorMessage = err.response?.data?.message || "Failed to submit quiz. Please try again.";
+      setQuizSpecificError(errorMessage);
     } finally {
-      setIsSubmittingQuiz(false)
+      setIsSubmittingQuiz(false);
     }
-  }
+  };
   
   if (isLoading) {
     return (
       <div className="flex min-h-screen bg-black text-white justify-center items-center">
         <p className="text-xl">Loading lesson...</p>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -360,7 +421,7 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
   if (!lessonDetails) {
@@ -368,7 +429,7 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
       <div className="flex min-h-screen bg-black text-white justify-center items-center">
         <p className="text-xl">Lesson not found.</p>
       </div>
-    )
+    );
   }
 
   const renderVideoPlayer = () => {
@@ -548,7 +609,20 @@ export default function LessonPage({ params: paramsPromise }: { params: Promise<
              </div>
           )}
 
-          <div className={`flex justify-between mt-${(quizDetails || quizReviewData) ? '10' : '10'}`}>
+          {/* Mark as completed button */}
+          {!isCompleted && !quizDetails && (
+            <div className="mt-8">
+              <Button
+                onClick={markLessonAsCompleted}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Mark as Completed
+              </Button>
+            </div>
+          )}
+
+          <div className={`flex justify-between mt-${(quizDetails || quizReviewData) ? '10' : '6'}`}>
             <Button
               onClick={() => handleNavigation(prevLesson)}
               variant="outline"

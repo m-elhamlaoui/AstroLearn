@@ -90,18 +90,17 @@ pipeline {
         // Étape 5: Lancer les tests d'intégration pour le backend
         stage('Run Integration Tests') {
             steps {
+                echo "Configuration de l'environnement de test d'intégration"
+                
+                // Vérifier que le service PostgreSQL est accessible depuis Kubernetes
+                bat "kubectl --kubeconfig=${env.KUBECONFIG} get service postgres-service"
+                
                 dir('Backend/demo') {
-                    echo "Exécution des tests d'intégration"
-                    // Exécute uniquement les tests dans le package integration
-                    bat './mvnw test -Dtest=com.example.demo.service.integration.*Test'
+                    echo "Exécution des tests d'intégration avec le profil de test"
+                    // Exécute uniquement les tests dans le package integration avec le profil de test
+                    bat './mvnw test -Dtest=com.example.demo.service.integration.*Test -Dspring.profiles.active=test'
                     // Publication des résultats des tests avec le plugin JUnit
                     junit 'target/surefire-reports/*.xml'
-                }
-            }
-            post {
-                always {
-                    // Arrêter le port-forward
-                    bat(script: "taskkill /F /IM kubectl.exe", returnStatus: true)
                 }
             }
         }

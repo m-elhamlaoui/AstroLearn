@@ -17,6 +17,13 @@ const getRuntimeConfig = () => {
   // Fallback
   const buildTimeApiUrl = process.env.NEXT_PUBLIC_API_URL;
   console.log(`[getRuntimeConfig] Falling back. Build-time NEXT_PUBLIC_API_URL: ${buildTimeApiUrl}`);
+  
+  // In Kubernetes, use the internal service name
+  if (process.env.NODE_ENV === 'production') {
+    return { API_URL: 'http://astrolearn-backend-service:8088' };
+  }
+  
+  // For local development
   return { API_URL: buildTimeApiUrl || 'http://localhost:8088' };
 };
 

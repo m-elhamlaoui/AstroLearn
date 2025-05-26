@@ -29,10 +29,8 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-# Copy the runtime configuration update script
-COPY update-config.sh /app/update-config.sh
-RUN chmod +x /app/update-config.sh
 
 # Expose port 3000
 EXPOSE 3000
-CMD ["npm", "run", "start"]
+
+CMD ["node", "server.js"]

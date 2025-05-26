@@ -35,7 +35,4 @@ RUN chmod +x /app/update-config.sh
 
 # Expose port 3000
 EXPOSE 3000
-
-# Use the update-config script as entrypoint
-ENTRYPOINT ["/app/update-config.sh"]
-CMD ["node", "server.js"]
+CMD ["npm", "run", "start"]

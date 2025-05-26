@@ -19,13 +19,13 @@ spec:
             - containerPort: 8088   # ✅ The internal port your Spring Boot app listens to
           env:
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:postgresql://postgres-service:5432/db1
+              value: jdbc:postgresql://postgres-service:5432/db11
             - name: SPRING_DATASOURCE_USERNAME
               value: user
             - name: SPRING_DATASOURCE_PASSWORD
               value: password
             - name: SPRING_JPA_HIBERNATE_DDL_AUTO
-              value: update
+              value: create
             - name: SERVER_PORT
               value: "8088"   # ✅ Spring Boot will start on port 8088
             - name: SPRING_JPA_SHOW_SQL

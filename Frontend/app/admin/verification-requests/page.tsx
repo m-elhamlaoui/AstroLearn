@@ -36,7 +36,7 @@ export default function VerificationRequestsPage() {
       try {
         setLoading(true)
         // Fetch users with PENDING verification status
-        const response = await axiosInstance.get("/users?verificationStatus=PENDING")
+        const response = await axiosInstance.get("/users/verification-status?status=PENDING")
         const data = response.data
         console.log("Verification requests data:", data)
         

@@ -96,6 +96,8 @@ export default function CoursePage({ params: paramsPromise }: { params: Promise<
   const [courseProgress, setCourseProgress] = useState<number>(0)
   // State to store API-tracked completed lessons count
   const [apiCompletedLessons, setApiCompletedLessons] = useState<number>(0)
+  // State to track if we need to refresh course data
+  const [refreshTrigger, setRefreshTrigger] = useState<number>(0)
 
   useEffect(() => {
     // Get user ID from localStorage
@@ -104,10 +106,24 @@ export default function CoursePage({ params: paramsPromise }: { params: Promise<
       if (storedUserId) {
         setUserId(parseInt(storedUserId, 10))
       }
+      
+      // Set up a global function to refresh course progress
+      window.updateCourseProgress = () => {
+        console.log('Course progress update triggered from lesson page')
+        setRefreshTrigger(prev => prev + 1)
+      }
+      
+      // Clean up the global function when component unmounts
+      return () => {
+        window.updateCourseProgress = undefined
+      }
     }
   }, [])
 
   useEffect(() => {
+    // Skip fetching if no userId is available yet
+    if (!userId) return;
+    
     const fetchCourseData = async () => {
       // Check for token before fetching
       if (typeof window !== 'undefined' && !localStorage.getItem('authToken')) {
@@ -215,7 +231,7 @@ export default function CoursePage({ params: paramsPromise }: { params: Promise<
     if (params.id) {
       fetchCourseData()
     }
-  }, [params.id, userId])
+  }, [params.id, userId, refreshTrigger])
 
   if (isLoading) {
     return (
@@ -416,9 +432,9 @@ export default function CoursePage({ params: paramsPromise }: { params: Promise<
                               >
                                 <div className="flex items-center gap-3">
                                   {lesson.completed ? (
-                                    <CheckCircle className="h-5 w-5 text-green-500" />
+                                    <CheckCircle className="h-5 w-5 text-green-500" data-testid={`completed-lesson-${lesson.id}`} />
                                   ) : (
-                                    <Play className="h-5 w-5 text-gray-400" />
+                                    <Play className="h-5 w-5 text-gray-400" data-testid={`uncompleted-lesson-${lesson.id}`} />
                                   )}
                                   <span className={lesson.completed ? "text-gray-300" : "text-white"}>
                                     {lesson.title}

@@ -94,12 +94,15 @@ export default function AdminDashboardPage() {
           })
         }
 
-        // Count pending verification requests (with safety checks)
+        // Fetch pending verification requests directly from the correct endpoint
         let pendingVerifications = 0
-        if (Array.isArray(users)) {
-          pendingVerifications = users.filter(user => 
-            user && user.verificationStatus === "PENDING"
-          ).length
+        try {
+          const pendingResponse = await axiosInstance.get("/users/verification-status?status=PENDING")
+          const pendingUsers = Array.isArray(pendingResponse.data) ? pendingResponse.data : []
+          pendingVerifications = pendingUsers.length
+          console.log("Pending verification users:", pendingUsers)
+        } catch (err) {
+          console.error("Error fetching pending verifications:", err)
         }
 
         // Calculate stats

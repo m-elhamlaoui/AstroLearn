@@ -48,7 +48,7 @@ pipeline {
             }
         }
 
-        // Étape 3: Déployer PostgreSQL pour les tests
+        // Étape 3: Déployer PostgreSQL et configurer le port-forward
         stage('Deploy PostgreSQL') {
             steps {
                 // Déployer PostgreSQL
@@ -60,6 +60,15 @@ pipeline {
                 
                 // Attendre que le pod soit complètement prêt
                 sleep(time: 15, unit: 'SECONDS')
+                
+                // Arrêter tout port-forward existant pour éviter les conflits
+                bat(script: "taskkill /F /IM kubectl.exe", returnStatus: true)
+                sleep(time: 2, unit: 'SECONDS')
+                
+                // Démarrer le port-forward en arrière-plan et attendre qu'il soit établi
+                bat(script: "start /B cmd /c kubectl --kubeconfig=${env.KUBECONFIG} port-forward service/postgres-service 5432:5432")
+                echo "Port-forward configuré pour PostgreSQL: localhost:5432 -> service/postgres-service:5432"
+                sleep(time: 10, unit: 'SECONDS')
             }
         }
         

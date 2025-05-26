@@ -53,10 +53,20 @@ public class ArticleController {
 
     // Pass authenticated user details to service
     @GetMapping
-    public ResponseEntity<Page<ArticleDTO>> getAllArticles(
+    public ResponseEntity<?> getAllArticles(
             Pageable pageable,
+            @RequestParam(required = false) List<Long> ids,
             @AuthenticationPrincipal UserDetails userDetails) { // Inject principal
         Long userId = getUserIdFromPrincipal(userDetails); // Helper to extract ID
+        
+        // If IDs are provided, fetch specific articles
+        if (ids != null && !ids.isEmpty()) {
+            System.out.println("Fetching articles by IDs: " + ids);
+            List<ArticleDTO> articles = articleService.getArticlesByIds(ids, userId);
+            return ResponseEntity.ok(articles);
+        }
+        
+        // Otherwise, return paginated results
         return ResponseEntity.ok(articleService.getAllArticles(pageable, userId));
     }
 

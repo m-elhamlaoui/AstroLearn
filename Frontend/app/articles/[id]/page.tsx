@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, use } from "react" // Ensure 'use' is imported
+import { useState, useEffect, use, useRef } from "react" // Ensure 'use' is imported
 import axiosInstance from "../../../lib/axiosInstance" 
 import { MinimalNavigation } from "@/components/minimal-navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -82,8 +82,16 @@ export default function ArticlePage({ params: paramsPromise }: { params: Promise
 
   const [userVote, setUserVote] = useState<"up" | "down" | null>(null) 
   const [newComment, setNewComment] = useState("")
+  const [userId, setUserId] = useState<number | null>(null)
+  const readingTimeInterval = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
+    // Get user ID from localStorage
+    const storedUserId = localStorage.getItem("userId")
+    if (storedUserId) {
+      setUserId(Number(storedUserId))
+    }
+    
     const articleId = params.id
     if (!articleId) {
       setError("Article ID is missing.")
@@ -140,11 +148,71 @@ export default function ArticlePage({ params: paramsPromise }: { params: Promise
     fetchArticleData()
   }, [params.id])
 
+  // Track reading time and log it to the backend
+  useEffect(() => {
+    if (!article || !userId) {
+      console.log("Cannot log reading history - missing article or userId:", { articleExists: !!article, userIdExists: !!userId })
+      return
+    }
+    
+    console.log("Attempting to log reading history for article:", article.id, "and user:", userId)
+    
+    // Log reading immediately when article is loaded to mark it as read
+    const logReading = async () => {
+      try {
+        console.log("Sending reading history log request with params:", {
+          userId,
+          articleId: article.id,
+          timeSpentIncrement: 1
+        })
+        
+        const response = await axiosInstance.post(`/reading-history/log`, null, {
+          params: {
+            userId,
+            articleId: article.id,
+            timeSpentIncrement: 1 // Just need minimal time since backend marks as read immediately
+          }
+        })
+        
+        console.log("Article marked as read - Response:", response.data)
+      } catch (err) {
+        console.error("Failed to mark article as read:", err)
+      }
+    }
+    
+    // Execute immediately
+    logReading()
+    
+    // No need for interval since we're marking as read immediately
+    // But we'll still track time spent for analytics purposes
+    readingTimeInterval.current = setInterval(async () => {
+      try {
+        await axiosInstance.post(`/reading-history/log`, null, {
+          params: {
+            userId,
+            articleId: article.id,
+            timeSpentIncrement: 30 // Update time spent for analytics
+          }
+        })
+        console.log("Reading time updated")
+      } catch (err) {
+        console.error("Failed to update reading time:", err)
+      }
+    }, 30000) // Every 30 seconds
+    
+    // Clean up interval on unmount
+    return () => {
+      if (readingTimeInterval.current) {
+        clearInterval(readingTimeInterval.current)
+      }
+    }
+  }, [article, userId])
+
   const handleVote = async (voteType: "up" | "down") => {
     if (!article) return;
-    const userId = 1 
+    const currentUserId = userId || 1 
     try {
-      const response = await axiosInstance.post<ArticleDTO>(`/articles/${article.id}/vote/user/${userId}`, { voteType: voteType.toUpperCase() }) 
+      const response = await axiosInstance.post<ArticleDTO>(`/articles/${article.id}/vote/user/${currentUserId}`, { voteType: voteType.toUpperCase() }) 
       setArticle(prevArticle => {
         if (!prevArticle) return null;
         // Update both votes and currentUserVote based on the response
@@ -164,9 +232,9 @@ export default function ArticlePage({ params: paramsPromise }: { params: Promise
 
   const handleSubmitComment = async () => {
     if (!newComment.trim() || !article) return
-    const userId = 1 
+    const currentUserId = userId || 1 
     try {
-      const response = await axiosInstance.post<CommentDTO>(`/articles/${article.id}/comments/user/${userId}`, {
+      const response = await axiosInstance.post<CommentDTO>(`/articles/${article.id}/comments/user/${currentUserId}`, {
         content: newComment,
       })
       const newCommentDto = response.data

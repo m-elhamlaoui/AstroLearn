@@ -62,7 +62,13 @@ public class ArticleServiceImpl implements ArticleService {
         return entityMapper.toDTO(savedArticle);
     }
 
-    
+    /**
+     * Retrieves an article by its ID, including the current user's vote status.
+     *
+     * @param id      The ID of the article to retrieve.
+     * @param userId  The ID of the user to check for vote status.
+     * @return The article DTO with the user's vote status.
+     */
     @Override
     @Transactional(readOnly = true)
     public ArticleDTO getArticleById(Long id, Long userId) { // Added userId parameter
@@ -93,7 +99,13 @@ public class ArticleServiceImpl implements ArticleService {
         );
     }
 
-    
+    /**
+     * Retrieves a page of articles, including the current user's vote status for each article.
+     *
+     * @param pageable The pagination information.
+     * @param userId   The ID of the user to check for vote status.
+     * @return A page of article DTOs with the user's vote status.
+     */
     @Override
     @Transactional(readOnly = true)
     public Page<ArticleDTO> getAllArticles(Pageable pageable, Long userId) { // Added userId parameter
@@ -103,7 +115,13 @@ public class ArticleServiceImpl implements ArticleService {
         return mapArticlePageToDtoWithVote(articlePage, userId);
     }
 
-    
+    /**
+     * Retrieves a page of articles sorted by score and creation time, including the current user's vote status for each article.
+     *
+     * @param pageable The pagination information.
+     * @param userId   The ID of the user to check for vote status.
+     * @return A page of article DTOs with the user's vote status.
+     */
     @Transactional(readOnly = true)
     @Override
     public Page<ArticleDTO> getAllArticlesSorted(Pageable pageable, Long userId) { // Added userId parameter
@@ -356,36 +374,9 @@ public List<CommentDTO> getCommentsByUserId(Long userId) {
      @Override
      @Transactional(readOnly = true)
      public List<ArticleDTO> getArticlesByAuthorId(Long authorId, Long currentUserId) {
-         List<Article> articles = articleRepository.findByAuthorId(authorId); // Assuming this method exists
-         // Use a similar mapping approach as mapArticlePageToDtoWithVote but for a List
-         return mapArticleListToDtoWithVote(articles, currentUserId);
-     }
- 
-     @Override
-     @Transactional(readOnly = true)
-     public List<ArticleDTO> getVotedArticlesByUserId(Long userId, VoteType voteType, Long currentUserId) {
-         int voteValue = voteType == VoteType.UP ? 1 : -1;
-         List<Article> articles = articleRepository.findArticlesVotedByUser(userId, voteValue); // Assuming this method exists
-         // Use a similar mapping approach as mapArticlePageToDtoWithVote but for a List
-         return mapArticleListToDtoWithVote(articles, currentUserId);
-     }
- 
-
-    private Set<ArticleTag> findOrCreateTags(Set<String> tagNames, Article article) {
-        if (tagNames == null || tagNames.isEmpty()) {
-            return Collections.emptySet();
-        }
-
-        Set<ArticleTag> result = new HashSet<>();
-
-        for (String name : tagNames) {
-            String cleanedName = name.trim().toLowerCase();
-            ArticleTag tag = findOrCreateTag(cleanedName, article);
-            result.add(tag);
-        }
-
-         return result;
-     }
+          List<Article> articles = articleRepository.findByAuthorId(authorId); // Assuming this method exists
+          return mapArticleListToDtoWithVote(articles, currentUserId);
+      }
  
      // Helper method to map List<Article> to List<ArticleDTO> including user vote
      private List<ArticleDTO> mapArticleListToDtoWithVote(List<Article> articles, Long userId) {
@@ -425,6 +416,22 @@ public List<CommentDTO> getCommentsByUserId(Long userId) {
         return articleTagRepository.findByArticleAndTagName_NameIgnoreCase(article, tagName)
                 .orElseGet(() -> articleTagRepository.save(new ArticleTag(article, tag)));
     }
+    
+    private Set<ArticleTag> findOrCreateTags(Set<String> tagNames, Article article) {
+        if (tagNames == null || tagNames.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        Set<ArticleTag> result = new HashSet<>();
+
+        for (String name : tagNames) {
+            String cleanedName = name.trim().toLowerCase();
+            ArticleTag tag = findOrCreateTag(cleanedName, article);
+            result.add(tag);
+        }
+
+        return result;
+    }
 
 
 
@@ -455,5 +462,49 @@ public List<CommentDTO> getCommentsByUserId(Long userId) {
             throw new UnauthorizedException("User not authorized to " + action + " this comment.");
         }
         System.out.println("Placeholder: Permissions check passed for user " + userId + " to " + action + " comment " + comment.getId());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<ArticleDTO> getArticlesByIds(List<Long> ids, Long currentUserId) {
+        System.out.println("ArticleServiceImpl.getArticlesByIds called with ids: " + ids);
+        if (ids == null || ids.isEmpty()) {
+            return Collections.emptyList();
+        }
+        
+        List<Article> articles = articleRepository.findAllById(ids);
+        System.out.println("Found " + articles.size() + " articles by IDs");
+        
+        return mapArticleListToDtoWithVote(articles, currentUserId);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<ArticleDTO> getVotedArticlesByUserId(Long userId, VoteType voteType, Long currentUserId) {
+        // Find all votes by the user with the specified vote type
+        List<ArticleVote> votes;
+        if (voteType == null) {
+            // Get all votes regardless of type
+            votes = articleVoteRepository.findByUserId(userId);
+        } else {
+            // Get votes of specific type (upvote = 1, downvote = -1)
+            int voteValue = voteType == VoteType.UP ? 1 : -1;
+            votes = articleVoteRepository.findByUserIdAndValue(userId, voteValue);
+        }
+        
+        if (votes.isEmpty()) {
+            return Collections.emptyList();
+        }
+        
+        // Extract article IDs from votes
+        List<Long> articleIds = votes.stream()
+                .map(vote -> vote.getArticle().getId())
+                .collect(Collectors.toList());
+        
+        // Get articles by IDs
+        List<Article> articles = articleRepository.findAllById(articleIds);
+        
+        // Map to DTOs with vote information
+        return mapArticleListToDtoWithVote(articles, currentUserId);
     }
 }

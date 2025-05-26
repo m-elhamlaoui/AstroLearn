@@ -44,11 +44,11 @@ public class ReadingHistoryServiceImpl implements ReadingHistoryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Article", "id", articleId));
 
         ReadingHistory readingHistory = readingHistoryRepository.findByUserAndArticle(user, article)
-                .orElseGet(() -> new ReadingHistory(null, user, article, false, 0, LocalDateTime.now()));
+                .orElseGet(() -> new ReadingHistory(null, user, article, true, 0, LocalDateTime.now()));
 
         readingHistory.setTimeSpentSeconds(readingHistory.getTimeSpentSeconds() + timeSpentIncrement);
         readingHistory.setLastAccessed(LocalDateTime.now());
-        readingHistory.updateIsRead();
+        readingHistory.setRead(true);
 
         ReadingHistory savedHistory = readingHistoryRepository.save(readingHistory);
         return entityMapper.toDTO(savedHistory);
@@ -60,10 +60,29 @@ public class ReadingHistoryServiceImpl implements ReadingHistoryService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
+        // Get all articles from reading history
         List<Article> articles = readingHistoryRepository.findRecentlyReadArticles(userId);
+        
+        // For each article, find its reading history to get accurate read status and time spent
         return articles.stream()
-                .map(article -> new ReadingHistoryDTO(
-                        null, false, 0, null, userId, article.getId(), article.getTitle()))
+                .map(article -> {
+                    ReadingHistory history = readingHistoryRepository.findByUserAndArticle(user, article)
+                            .orElse(null);
+                    
+                    // If history exists, use its values; otherwise use defaults
+                    boolean isRead = history != null && history.isRead();
+                    int timeSpent = history != null ? history.getTimeSpentSeconds() : 0;
+                    LocalDateTime lastAccessed = history != null ? history.getLastAccessed() : null;
+                    
+                    return new ReadingHistoryDTO(
+                            history != null ? history.getId() : null, 
+                            isRead, 
+                            timeSpent, 
+                            lastAccessed, 
+                            userId, 
+                            article.getId(), 
+                            article.getTitle());
+                })
                 .collect(Collectors.toList());
     }
 

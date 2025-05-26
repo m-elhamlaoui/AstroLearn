@@ -214,18 +214,41 @@ export function ProfileClient({ profileId }: { profileId: string }) {
         // Transform reading history data to articles format
         let readingHistoryArticles: Article[] = [];
         if (readingHistoryResult.status === 'fulfilled') {
+          console.log("Reading history result:", readingHistoryResult.value.data);
           // Get article IDs from reading history
           const readingHistoryData = readingHistoryResult.value.data;
           if (readingHistoryData.length > 0) {
-            // Fetch full article details for each article in reading history
+            console.log("Reading history data found, length:", readingHistoryData.length);
+            // Extract article IDs from reading history
             const articleIds = readingHistoryData.map(history => history.articleId);
+            console.log("Article IDs from reading history:", articleIds);
+            
+            // For each article ID, fetch the full article details individually
+            const articlePromises = articleIds.map(id => 
+              axiosInstance.get<ArticleDTO>(`/articles/${id}`)
+                .then(response => response.data)
+                .catch(error => {
+                  console.error(`Failed to fetch article ${id}:`, error);
+                  return null;
+                })
+            );
+            
             try {
-              const articlesResponse = await axiosInstance.get<ArticleDTO[]>(`/articles?ids=${articleIds.join(',')}`);
-              readingHistoryArticles = articlesResponse.data.map(transformArticleDTO);
+              const articleResults = await Promise.all(articlePromises);
+              console.log("Article results:", articleResults);
+              // Filter out any null results (failed requests) and transform to Article format
+              readingHistoryArticles = articleResults
+                .filter(article => article !== null)
+                .map(transformArticleDTO);
+              console.log("Transformed reading history articles:", readingHistoryArticles);
             } catch (err) {
-              console.error("Failed to fetch full article details for reading history:", err);
+              console.error("Failed to fetch articles for reading history:", err);
             }
+          } else {
+            console.log("No reading history data found");
           }
+        } else {
+          console.error("Reading history request failed:", readingHistoryResult.reason);
         }
 
         if (publishedResult.status === 'rejected') console.error("Failed to fetch published articles:", publishedResult.reason);

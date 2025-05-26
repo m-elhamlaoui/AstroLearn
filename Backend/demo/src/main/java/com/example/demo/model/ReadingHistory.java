@@ -36,6 +36,7 @@ public class ReadingHistory {
     @PreUpdate
     @PrePersist
     public void updateIsRead() {
-        this.isRead = timeSpentSeconds > 30; // Mark as read if spent >30 seconds
+        // Mark as read immediately when a user accesses the article
+        this.isRead = true;
     }
 }

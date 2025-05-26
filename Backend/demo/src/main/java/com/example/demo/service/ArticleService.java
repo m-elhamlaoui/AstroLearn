@@ -79,4 +79,7 @@ public interface ArticleService {
 
     // Fetch articles voted on by a specific user
     List<ArticleDTO> getVotedArticlesByUserId(Long userId, VoteType voteType, Long currentUserId); // Pass currentUserId for vote status
+    
+    // Fetch multiple articles by their IDs
+    List<ArticleDTO> getArticlesByIds(List<Long> ids, Long currentUserId); // Pass currentUserId for vote status
 }

@@ -21,6 +21,12 @@ public interface ArticleVoteRepository extends JpaRepository<ArticleVote, Long> 
 
     // Find all votes for a specific article
     List<ArticleVote> findByArticleId(Long articleId);
+    
+    // Find all votes by a specific user
+    List<ArticleVote> findByUserId(Long userId);
+    
+    // Find all votes by a user with a specific value
+    List<ArticleVote> findByUserIdAndValue(Long userId, int value);
 
     // Optional: Find all article IDs downvoted by a specific user
     @Query("SELECT av.article.id FROM ArticleVote av WHERE av.user.id = :userId AND av.value = -1")

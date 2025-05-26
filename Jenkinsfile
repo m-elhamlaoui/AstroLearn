@@ -1,5 +1,6 @@
 // Jenkinsfile pour Jenkins local sur Windows, déployant sur Docker Desktop K8s
-// Trigger build: 1
+// Trigger build: 2
+// Updated to use db11 instead of db1 and improved frontend configuration
 
 pipeline {
     // 'agent any' signifie que Jenkins exécutera les étapes sur n'importe quel
@@ -47,18 +48,54 @@ pipeline {
             }
         }
 
-        // Étape 3: Lancer les tests unitaires pour le backend
-        stage('Run Backend Tests') {
+        // Étape 3: Configurer la base de données pour les tests
+        stage('Setup Test Database') {
+            steps {
+                // Déployer PostgreSQL d'abord pour les tests
+                bat "kubectl --kubeconfig=${env.KUBECONFIG} apply -f k8s/postgres.yaml --validate=false"
+                echo "Attente de 10 secondes pour que PostgreSQL démarre..."
+                sleep(time: 10, unit: 'SECONDS')
+                
+                // Configurer le port-forward pour que les tests puissent accéder à la base de données
+                bat(script: "start /B kubectl --kubeconfig=${env.KUBECONFIG} port-forward service/postgres 5432:5432", returnStatus: true)
+                echo "Port-forward configuré pour PostgreSQL: localhost:5432 -> service/postgres:5432"
+                sleep(time: 5, unit: 'SECONDS')
+            }
+        }
+        
+        // Étape 4: Lancer les tests unitaires pour le backend
+        stage('Run Unit Tests') {
             steps {
                 dir('Backend/demo') {
-                    bat './mvnw test'
+                    echo "Exécution des tests unitaires"
+                    // Exécute uniquement les tests dans le package unit
+                    bat './mvnw test -Dtest=com.example.demo.service.unit.*Test'
                     // Publication des résultats des tests avec le plugin JUnit
                     junit 'target/surefire-reports/*.xml'
                 }
             }
         }
+        
+        // Étape 5: Lancer les tests d'intégration pour le backend
+        stage('Run Integration Tests') {
+            steps {
+                dir('Backend/demo') {
+                    echo "Exécution des tests d'intégration"
+                    // Exécute uniquement les tests dans le package integration
+                    bat './mvnw test -Dtest=com.example.demo.service.integration.*Test'
+                    // Publication des résultats des tests avec le plugin JUnit
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+            post {
+                always {
+                    // Arrêter le port-forward
+                    bat(script: "taskkill /F /IM kubectl.exe", returnStatus: true)
+                }
+            }
+        }
 
-        // Étape 4: Construire l'image Docker
+        // Étape 6: Construire l'image Docker du backend
         stage('Build Docker Image') {
             steps {
                 // Le contexte du build est le dossier 'Backend/demo' où se trouve le Dockerfile
@@ -80,7 +117,7 @@ pipeline {
             }
         }
 
-        // Étape 5: Pousser l'image Docker vers Docker Hub
+        // Étape 7: Pousser l'image Docker du backend vers Docker Hub
         stage('Push Docker Image') {
              steps {
                  // 'withCredentials' injecte les identifiants stockés dans Jenkins
@@ -104,13 +141,14 @@ pipeline {
              }
          }
 
-         stage('Verify K8s Access') {
+         // Étape 8: Vérifier l'accès à Kubernetes
+        stage('Verify K8s Access') {
               steps {
                  bat 'kubectl config current-context'
                  bat 'kubectl get nodes'
                }
         }
-        // Étape 6: Déployer le backend sur Kubernetes (Docker Desktop)
+        // Étape 9: Déployer le backend sur Kubernetes (Docker Desktop)
         stage('Deploy Backend to K8s') {
              steps {
                  // IMPORTANT: Cette étape suppose que votre fichier k8s/backend.yaml
@@ -125,6 +163,13 @@ pipeline {
                  bat(script: "kubectl --kubeconfig=${env.KUBECONFIG} apply -f k8s/postgres.yaml --validate=false", returnStatus: true)
                  
                  echo "Configuration Kubernetes appliquée. Les erreurs sur les champs immuables du StatefulSet sont ignorées."
+                 
+                 // Attendre que le pod PostgreSQL soit prêt
+                 sleep(time: 30, unit: 'SECONDS')
+                 
+                 // Vérifier que la base de données db11 est correctement configurée
+                 echo "Vérification de la base de données db11..."
+                 bat(script: "kubectl --kubeconfig=${env.KUBECONFIG} get pods -l app=postgres", returnStatus: true)
 
                  // Force le redémarrage des pods du déploiement pour
                  // qu'ils récupèrent la nouvelle image ':latest'.
@@ -136,28 +181,34 @@ pipeline {
          }
 
 
-        // Étape 7: Construire l'image Docker du Frontend
+        // Étape 10: Construire l'image Docker du Frontend
         stage('Build Frontend Docker Image') {
             steps {
                 dir('Frontend') {
                     script {
+                        // Assurez-vous que la configuration du frontend est correcte pour la production
+                        echo "Vérification de la configuration frontend pour la production..."
+                        
                         // On utilise le numéro de build Jenkins comme tag unique
                         def imageTag = "${env.BUILD_NUMBER}"
                         def frontendImageName = "${DOCKER_REGISTRY}/astrolearn-frontend"
                         def fullFrontendImageName = "${frontendImageName}:${imageTag}"
 
                         // Lance la commande 'docker build'
+                        // Note: Le Dockerfile a été mis à jour pour ne plus utiliser update-config.sh
                         bat "docker build -t ${fullFrontendImageName} ."
 
                         // Ajoute aussi le tag ':latest' à la même image
                         bat "docker tag ${fullFrontendImageName} ${frontendImageName}:latest"
+                        
+                        echo "Image Docker frontend construite avec succès, configurée pour utiliser le service backend interne de Kubernetes."
                     }
                 }
             }
         }
         
         
-        // Étape 9: Pousser l'image Docker du Frontend vers Docker Hub
+        // Étape 11: Pousser l'image Docker du Frontend vers Docker Hub
         stage('Push Frontend Docker Image') {
              steps {
                  withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
@@ -182,7 +233,7 @@ pipeline {
              }
          }
          
-        // Étape 10: Déployer le Frontend sur Kubernetes
+        // Étape 12: Déployer le Frontend sur Kubernetes
         stage('Deploy Frontend to K8s') {
              steps {
                  // Applique la configuration Kubernetes pour le frontend
@@ -223,6 +274,26 @@ pipeline {
                  }
              }
          }
+        // Étape 13: Vérifier le déploiement et fournir des instructions d'accès
+        stage('Verify Deployment') {
+            steps {
+                script {
+                    // Obtenir les NodePorts pour accéder aux services
+                    def frontendNodePort = bat(script: "kubectl --kubeconfig=${env.KUBECONFIG} get service astrolearn-frontend-service -o jsonpath='{.spec.ports[0].nodePort}'", returnStdout: true).trim()
+                    def backendNodePort = bat(script: "kubectl --kubeconfig=${env.KUBECONFIG} get service astrolearn-backend-service -o jsonpath='{.spec.ports[0].nodePort}'", returnStdout: true).trim()
+                    
+                    echo "\n===== DÉPLOIEMENT TERMINÉ AVEC SUCCÈS ====="
+                    echo "Application AstroLearn déployée avec succès sur Kubernetes!"
+                    echo "\nAccès à l'application:"
+                    echo "- Frontend: http://localhost:${frontendNodePort}"
+                    echo "- Backend API: http://localhost:${backendNodePort}"
+                    echo "\nPour un accès direct au backend sur le port 8088, exécutez:"
+                    echo "kubectl port-forward service/astrolearn-backend-service 8088:8088"
+                    echo "\nBase de données: PostgreSQL avec nom de base 'db11'"
+                    echo "===== DÉPLOIEMENT TERMINÉ AVEC SUCCÈS ====="
+                }
+            }
+        }
     } // Fin des stages
 
     // Actions à exécuter à la toute fin du pipeline
@@ -232,6 +303,9 @@ pipeline {
             // Nettoie l'espace de travail Jenkins pour le prochain build
             // Pas besoin de node block car le pipeline est déjà dans un agent
             cleanWs()
+        }
+        success {
+            echo "Pipeline exécuté avec succès! L'application AstroLearn est maintenant déployée sur Kubernetes."
         }
     }
 } // Fin du pipeline

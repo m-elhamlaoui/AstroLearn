@@ -48,29 +48,18 @@ pipeline {
             }
         }
 
-        // Étape 3: Configurer la base de données pour les tests
-        stage('Setup Test Database') {
+        // Étape 3: Déployer PostgreSQL pour les tests
+        stage('Deploy PostgreSQL') {
             steps {
-                // Déployer PostgreSQL d'abord pour les tests
+                // Déployer PostgreSQL
                 bat "kubectl --kubeconfig=${env.KUBECONFIG} apply -f k8s/postgres.yaml --validate=false"
-                echo "Attente de 15 secondes pour que PostgreSQL démarre..."
-                sleep(time: 15, unit: 'SECONDS')
+                echo "PostgreSQL déployé sur Kubernetes"
                 
                 // Vérifier que le pod PostgreSQL est prêt
                 bat "kubectl --kubeconfig=${env.KUBECONFIG} get pods -l app=postgres"
                 
-                // Arrêter tout port-forward existant pour éviter les conflits
-                bat(script: "taskkill /F /IM kubectl.exe", returnStatus: true)
-                sleep(time: 2, unit: 'SECONDS')
-                
-                // Configurer le port-forward pour que les tests puissent accéder à la base de données
-                // Utiliser cmd /c start pour démarrer le processus en arrière-plan
-                bat(script: "cmd /c start cmd /c kubectl --kubeconfig=${env.KUBECONFIG} port-forward service/postgres 5432:5432", returnStatus: true)
-                echo "Port-forward configuré pour PostgreSQL: localhost:5432 -> service/postgres:5432"
-                sleep(time: 10, unit: 'SECONDS')
-                
-                // Vérifier que le port-forward fonctionne
-                bat "netstat -ano | findstr 5432"
+                // Attendre que le pod soit complètement prêt
+                sleep(time: 15, unit: 'SECONDS')
             }
         }
         
@@ -90,14 +79,13 @@ pipeline {
         // Étape 5: Lancer les tests d'intégration pour le backend
         stage('Run Integration Tests') {
             steps {
-                echo "Configuration de l'environnement de test d'intégration"
-                
                 // Vérifier que le service PostgreSQL est accessible depuis Kubernetes
                 bat "kubectl --kubeconfig=${env.KUBECONFIG} get service postgres-service"
                 
                 dir('Backend/demo') {
                     echo "Exécution des tests d'intégration avec le profil de test"
                     // Exécute uniquement les tests dans le package integration avec le profil de test
+                    // Le profil de test utilise application-test.properties qui se connecte directement au service Kubernetes
                     bat './mvnw test -Dtest=com.example.demo.service.integration.*Test -Dspring.profiles.active=test'
                     // Publication des résultats des tests avec le plugin JUnit
                     junit 'target/surefire-reports/*.xml'

@@ -39,5 +39,5 @@ spec:
   ports:
   - protocol: TCP
     port: 80
-    targetPort: 3000   
+    targetPort: 3000   # ✅ Fix this to 3000
   type: NodePort

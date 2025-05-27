@@ -11,12 +11,17 @@ prometheus:
       limits:
         memory: 512Mi
         cpu: 500m
-    # Custom scrape configs - only for backend
+    # Custom scrape configs
     additionalScrapeConfigs:
       - job_name: 'astrolearn-backend'
         static_configs:
           - targets: ['astrolearn-backend-service.default.svc.cluster.local:8088']
         metrics_path: '/actuator/prometheus'
+      
+      # Frontend service metrics (if you add metrics later)
+      - job_name: 'astrolearn-frontend'
+        static_configs:
+          - targets: ['astrolearn-frontend-service.default.svc.cluster.local:80']
 
 # Grafana configuration
 grafana:
@@ -242,13 +247,29 @@ grafana:
             "version": 1
           }
 
-nodeExporter:
+# PostgreSQL Exporter
+prometheus-postgres-exporter:
   enabled: true
+  config:
+    datasource:
+      host: postgres-service.default.svc.cluster.local
+      user: user
+      password: password
+      port: "5432"
+      database: db11
+      sslmode: disable
+  serviceMonitor:
+    enabled: true
 
-kubeStateMetrics:
-  enabled: true
+# Node Exporter is enabled by default
+# nodeExporter:
+#   enabled: true
 
-# Service monitor for backend application
+# kube-state-metrics is enabled by default
+# kubeStateMetrics:
+#   enabled: true
+
+# Service monitors for your custom applications
 additionalServiceMonitors:
   - name: astrolearn-backend-monitor
     selector:

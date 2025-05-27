@@ -2,9 +2,9 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: devopsify-postgres # Nom du StatefulSet
+  name: astrolearn-postgres 
 spec:
-  serviceName: "postgres-service" # Nom du Service associé
+  serviceName: "postgres-service" 
   replicas: 1
   selector:
     matchLabels:
@@ -16,43 +16,44 @@ spec:
     spec:
       containers:
       - name: postgres
-        image: postgres:13 # Même image que dans docker-compose
+        image: postgres:13 
         ports:
         - containerPort: 5432
           name: postgresdb
         env:
           - name: POSTGRES_DB
-            value: si
+            value: db11
           - name: POSTGRES_USER
-            valueFrom: # Récupère la valeur depuis le Secret
-              secretKeyRef:
-                name: db-secret # Nom du Secret créé avant
-                key: POSTGRES_USER
+            value: user
           - name: POSTGRES_PASSWORD
-            valueFrom: # Récupère la valeur depuis le Secret
-              secretKeyRef:
-                name: db-secret # Nom du Secret créé avant
-                key: POSTGRES_PASSWORD
+            value: password
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
         volumeMounts:
-        - name: postgres-data-volume # Nom du montage
-          mountPath: /var/lib/postgresql/data # Chemin dans le conteneur
-  volumeClaimTemplates: # Demande de stockage persistant
+        - name: postgres-data-volume 
+          mountPath: /var/lib/postgresql/data 
+  volumeClaimTemplates: 
   - metadata:
-      name: postgres-data-volume # Doit correspondre au volumeMounts.name
+      name: postgres-data-volume 
     spec:
-      accessModes: [ "ReadWriteOnce" ] # Mode d'accès standard
+      accessModes: [ "ReadWriteOnce" ] 
       resources:
         requests:
-          storage: 1Gi # Demande 1 Gigaoctet de stockage (ajustez si besoin)
+          storage: 1Gi 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: postgres-service # Nom utilisé par le backend pour se connecter
+  name: postgres-service 
 spec:
   ports:
   - port: 5432
     name: postgresdb
-  clusterIP: None # Type spécial pour StatefulSet
+  clusterIP: None 
   selector:
-    app: postgres # Sélectionne les pods du StatefulSet
+    app: postgres 

@@ -10,8 +10,10 @@ import com.example.demo.model.User;
 import com.example.demo.repository.SpaceMissionRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.impl.SpaceMissionServiceImpl;
+import com.example.demo.util.TestLogger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -25,7 +27,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-
+@ExtendWith(TestLogger.class)
 class SpaceMissionServiceTest {
 
     @Mock

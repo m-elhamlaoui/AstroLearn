@@ -48,9 +48,10 @@ interface UserData {
   xp: number;
   joinDate: string; // Placeholder or fetch if available
   isCurrentUser: boolean; // Determined client-side
+  verificationStatus: string; // User verification status: VERIFIED, UNVERIFIED, PENDING
   articles: Article[]; // Published articles by this user
   upvotedArticles: Article[];
-  downvotedArticles: Article[];
+  readingHistory: Article[]; // Reading history articles
 }
 
 // Backend DTOs (for reference during transformation)
@@ -65,6 +66,17 @@ interface UserDTO {
   verificationStatus: string; 
   level: string; 
   experiencePoints: number;
+}
+
+// Define ReadingHistoryDTO interface to match backend
+interface ReadingHistoryDTO {
+  id: number;
+  isRead: boolean;
+  timeSpentSeconds: number;
+  lastAccessed: string;
+  userId: number;
+  articleId: number;
+  articleTitle: string;
 }
 
 interface ArticleDTO {
@@ -178,14 +190,14 @@ export function ProfileClient({ profileId }: { profileId: string }) {
           axiosInstance.get<UserDTO>(`/users/${profileUserIdNum}`),
           axiosInstance.get<ArticleDTO[]>(`/articles/user/${profileUserIdNum}`),
           axiosInstance.get<ArticleDTO[]>(`/articles/votes/user/${profileUserIdNum}?voteType=UP`),
-          axiosInstance.get<ArticleDTO[]>(`/articles/votes/user/${profileUserIdNum}?voteType=DOWN`)
+          axiosInstance.get<ReadingHistoryDTO[]>(`/reading-history/recent?userId=${profileUserIdNum}`)
         ]);
 
         // Check results
         const userResult = results[0];
         const publishedResult = results[1];
         const upvotedResult = results[2];
-        const downvotedResult = results[3];
+        const readingHistoryResult = results[3];
 
         if (userResult.status === 'rejected') {
             throw new Error(userResult.reason?.response?.data?.message || userResult.reason?.message || "Failed to load user data");
@@ -198,11 +210,27 @@ export function ProfileClient({ profileId }: { profileId: string }) {
         // Handle potential errors for article lists gracefully
         const publishedArticlesData = publishedResult.status === 'fulfilled' ? publishedResult.value.data.map(transformArticleDTO) : [];
         const upvotedArticlesData = upvotedResult.status === 'fulfilled' ? upvotedResult.value.data.map(transformArticleDTO) : [];
-        const downvotedArticlesData = downvotedResult.status === 'fulfilled' ? downvotedResult.value.data.map(transformArticleDTO) : [];
+        
+        // Transform reading history data to articles format
+        let readingHistoryArticles: Article[] = [];
+        if (readingHistoryResult.status === 'fulfilled') {
+          // Get article IDs from reading history
+          const readingHistoryData = readingHistoryResult.value.data;
+          if (readingHistoryData.length > 0) {
+            // Fetch full article details for each article in reading history
+            const articleIds = readingHistoryData.map(history => history.articleId);
+            try {
+              const articlesResponse = await axiosInstance.get<ArticleDTO[]>(`/articles?ids=${articleIds.join(',')}`);
+              readingHistoryArticles = articlesResponse.data.map(transformArticleDTO);
+            } catch (err) {
+              console.error("Failed to fetch full article details for reading history:", err);
+            }
+          }
+        }
 
         if (publishedResult.status === 'rejected') console.error("Failed to fetch published articles:", publishedResult.reason);
         if (upvotedResult.status === 'rejected') console.error("Failed to fetch upvoted articles:", upvotedResult.reason);
-        if (downvotedResult.status === 'rejected') console.error("Failed to fetch downvoted articles:", downvotedResult.reason);
+        if (readingHistoryResult.status === 'rejected') console.error("Failed to fetch reading history:", readingHistoryResult.reason);
 
 
         const fetchedUserData: UserData = {
@@ -214,9 +242,10 @@ export function ProfileClient({ profileId }: { profileId: string }) {
           xp: userDto.experiencePoints,
           joinDate: "2024-01-01T00:00:00Z", // Placeholder - fetch if available from UserDTO
           isCurrentUser: isCurrentUser,
+          verificationStatus: userDto.verificationStatus, // Add verificationStatus
           articles: publishedArticlesData,
           upvotedArticles: upvotedArticlesData,
-          downvotedArticles: downvotedArticlesData,
+          readingHistory: readingHistoryArticles,
         };
 
         setUserData(fetchedUserData);
@@ -358,7 +387,44 @@ export function ProfileClient({ profileId }: { profileId: string }) {
     }
   }
 
-  // --- Article Deletion --- 
+  // --- Request Verification ---
+const handleRequestVerification = async () => {
+  if (!userData) {
+    toast({
+      title: "Error",
+      description: "User data not available",
+      variant: "destructive"
+    });
+    return;
+  }
+
+  try {
+    // Updated URL to match backend endpoint
+    await axiosInstance.put(`/users/${userData.id}/verification/request`);
+    
+    // Update local state
+    setUserData(prev => {
+      if (!prev) return null;
+      return { ...prev, verificationStatus: "PENDING" };
+    });
+    
+    toast({
+      title: "Verification requested",
+      description: "Your verification request has been submitted and is pending review.",
+      duration: 5000,
+    });
+  } catch (err) {
+    console.error("Error requesting verification:", err);
+    toast({
+      title: "Error",
+      description: "Failed to submit verification request. Please try again later.",
+      variant: "destructive",
+      duration: 5000,
+    });
+  }
+};
+
+// --- Article Deletion --- 
   const handleDeleteArticle = async (articleId: number) => {
     if (!userData || !userData.isCurrentUser) return;
     
@@ -425,8 +491,8 @@ export function ProfileClient({ profileId }: { profileId: string }) {
           {userData.isCurrentUser && (
             <Dialog onOpenChange={(open) => { if (!open) setProfileEditError(null); }}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="icon" className="absolute top-4 right-4 bg-black/50 border-white/20 hover:bg-black/70 h-8 w-8 transition-all duration-300 hover:scale-110 opacity-0 group-hover:opacity-100" disabled={isUploadingCover || isSavingProfile}>
-                  {isUploadingCover ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                <Button variant="outline" className="absolute top-4 right-4 bg-black/70 border-white/20 hover:bg-black/90 transition-all duration-300 hover:scale-105 opacity-70 group-hover:opacity-100 flex items-center gap-2" disabled={isUploadingCover || isSavingProfile}>
+                  {isUploadingCover ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />} Change Cover
                 </Button>
               </DialogTrigger>
               <DialogContent className="bg-gray-900 border-gray-800">
@@ -455,8 +521,8 @@ export function ProfileClient({ profileId }: { profileId: string }) {
               {userData.isCurrentUser && (
                 <Dialog onOpenChange={(open) => { if (!open) setProfileEditError(null); }}>
                   <DialogTrigger asChild>
-                    <Button variant="outline" size="icon" className="absolute bottom-2 right-2 bg-black/50 border-white/20 hover:bg-black/70 h-8 w-8 transition-all duration-300 hover:scale-110 opacity-0 group-hover:opacity-100" disabled={isUploadingProfile || isSavingProfile}>
-                       {isUploadingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                    <Button variant="outline" className="absolute bottom-2 right-2 bg-black/70 border-white/20 hover:bg-black/90 transition-all duration-300 hover:scale-105 opacity-70 group-hover:opacity-100 flex items-center gap-2 text-xs" disabled={isUploadingProfile || isSavingProfile}>
+                       {isUploadingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />} Change
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="bg-gray-900 border-gray-800">
@@ -495,19 +561,68 @@ export function ProfileClient({ profileId }: { profileId: string }) {
               </div>
             </div>
             {userData.isCurrentUser && (
-              <div className="flex space-x-2">
-                {editMode ? (
+              <div className="flex gap-2 items-center">
+                {userData.isCurrentUser ? (
                   <>
-                    <Button onClick={handleProfileUpdate} className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600" disabled={isSavingProfile || isUploadingProfile || isUploadingCover}>
-                       {isSavingProfile ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null} Save Profile
-                    </Button>
-                    <Button onClick={() => setEditMode(false)} variant="outline" className="border-gray-700 text-gray-300 hover:bg-gray-800" disabled={isSavingProfile || isUploadingProfile || isUploadingCover}>Cancel</Button>
-                  </>
-                ) : ( <Button onClick={() => setEditMode(true)} variant="outline" size="icon" className="border-gray-700 text-gray-300 hover:bg-gray-800"><Edit className="h-4 w-4" /></Button> )}
-                <Link href="/article-edit"><Button variant="outline" size="icon" className="border-gray-700 text-gray-300 hover:bg-gray-800"><PenSquare className="h-4 w-4" /></Button></Link>
-              </div>
-            )}
-          </div>
+                    {editMode ? (
+                      <>
+                        <Button onClick={handleProfileUpdate} className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 font-semibold px-6" disabled={isSavingProfile || isUploadingProfile || isUploadingCover}>
+                          {isSavingProfile ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null} Save Profile
+                        </Button>
+                        <Button onClick={() => setEditMode(false)} variant="outline" className="border-gray-700 text-gray-300 hover:bg-gray-800" disabled={isSavingProfile || isUploadingProfile || isUploadingCover}>Cancel</Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button onClick={() => setEditMode(true)} className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 flex items-center gap-2 font-semibold">
+                          <Edit className="h-4 w-4" /> Edit Profile
+                        </Button>
+                        
+                        {/* Verification Button - only show if user is not verified and not pending */}
+                        {userData.verificationStatus === "UNVERIFIED" && (
+                          <Button
+                            onClick={handleRequestVerification}
+                            className="bg-green-600 hover:bg-green-700 ml-2 font-semibold"
+                          >
+                            Request Verification
+                          </Button>
+                        )}
+                        
+                        {/* Show badge if verified */}
+                        {userData.verificationStatus === "VERIFIED" && (
+                          <span className="bg-green-600 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            Verified
+                          </span>
+                        )}
+                        
+                        {/* Show pending badge if pending verification */}
+                        {userData.verificationStatus === "PENDING" && (
+                          <span className="bg-amber-600 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Verification Pending
+                          </span>
+                        )}
+                      </>
+                    )} 
+                  </> 
+                ) : (
+                  <>
+                    {/* If viewing someone else's profile */}
+                    {userData.verificationStatus === "VERIFIED" && (
+                      <span className="bg-green-600 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        Verified
+                      </span>
+                    )}
+                  </> 
+                )} 
+              </div> 
+            )} 
+          </div> 
 
           {/* Bio Section */}
           <div className="mb-8">
@@ -522,7 +637,7 @@ export function ProfileClient({ profileId }: { profileId: string }) {
             <TabsList className="grid w-full grid-cols-3 bg-gray-900 border border-gray-800 rounded-lg mb-6">
               <TabsTrigger value="published" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-md">Published Articles</TabsTrigger>
               <TabsTrigger value="upvoted" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-md">Upvoted</TabsTrigger>
-              <TabsTrigger value="downvoted" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-md">Downvoted</TabsTrigger>
+              <TabsTrigger value="history" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-md">History</TabsTrigger>
             </TabsList>
 
             <TabsContent value="published">
@@ -535,9 +650,9 @@ export function ProfileClient({ profileId }: { profileId: string }) {
                 {userData.upvotedArticles.length > 0 ? ( userData.upvotedArticles.map((article: Article) => ( <ArticleCard key={article.id} article={article} /> )) ) : ( <p className="text-gray-500 col-span-full text-center py-8">No upvoted articles yet.</p> )}
               </div>
             </TabsContent>
-            <TabsContent value="downvoted">
+            <TabsContent value="history">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {userData.downvotedArticles.length > 0 ? ( userData.downvotedArticles.map((article: Article) => ( <ArticleCard key={article.id} article={article} /> )) ) : ( <p className="text-gray-500 col-span-full text-center py-8">No downvoted articles yet.</p> )}
+                {userData.readingHistory.length > 0 ? ( userData.readingHistory.map((article: Article) => ( <ArticleCard key={article.id} article={article} /> )) ) : ( <p className="text-gray-500 col-span-full text-center py-8">No reading history yet.</p> )}
               </div>
             </TabsContent>
           </Tabs>

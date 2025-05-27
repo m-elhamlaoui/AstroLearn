@@ -34,10 +34,21 @@ export function SignInModal({ onOpenSignUp }: SignInModalProps) {
       })
 
       if (response.data && response.data.token) {
+        // Store authentication data
         localStorage.setItem("authToken", response.data.token)
         localStorage.setItem("userId", response.data.id) // Store user ID if needed
         localStorage.setItem("userRoles", JSON.stringify(response.data.roles)) // Store user roles
-        router.push("/articles")
+        
+        // Check if user is an admin and redirect accordingly
+        const isAdmin = response.data.roles?.includes('ROLE_ADMIN');
+        console.log("User is admin:", isAdmin, "Roles:", response.data.roles);
+        
+        if (isAdmin) {
+          router.push("/admin/dashboard")
+        } else {
+          router.push("/articles")
+        }
+        
         setOpen(false) // Close modal on success
       } else {
         setError("Sign in failed. Please check your credentials.")

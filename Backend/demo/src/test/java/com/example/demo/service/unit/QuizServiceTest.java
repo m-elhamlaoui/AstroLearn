@@ -7,8 +7,10 @@ import com.example.demo.model.*;
 import com.example.demo.repository.*;
 import com.example.demo.service.UserService;
 import com.example.demo.service.impl.QuizServiceImpl;
+import com.example.demo.util.TestLogger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -18,6 +20,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+@ExtendWith(TestLogger.class)
 
 class QuizServiceTest {
 

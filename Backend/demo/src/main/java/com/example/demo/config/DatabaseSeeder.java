@@ -247,13 +247,13 @@ public class DatabaseSeeder implements CommandLineRunner {
 
         // Original 4 Articles with picsum links
         articles.add(new Article(null, "The Future of Mars Colonization", "A look into upcoming missions and technologies for settling on Mars.", longContent,
-                Arrays.asList("https://picsum.photos/seed/mars1/600/400", "https://picsum.photos/seed/mars2/600/400"),
+                Arrays.asList("https://t3.ftcdn.net/jpg/02/04/39/40/240_F_204394050_kJTuq2ON7rxyKhcpXFF2Qi6MB69GTfL3.jpg", "https://media.istockphoto.com/id/1032889612/photo/base-on-mars-first-colonization-martian-colony-in-desert-landscape-on-the-red-planet.jpg?s=612x612&w=0&k=20&c=qUMk3_Q3MNT-X-aSzlQj_6MT244Br_u3ihzQkteqKfA="),
                 users.get(0), LocalDateTime.now().minusDays(10), new ArrayList<>(), new HashSet<>(), 0, 0L, new HashSet<>())); // Article 0
         articles.add(new Article(null, "Understanding Black Holes", "Exploring the mysteries of black holes and their impact on the universe.", longContent,
-                Arrays.asList("https://picsum.photos/seed/blackhole1/600/400"),
+                Arrays.asList("https://cdn.mos.cms.futurecdn.net/cK9mPpNsGv5yAmD7LrbUMQ-970-80.jpg.webp"),
                 users.get(1), LocalDateTime.now().minusDays(5), new ArrayList<>(), new HashSet<>(), 0, 0L, new HashSet<>())); // Article 1
         articles.add(new Article(null, "Advancements in Rocket Propulsion", "New technologies that are making space travel faster and more efficient.", longContent,
-                Arrays.asList("https://picsum.photos/seed/rocket1/600/400", "https://picsum.photos/seed/rocket2/600/400"),
+                Arrays.asList("https://revolutionized.com/wp-content/uploads/sites/5/2022/05/rocket-launch-at-sunset.jpg.webp", "https://revolutionized.com/wp-content/uploads/sites/5/2022/05/rocket-launch-at-sunset.jpg.webp"),
                 users.get(0), LocalDateTime.now().minusDays(2), new ArrayList<>(), new HashSet<>(), 0, 0L, new HashSet<>())); // Article 2
         articles.add(new Article(null, "The Search for Extraterrestrial Life", "Current efforts and methods in the quest to find life beyond Earth.", longContent,
                 Arrays.asList("https://th.bing.com/th/id/OIP.oXb1UmRqtGIMOfMhPH1z6AHaE7?cb=iwc1&rs=1&pid=ImgDetMain"), // No images for this one as per original
@@ -267,13 +267,13 @@ public class DatabaseSeeder implements CommandLineRunner {
                 Arrays.asList("https://solar-mems.com/wp-content/uploads/2022/09/MAF_20220830__KSC_Artemis1_epb_005medium.jpg", "https://www.nasa.gov/wp-content/uploads/2023/08/artemis-ii-patch-full-color-vector-logo.png"),
                 users.get(1), LocalDateTime.now().minusDays(8), new ArrayList<>(), new HashSet<>(), 0, 0L, new HashSet<>())); // Article 5
         articles.add(new Article(null, "Starlink and the Future of Global Internet", "How SpaceX's Starlink constellation aims to provide high-speed internet access worldwide.", longContent,
-                Arrays.asList("https://blogs.cornell.edu/info2040/files/2019/09/Screen-Shot-2019-09-20-at-9.58.36-PM.png", "https://picsum.photos/seed/starlink2/600/400"),
+                Arrays.asList("https://blogs.cornell.edu/info2040/files/2019/09/Screen-Shot-2019-09-20-at-9.58.36-PM.png", "https://media.wired.com/photos/5cdc9d0d4ef5ad318eea393a/3:2/w_1920,c_limit/science_spacex-starlink_19135749361609.jpg"),
                 users.get(6), LocalDateTime.now().minusDays(3), new ArrayList<>(), new HashSet<>(), 0, 0L, new HashSet<>())); // Article 6
         articles.add(new Article(null, "The Role of AI in Space Exploration", "Exploring how artificial intelligence is revolutionizing space missions, from navigation to data analysis.", longContent,
                 Arrays.asList("https://lifeboat.com/blog.images/the-role-of-ai-robotics-in-space-exploration.jpg"), // NASA AI concept image
                 users.get(0), LocalDateTime.now().minusDays(20), new ArrayList<>(), new HashSet<>(), 0, 0L, new HashSet<>())); // Article 7
         articles.add(new Article(null, "Asteroid Mining: The Next Frontier?", "A look at the potential and challenges of mining resources from asteroids.", longContent,
-                Arrays.asList("https://picsum.photos/seed/asteroidmine/600/400"), // Placeholder for asteroid mining
+                Arrays.asList("https://cdn.mos.cms.futurecdn.net/6hPAwHhkcQZ7qvLzJGo4ui-970-80.jpg.webp"), // Placeholder for asteroid mining
                 users.get(4), LocalDateTime.now().minusDays(6), new ArrayList<>(), new HashSet<>(), 0, 0L, new HashSet<>())); // Article 8
 
         return articleRepository.saveAll(articles);
@@ -381,18 +381,79 @@ public class DatabaseSeeder implements CommandLineRunner {
         System.out.println("Seeding Courses...");
         List<Course> courses = new ArrayList<>();
 
-        // Original 4 Courses with picsum links
-        courses.add(new Course(null, "Introduction to Astrophysics", "Learn the basics of astrophysics, from stars to galaxies.", Course.DifficultyLevel.BEGINNER, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/course1/600/300"));
-        courses.add(new Course(null, "Rocket Science 101", "Understand the principles of rocket propulsion and spaceflight.", Course.DifficultyLevel.INTERMEDIATE, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/course2/600/300"));
-        courses.add(new Course(null, "Planetary Geology", "Explore the geological features of planets in our solar system.", Course.DifficultyLevel.INTERMEDIATE, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/course3/600/300"));
-        courses.add(new Course(null, "Advanced Space Mission Design", "Deep dive into designing complex space missions.", Course.DifficultyLevel.ADVANCED, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/course4/600/300"));
+        // Original 4 Courses with picsum links - all set to PUBLISHED status
+        Course course1 = new Course();
+        course1.setTitle("Introduction to Astrophysics");
+        course1.setDescription("Learn the basics of astrophysics, from stars to galaxies.");
+        course1.setDifficulty(Course.DifficultyLevel.BEGINNER);
+        course1.setImageUrl("https://cdn.mos.cms.futurecdn.net/CZwwGN84vpwLXivbuMsYSZ-970-80.jpg.webp");
+        course1.setStatus(Course.CourseStatus.PUBLISHED);
+        courses.add(course1);
+        
+        Course course2 = new Course();
+        course2.setTitle("Rocket Science 101");
+        course2.setDescription("Understand the principles of rocket propulsion and spaceflight.");
+        course2.setDifficulty(Course.DifficultyLevel.INTERMEDIATE);
+        course2.setImageUrl("https://img.freepik.com/free-photo/rocket-flying-through-space_23-2150378597.jpg");
+        course2.setStatus(Course.CourseStatus.PUBLISHED);
+        courses.add(course2);
+        
+        Course course3 = new Course();
+        course3.setTitle("Planetary Geology");
+        course3.setDescription("Explore the geological features of planets in our solar system.");
+        course3.setDifficulty(Course.DifficultyLevel.INTERMEDIATE);
+        course3.setImageUrl("https://media.istockphoto.com/id/1298100499/photo/3d-rendered-galaxy-space-scene-with-planets.jpg?s=612x612&w=0&k=20&c=41rOIymfvrvRTpp0xBSv59lxvWgYka4Oh6eJoTN2VuI=");
+        course3.setStatus(Course.CourseStatus.PUBLISHED);
+        courses.add(course3);
+        
+        Course course4 = new Course();
+        course4.setTitle("Advanced Space Mission Design");
+        course4.setDescription("Deep dive into designing complex space missions.");
+        course4.setDifficulty(Course.DifficultyLevel.ADVANCED);
+        course4.setImageUrl("https://www.nasa.gov/wp-content/uploads/2025/05/54492396655-8b425c4045-k.jpg");
+        course4.setStatus(Course.CourseStatus.PUBLISHED);
+        courses.add(course4);
 
         // New Courses (5 additional) with picsum links for consistency
-        courses.add(new Course(null, "Cosmology: The Study of the Universe", "Delve into the origin, evolution, and ultimate fate of the universe.", Course.DifficultyLevel.ADVANCED, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/cosmology/600/300"));
-        courses.add(new Course(null, "Introduction to Astrobiology", "Search for life beyond Earth: methods, possibilities, and implications.", Course.DifficultyLevel.BEGINNER, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/astrobiology/600/300"));
-        courses.add(new Course(null, "Satellite Systems Engineering", "Learn about the design, launch, and operation of artificial satellites.", Course.DifficultyLevel.INTERMEDIATE, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/satellite_eng/600/300"));
-        courses.add(new Course(null, "Space Law and Policy", "Understand the legal frameworks governing space activities and exploration.", Course.DifficultyLevel.ADVANCED, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/space_law/600/300"));
-        courses.add(new Course(null, "Observational Astronomy Techniques", "Practical guide to using telescopes and analyzing astronomical data.", Course.DifficultyLevel.INTERMEDIATE, new ArrayList<>(), new ArrayList<>(), "https://picsum.photos/seed/obs_astro/600/300"));
+        Course course5 = new Course();
+        course5.setTitle("Cosmology: The Study of the Universe");
+        course5.setDescription("Delve into the origin, evolution, and ultimate fate of the universe.");
+        course5.setDifficulty(Course.DifficultyLevel.ADVANCED);
+        course5.setImageUrl("https://cdn.mos.cms.futurecdn.net/Xub58vuiCCEKHLGuM4QWBU-1200-80.jpg.webp");
+        course5.setStatus(Course.CourseStatus.PUBLISHED);
+        courses.add(course5);
+        
+        Course course6 = new Course();
+        course6.setTitle("Introduction to Astrobiology");
+        course6.setDescription("Search for life beyond Earth: methods, possibilities, and implications.");
+        course6.setDifficulty(Course.DifficultyLevel.BEGINNER);
+        course6.setImageUrl("https://img.recraft.ai/-GZyi3n318TYndiRA3LD0laMxBhbEQq1UA3lVVA6lLs/rs:fit:1820:1024:0/q:95/g:no/plain/abs://prod/images/d64e282b-8f0f-4059-a9fd-0da6b823370f@jpg");
+        course6.setStatus(Course.CourseStatus.PUBLISHED);
+        courses.add(course6);
+        
+        Course course7 = new Course();
+        course7.setTitle("Satellite Systems Engineering");
+        course7.setDescription("Learn about the design, launch, and operation of artificial satellites.");
+        course7.setDifficulty(Course.DifficultyLevel.INTERMEDIATE);
+        course7.setImageUrl("https://media.istockphoto.com/id/182062885/photo/space-station-in-earth-orbit.jpg?s=612x612&w=0&k=20&c=F_P2YJ3QDbSW2n6dWkh6JNYeQGI1-2q-wOBk9-sw_Xo=");
+        course7.setStatus(Course.CourseStatus.PUBLISHED);
+        courses.add(course7);
+        
+        Course course8 = new Course();
+        course8.setTitle("Space Law and Policy");
+        course8.setDescription("Understand the legal frameworks governing space activities and exploration.");
+        course8.setDifficulty(Course.DifficultyLevel.ADVANCED);
+        course8.setImageUrl("https://img.recraft.ai/y1tLzDFiBrj5YMyrV8nx1gyKUqiQ23lkgpcSHSXcBNM/rs:fit:1820:1024:0/q:95/g:no/plain/abs://prod/images/0ccb1753-070e-4f44-9179-836dfdf4b7f7@jpg");
+        course8.setStatus(Course.CourseStatus.PUBLISHED);
+        courses.add(course8);
+        
+        Course course9 = new Course();
+        course9.setTitle("Observational Astronomy Techniques");
+        course9.setDescription("Practical guide to using telescopes and analyzing astronomical data.");
+        course9.setDifficulty(Course.DifficultyLevel.INTERMEDIATE);
+        course9.setImageUrl("https://img.recraft.ai/SDJkQT9NRVVDJ5YBpbI1YasqGjzNAj91-zxag8X4YVo/rs:fit:1820:1024:0/q:95/g:no/plain/abs://prod/images/8d768fa8-4025-4add-b5bc-555c94b7c2f2@jpg");
+        course9.setStatus(Course.CourseStatus.PUBLISHED);
+        courses.add(course9);
 
         return courseRepository.saveAll(courses);
     }
@@ -432,14 +493,14 @@ public class DatabaseSeeder implements CommandLineRunner {
         lessons.add(new Lesson(null, "Lifecycle of a Star", sampleContent, "https://www.youtube.com/watch?v=PM9CQDlQI0A", modules.get(0), null));
         lessons.add(new Lesson(null, "The Milky Way Galaxy", sampleContent, "https://www.youtube.com/watch?v=tj_QPnO8vpQ", modules.get(1), null));
         lessons.add(new Lesson(null, "Types of Galaxies", sampleContent, "https://www.youtube.com/watch?v=rKexqK3UKdE", modules.get(1), null));
-        lessons.add(new Lesson(null, "Chemical Rockets", sampleContent, "https://www.youtube.com/watch?v=S7nZPh8jC7E", modules.get(2), null));
-        lessons.add(new Lesson(null, "Ion Thrusters & Future Propulsion", sampleContent, "https://www.youtube.com/watch?v=6o77gq2Ak0I", modules.get(2), null));
+        lessons.add(new Lesson(null, "Chemical Rockets", sampleContent, "https://www.youtube.com/watch?v=3isXaIQ3Lkk", modules.get(2), null));
+        lessons.add(new Lesson(null, "Ion Thrusters & Future Propulsion", sampleContent, "https://www.youtube.com/watch?v=6H0qsqZjLW0&t", modules.get(2), null));
         lessons.add(new Lesson(null, "Kepler's Laws of Planetary Motion", sampleContent, "https://www.youtube.com/watch?v=Dvoe8Ib5D1o", modules.get(3), null));
-        lessons.add(new Lesson(null, "Understanding Orbits", sampleContent, "https://www.youtube.com/watch?v=N5G_K81Zrf0", modules.get(3), null));
-        lessons.add(new Lesson(null, "Evidence for the Big Bang", sampleContent, "https://www.youtube.com/watch?v=1bK8p2XpL2M", modules.get(8), null));
+        lessons.add(new Lesson(null, "Understanding Orbits", sampleContent, "https://www.youtube.com/watch?v=bcvnfQlz1x4", modules.get(3), null));
+        lessons.add(new Lesson(null, "Evidence for the Big Bang", sampleContent, "https://www.youtube.com/watch?v=xtrYF_hxxUM", modules.get(8), null));
         lessons.add(new Lesson(null, "Cosmic Microwave Background", sampleContent, null, modules.get(8), null));
-        lessons.add(new Lesson(null, "Variables of the Drake Equation", sampleContent, "https://www.youtube.com/watch?v=80Rzpj2hCSo", modules.get(10), null));
-        lessons.add(new Lesson(null, "LEO, MEO, GEO Orbits", sampleContent, "https://www.youtube.com/watch?v=JTwXAg35rDA", modules.get(12), null));
+        lessons.add(new Lesson(null, "Variables of the Drake Equation", sampleContent, "https://www.youtube.com/watch?v=x8qLBE8qPv0", modules.get(10), null));
+        lessons.add(new Lesson(null, "LEO, MEO, GEO Orbits", sampleContent, "https://www.youtube.com/watch?v=NFc3oU_wq7I", modules.get(12), null));
         lessons.add(new Lesson(null, "Reflecting vs Refracting Telescopes", sampleContent, null, modules.get(15), null));
 
         return lessonRepository.saveAll(lessons);
@@ -674,7 +735,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         missions.add(new SpaceMission(null, "Artemis I", "NASA", LocalDateTime.of(2022, 11, 16, 6, 47),
                 "Uncrewed Moon-orbiting mission, the first flight of the Space Launch System rocket and the second flight of the Orion MPCV.",
                 "https://th.bing.com/th/id/R.34b5555b4b6985cf7d7c22d062087218?rik=ul470SGlVBLjtA&riu=http%3a%2f%2feng.auburn.edu%2fimages%2fnews%2fartemis.jpg&ehk=4ci2T0TMahmbZwZcgUkQ4cJEY14lGonoJ5AmdsfgwHY%3d&risl=&pid=ImgRaw&r=0",
-                "https://www.youtube.com/watch?v=21X5lGlDOfg",  SpaceMission.MissionStatus.COMPLETED,  verifiedUsers.get(0 % verifiedUsers.size())));
+                "https://www.youtube.com/watch?v=AvVFy3Feb1U",  SpaceMission.MissionStatus.COMPLETED,  verifiedUsers.get(0 % verifiedUsers.size())));
         missions.add(new SpaceMission(null, "Mars Perseverance Rover", "NASA", LocalDateTime.of(2020, 7, 30, 11, 50),
                 "Search for signs of ancient microbial life, collect rock and soil samples for possible return to Earth.",
                 "https://th.bing.com/th/id/R.33eacd53caf9f320085318a6bf5c1887?rik=tbqz%2bLyWgvNLQw&pid=ImgRaw&r=0",
@@ -700,14 +761,14 @@ public class DatabaseSeeder implements CommandLineRunner {
         missions.add(new SpaceMission(null, "Psyche Mission", "NASA", LocalDateTime.of(2023, 10, 13, 14, 19),
                 "Journey to a unique metal-rich asteroid orbiting the Sun between Mars and Jupiter.",
                 "https://scitechdaily.com/images/Psyche-Spacecraft-Asteroid-Composite-2048x1152.jpg",
-                "https://www.youtube.com/watch?v=yN9n40j5gqI", SpaceMission.MissionStatus.IN_PROGRESS, verifiedUsers.get(0 % verifiedUsers.size())));
+                "https://www.youtube.com/watch?v=y__vwRQ3PVg", SpaceMission.MissionStatus.IN_PROGRESS, verifiedUsers.get(0 % verifiedUsers.size())));
         missions.add(new SpaceMission(null, "BepiColombo", "ESA/JAXA", LocalDateTime.of(2018, 10, 20, 1, 45),
                 "Joint mission to Mercury, consisting of two orbiters to study the planet's composition, magnetosphere, and surface.",
                 "https://cdn.futura-sciences.com/sources/images/bepicolombo-esa-jaxa-atg-medialab1.jpg",
                 null, SpaceMission.MissionStatus.IN_PROGRESS, verifiedUsers.get(1 % verifiedUsers.size())));
         missions.add(new SpaceMission(null, "Hubble Space Telescope (HST) Servicing Mission 4 (SM4)", "NASA", LocalDateTime.of(2009, 5, 11, 18, 1),
                 "Final servicing mission to the Hubble Space Telescope, extending its operational life and enhancing its capabilities.",
-                "https://stsci-opo.org/STScI-01EVSRR9W0WZRR6DDKV79BX7MG.pngit ad",
+                "https://science.nasa.gov/wp-content/uploads/2023/05/47789379502-ce1e07c969-o-jpg.webp?resize=768,510",
                 null, SpaceMission.MissionStatus.COMPLETED, verifiedUsers.get(0 % verifiedUsers.size())));
 
         spaceMissionRepository.saveAll(missions);

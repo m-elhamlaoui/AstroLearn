@@ -10,6 +10,7 @@ public record CourseDTO(
         String description,
         String imageUrl,
         Course.DifficultyLevel difficulty,
+        Course.CourseStatus status,
         int totalLessons,
         List<Long> moduleIds
 ) {}

@@ -6,8 +6,10 @@ import com.example.demo.model.Course;
 import com.example.demo.repository.CourseRepository;
 import com.example.demo.repository.QuizCompletionRepository;
 import com.example.demo.service.CourseService;
+import com.example.demo.util.TestLogger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,9 +19,12 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static com.example.demo.util.TestLogger.*;
 
 @SpringBootTest
 @Transactional
+@ExtendWith(TestLogger.class)
+
 public class CourseServiceIntegrationTest {
 
     @Autowired
@@ -36,9 +41,11 @@ public class CourseServiceIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        logStep("Setting up test data for CourseServiceIntegrationTest");
         // Clean up before each test
         quizCompletionRepository.deleteAll(); // Delete quiz completions first
         courseRepository.deleteAll();
+        logStep("Database cleaned up");
 
         // Create test courses
         course1 = new Course();
@@ -62,6 +69,7 @@ public class CourseServiceIntegrationTest {
                 "New Description",
                 null, // imageUrl
                 Course.DifficultyLevel.ADVANCED,
+                Course.CourseStatus.DRAFT, // status
                 0, // totalLessons
                 null // moduleIds
         );
@@ -106,10 +114,11 @@ public class CourseServiceIntegrationTest {
     void testUpdateCourse() {
         CourseDTO updatedCourseDTO = new CourseDTO(
                 course1.getId(),
-                "Updated Course Title",
+                "Updated Course",
                 "Updated Description",
                 null, // imageUrl
                 Course.DifficultyLevel.ADVANCED,
+                Course.CourseStatus.PUBLISHED, // status
                 0, // totalLessons
                 null // moduleIds
         );
@@ -118,14 +127,14 @@ public class CourseServiceIntegrationTest {
 
         assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo(course1.getId());
-        assertThat(result.title()).isEqualTo("Updated Course Title");
+        assertThat(result.title()).isEqualTo("Updated Course");
         assertThat(result.description()).isEqualTo("Updated Description");
         assertThat(result.difficulty()).isEqualTo(Course.DifficultyLevel.ADVANCED);
 
         // Verify in database
         Optional<Course> updatedCourseOpt = courseRepository.findById(course1.getId());
         assertThat(updatedCourseOpt).isPresent();
-        assertThat(updatedCourseOpt.get().getTitle()).isEqualTo("Updated Course Title");
+        assertThat(updatedCourseOpt.get().getTitle()).isEqualTo("Updated Course");
         assertThat(updatedCourseOpt.get().getDescription()).isEqualTo("Updated Description");
         assertThat(updatedCourseOpt.get().getDifficulty()).isEqualTo(Course.DifficultyLevel.ADVANCED);
     }
@@ -134,10 +143,11 @@ public class CourseServiceIntegrationTest {
     void testUpdateCourse_NotFound() {
         CourseDTO updatedCourseDTO = new CourseDTO(
                 999L,
-                "Updated Course Title",
+                "Updated Course",
                 "Updated Description",
                 null, // imageUrl
                 Course.DifficultyLevel.ADVANCED,
+                Course.CourseStatus.PUBLISHED, // status
                 0, // totalLessons
                 null // moduleIds
         );

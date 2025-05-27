@@ -15,9 +15,11 @@ import com.example.demo.repository.ArticleVoteRepository;
 import com.example.demo.repository.CommentRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.impl.ArticleServiceImpl;
+import com.example.demo.util.TestLogger;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -32,6 +34,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+@ExtendWith(TestLogger.class)
 
 class ArticleServiceTest {
 

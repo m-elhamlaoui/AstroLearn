@@ -17,6 +17,7 @@ interface BackendCourse {
   difficulty: string; // e.g., "BEGINNER", "INTERMEDIATE", "ADVANCED"
   totalLessons: number; // Available from DTO, not directly used in current UI mapping but fetched
   moduleIds: number[]; // Available from DTO, not directly used in current UI mapping but fetched
+  status: string; // "DRAFT" or "PUBLISHED"
 }
 
 // Interface for data passed to CourseCard, matching CourseCard's expected props
@@ -63,8 +64,12 @@ export default function CoursesPage() {
 
   // Filter courses based on search query and map to DisplayCourse
   useEffect(() => {
-    let filteredBackendCourses = allCourses;
+    // First filter to only show published courses
+    let filteredBackendCourses = allCourses.filter(
+      (course) => course.status === "PUBLISHED"
+    );
 
+    // Then apply search filter if there's a query
     if (searchQuery) {
       filteredBackendCourses = filteredBackendCourses.filter(
         (course) =>

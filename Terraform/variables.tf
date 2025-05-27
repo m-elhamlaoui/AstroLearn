@@ -36,7 +36,7 @@ variable "availability_zones" {
 variable "frontend_app_port" {
   description = "The port your frontend application container listens on."
   type        = number
-  default     = 80 # Standard HTTP port.
+  default     = 3000 # Matches frontend Dockerfile EXPOSE.
 }
 
 variable "backend_app_port" {
@@ -129,6 +129,19 @@ variable "backend_health_check_path" {
   description = "HTTP path for the backend service health check."
   type        = string
   default     = "/health" # Common default, adjust if needed.
+}
+
+# --- Docker Images ---
+variable "docker_image_frontend" {
+  description = "Docker image for the frontend service"
+  type        = string
+  default = "omarbdoc/astrolearn-front:latest"
+}
+
+variable "docker_image_backend" {
+  description = "Docker image for the backend service"
+  type        = string
+  default = "omarbdoc/astrolearn-back:latest"
 }
 
 

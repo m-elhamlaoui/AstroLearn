@@ -1,0 +1,43 @@
+# k8s/frontend.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: astrolearn-frontend-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: astrolearn-frontend
+  template:
+    metadata:
+      labels:
+        app: astrolearn-frontend
+    spec:
+      containers:
+      - name: astrolearn-frontend
+        image: douaae/astrolearn-frontend:latest
+        ports:
+        - containerPort: 3000
+        env:
+          - name: NEXT_PUBLIC_API_URL
+            value: "http://astrolearn-backend-service:8088"
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "300m"
+          requests:
+            memory: "256Mi"
+            cpu: "150m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: astrolearn-frontend-service
+spec:
+  selector:
+    app: astrolearn-frontend
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3000   # ✅ Fix this to 3000
+  type: NodePort

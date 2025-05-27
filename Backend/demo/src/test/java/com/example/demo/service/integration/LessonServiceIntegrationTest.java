@@ -10,11 +10,14 @@ import com.example.demo.repository.LessonRepository;
 import com.example.demo.repository.ModuleRepository;
 import com.example.demo.repository.QuizCompletionRepository;
 import com.example.demo.service.LessonService;
+import com.example.demo.util.TestLogger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import static com.example.demo.util.TestLogger.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +27,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @Transactional
+@ExtendWith(TestLogger.class)
+
 public class LessonServiceIntegrationTest {
 
     @Autowired
@@ -47,6 +52,7 @@ public class LessonServiceIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        logStep("Setting up test data for LessonServiceIntegrationTest");
         // Clean up before each test
         quizCompletionRepository.deleteAll(); // Delete quiz completions first
         lessonRepository.deleteAll();

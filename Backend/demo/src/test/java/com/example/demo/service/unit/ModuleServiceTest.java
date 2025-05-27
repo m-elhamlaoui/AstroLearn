@@ -8,8 +8,10 @@ package com.example.demo.service.unit;
     import com.example.demo.repository.CourseRepository;
     import com.example.demo.repository.ModuleRepository;
     import com.example.demo.service.impl.ModuleServiceImpl;
+    import com.example.demo.util.TestLogger;
     import org.junit.jupiter.api.BeforeEach;
     import org.junit.jupiter.api.Test;
+    import org.junit.jupiter.api.extension.ExtendWith;
     import org.mockito.InjectMocks;
     import org.mockito.Mock;
     import org.mockito.MockitoAnnotations;
@@ -20,6 +22,7 @@ package com.example.demo.service.unit;
 
     import static org.junit.jupiter.api.Assertions.*;
     import static org.mockito.Mockito.*;
+@ExtendWith(TestLogger.class)
 
     class ModuleServiceTest {
 

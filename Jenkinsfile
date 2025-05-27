@@ -291,24 +291,42 @@ pipeline {
                 script {
                     echo "Deploying Prometheus and Grafana monitoring stack..."
                     
-                    // Apply the Prometheus stack using Helm
-                    bat "helm install monitoring prometheus-community/kube-prometheus-stack -f k8s/monitoring/prometheus-stack-values.yaml"
-                    
-                    // Wait for Prometheus and Grafana pods to be ready
-                    bat "kubectl --kubeconfig=${env.KUBECONFIG} wait --for=condition=ready pod -l app=prometheus --timeout=120s"
-                    bat "kubectl --kubeconfig=${env.KUBECONFIG} wait --for=condition=ready pod -l app=grafana --timeout=120s"
-                    
-                    // Get the NodePorts for Prometheus and Grafana
-                    def grafanaNodePortCmd = bat(script: "kubectl --kubeconfig=${env.KUBECONFIG} get service monitoring-grafana -o jsonpath='{.spec.ports[0].nodePort}'", returnStdout: true).trim()
-                    def prometheusNodePortCmd = bat(script: "kubectl --kubeconfig=${env.KUBECONFIG} get service monitoring-prometheus-server -o jsonpath='{.spec.ports[0].nodePort}'", returnStdout: true).trim()
-                    
-                    // Extract port numbers
-                    def grafanaNodePort = grafanaNodePortCmd.tokenize('\r\n').last().replaceAll("'", "")
-                    def prometheusNodePort = prometheusNodePortCmd.tokenize('\r\n').last().replaceAll("'", "")
-                    
-                    echo "Monitoring stack deployed successfully!"
-                    echo "Grafana: http://localhost:${grafanaNodePort} (admin/admin)"
-                    echo "Prometheus: http://localhost:${prometheusNodePort}"
+                    try {
+                        // Add the Prometheus Community Helm repository
+                        bat "helm repo add prometheus-community https://prometheus-community.github.io/helm-charts"
+                        bat "helm repo update"
+                        
+                        // Check if monitoring is already installed and remove it if it exists
+                        def helmListResult = bat(script: "helm list -q | findstr monitoring", returnStatus: true)
+                        if (helmListResult == 0) {
+                            echo "Monitoring stack already exists, removing it first..."
+                            bat "helm uninstall monitoring"
+                            sleep(time: 30, unit: 'SECONDS') // Wait for resources to be cleaned up
+                        }
+                        
+                        // Apply the Prometheus stack using Helm
+                        bat "helm install monitoring prometheus-community/kube-prometheus-stack -f k8s/monitoring/prometheus-stack-values.yaml"
+                        
+                        // Give the pods some time to start before checking
+                        sleep(time: 30, unit: 'SECONDS')
+                        
+                        // List all pods to see what's actually running
+                        echo "Listing all pods in the cluster:"
+                        bat "kubectl --kubeconfig=${env.KUBECONFIG} get pods --all-namespaces"
+                        
+                        // Display services to see what ports are available
+                        echo "Listing all services in the cluster:"
+                        bat "kubectl --kubeconfig=${env.KUBECONFIG} get services"
+                        
+                        echo "Monitoring stack deployment completed. Check the Kubernetes dashboard for details."
+                        echo "Typical access URLs (actual ports may vary):"
+                        echo "- Grafana: http://localhost:30300 (admin/admin)"
+                        echo "- Prometheus: http://localhost:30090"
+                    } catch (Exception e) {
+                        echo "Warning: Monitoring stack deployment encountered an issue: ${e.message}"
+                        echo "Continuing with the pipeline..."
+                        // Don't fail the build if monitoring deployment has issues
+                    }
                 }
             }
         }

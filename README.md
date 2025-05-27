@@ -115,11 +115,11 @@ The application is structured around four main domains:
 
 AstroLearn implements a comprehensive DevOps strategy with two deployment paths: local deployment and cloud deployment on AWS.
 
-### Local Development Environment
+### Local deployment 
 
 <div align="center">
   <img src="Diagrams/architecture application devops local.drawio.png" alt="Local DevOps Architecture" width="800"/>
-  <p><i>Local Development Environment Architecture</i></p>
+  <p><i>Local Deployment Architecture</i></p>
 </div>
 
 The local development environment leverages Docker Desktop with Kubernetes for containerization and orchestration:
@@ -157,20 +157,47 @@ The local development environment leverages Docker Desktop with Kubernetes for c
 
 ### Cloud Deployment (AWS)
 
-The cloud deployment strategy utilizes AWS services with infrastructure as code and automated CI/CD:
+<div align="center">
+  <img src="Diagrams/schema deployment .jpg" alt="AWS Deployment Architecture" width="400"/>
+  <p><i>AWS Three-Tier Architecture Deployment</i></p>
+</div>
 
-#### Infrastructure Components
-- **AWS EKS**: Managed Kubernetes service for container orchestration
-- **AWS RDS**: Managed PostgreSQL database service
-- **AWS S3**: Object storage for media files
+The AstroLearn cloud deployment leverages a Terraform-based approach for a secure, scalable web application on AWS, following best practices for isolation, modularity, and high availability.
+
+#### Architecture Breakdown
+
+**Network Layer:**
+-  Custom VPC, public/private subnets, multi-AZ, route tables, internet gateway.
+
+**Frontend Tier:**
+- ASG + internet-facing ALB, Dockerized EC2 instances, health checks.
+
+**Backend Tier:**
+- Internal ALB, isolated ASG, containerized EC2, no internet access.
+
+**Data Tier:**
+- Amazon RDS (MySQL/PostgreSQL), private subnets, single-AZ (cost-optimized).
+
+
+#### Security
+- Tier-isolated security groups (frontend ↔ backend ↔ database)
+- No direct database or backend internet access
+- Open SSH for debugging (needs restriction for production).
+
+#### Scalability & Availability
+- Independent auto scaling per tier
+- Cross-AZ load balancing
+- RDS backups and health checks for fault tolerance
+#### Deployment Tools
 - **Terraform**: Infrastructure as Code for AWS resource provisioning
 - **GitHub Actions**: CI/CD pipeline automation
 
-#### Deployment Process
-1. Infrastructure provisioning with Terraform
-2. Container image building and pushing to ECR
-3. Deployment to EKS using Kubernetes manifests
-4. Configuration of networking and security
+
+#### Advantages
+- **Scalable & Performant**: Load balancing, auto scaling, Docker deployments
+- **Secure**: Private networking, least privilege access
+- **Cost-Effective**: Free-tier resources, optional spot instances, dev-optimized RDS
+- **Maintainable**: Modular Terraform code, versioning, consistent deployments
 
 ## CI/CD Pipeline
 

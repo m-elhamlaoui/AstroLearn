@@ -16,7 +16,7 @@ spec:
         - name: astrolearn-backend
           image: douaae/astrolearn-backend:latest
           ports:
-            - containerPort: 8088   # ✅ The internal port your Spring Boot app listens to
+            - containerPort: 8088   
           env:
             - name: SPRING_DATASOURCE_URL
               value: jdbc:postgresql://postgres-service:5432/db11
@@ -27,7 +27,7 @@ spec:
             - name: SPRING_JPA_HIBERNATE_DDL_AUTO
               value: create
             - name: SERVER_PORT
-              value: "8088"   # ✅ Spring Boot will start on port 8088
+              value: "8088"   
             - name: SPRING_JPA_SHOW_SQL
               value: "true"
             - name: LOGGING_LEVEL_ROOT
@@ -51,6 +51,6 @@ spec:
     app: astrolearn-backend
   ports:
     - protocol: TCP
-      port: 8088        # ✅ The port your frontend expects
-      targetPort: 8088  # ✅ Must match the containerPort
+      port: 8088        
+      targetPort: 8088  
   type: NodePort

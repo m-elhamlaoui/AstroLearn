@@ -1,36 +1,29 @@
-// Jenkinsfile pour Jenkins local sur Windows, déployant sur Docker Desktop K8s
-// Trigger build: 2
-// Updated to use db11 instead of db1 and improved frontend configuration
+// Jenkinsfile: Windows Jenkins → Docker Desktop K8s
 
 pipeline {
-    // 'agent any' signifie que Jenkins exécutera les étapes sur n'importe quel
-    // agent disponible. Dans une installation simple, c'est souvent le
-    // contrôleur Jenkins lui-même (votre machine Windows).
+
     agent any
 
-    // Variables d'environnement utilisées dans le pipeline
+
     environment {
-        // REMPLACEZ 'votrenomutilisateur' PAR VOTRE VRAI NOM D'UTILISATEUR DOCKER HUB
         DOCKER_REGISTRY = "douaae"
         DOCKER_IMAGE_NAME = "${DOCKER_REGISTRY}/space-hub-backend"
-        // Ceci doit correspondre à l'ID que vous avez donné aux credentials
-        // Docker Hub dans Jenkins (Manage Jenkins -> Credentials)
+
         DOCKER_CREDENTIALS_ID = 'dockerhub-creds'
-        // Windows path to your kubeconfig
+
         KUBECONFIG = 'C:\\Users\\Usuario\\.kube\\config'
-        // Commenté car l'outil NodeJS n'est pas configuré dans Jenkins
         // NODEJS_HOME = tool 'NodeJS'
     }
 
-    // Les différentes étapes du pipeline
+
     stages {
 
-        // Étape 1: Récupérer le code source depuis Git
+        // 1. Checkout
         stage('Checkout') {
                 steps {
-                    // Spécifie explicitement la branche 'production' à utiliser
+
                     git branch: 'production', url: 'https://github.com/m-elhamlaoui/AstroLearn.git', 
-                    credentialsId: 'github-credentials' // Use a simpler credential ID configured in Jenkins
+                    credentialsId: 'github-credentials'
 
                 }
         }
@@ -38,11 +31,7 @@ pipeline {
         // Étape 2: Compiler l'application Spring Boot avec Maven Wrapper
         stage('Build App') {
             steps {
-                // 'dir' change le répertoire de travail pour les commandes suivantes
                 dir('Backend/demo') {
-                    // 'bat' exécute une commande batch Windows.
-                    // Utilise le Maven Wrapper fourni dans votre projet.
-                    // '-DskipTests' pour ne pas lancer les tests unitaires ici (on peut faire une étape séparée).
                     bat './mvnw clean package -DskipTests'
                 }
             }
@@ -158,9 +147,7 @@ pipeline {
         // Étape 9: Déployer le backend sur Kubernetes (Docker Desktop)
         stage('Deploy Backend to K8s') {
              steps {
-                 // IMPORTANT: Cette étape suppose que votre fichier k8s/backend.yaml
-                 // référence l'image avec le tag ':latest' comme ceci :
-                 // image: votrenomutilisateur/space-hub-backend:latest
+
 
                  // Appliquer la configuration Kubernetes pour le backend
                  bat "kubectl --kubeconfig=${env.KUBECONFIG} apply -f k8s/backend.yaml --validate=false"
@@ -193,19 +180,14 @@ pipeline {
             steps {
                 dir('Frontend') {
                     script {
-                        // Assurez-vous que la configuration du frontend est correcte pour la production
                         echo "Vérification de la configuration frontend pour la production..."
                         
-                        // On utilise le numéro de build Jenkins comme tag unique
                         def imageTag = "${env.BUILD_NUMBER}"
                         def frontendImageName = "${DOCKER_REGISTRY}/astrolearn-frontend"
                         def fullFrontendImageName = "${frontendImageName}:${imageTag}"
 
-                        // Lance la commande 'docker build'
-                        // Note: Le Dockerfile a été mis à jour pour ne plus utiliser update-config.sh
                         bat "docker build -t ${fullFrontendImageName} ."
 
-                        // Ajoute aussi le tag ':latest' à la même image
                         bat "docker tag ${fullFrontendImageName} ${frontendImageName}:latest"
                         
                         echo "Image Docker frontend construite avec succès, configurée pour utiliser le service backend interne de Kubernetes."
@@ -219,15 +201,12 @@ pipeline {
         stage('Push Frontend Docker Image') {
              steps {
                  withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                     // Se connecte à Docker Hub en utilisant les variables injectées
                      bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
                      
                      script {
                          def frontendImageName = "${DOCKER_REGISTRY}/astrolearn-frontend"
                          
-                         // Pousse l'image avec le tag spécifique (numéro de build)
                          bat "docker push ${frontendImageName}:${env.BUILD_NUMBER}"
-                         // Pousse l'image avec le tag ':latest'
                          bat "docker push ${frontendImageName}:latest"
                      }
                  }
@@ -271,25 +250,25 @@ pipeline {
                          echo "Le pipeline est marqué comme INSTABLE (jaune) mais pas échoué (rouge)."
                          echo "Vérifiez manuellement l'état des pods avec: kubectl get pods"
                          
-                         // Afficher les logs des pods pour le débogage
+
                          bat(script: "kubectl --kubeconfig=${env.KUBECONFIG} logs -l app=astrolearn-frontend --tail=50", returnStatus: true)
                      } else {
-                         echo "===== DÉPLOIEMENT FRONTEND RÉUSSI ====="
-                         echo "Tous les pods sont prêts et en état de fonctionnement."
+                         echo "===== FRONTEND DEPLOYMENT SUCCESSFUL ====="
+                         echo "All pods are ready and running."
                          bat "kubectl --kubeconfig=${env.KUBECONFIG} get pods -l app=astrolearn-frontend"
                      }
                  }
              }
          }
-        // Étape 13: Vérifier le déploiement et fournir des instructions d'accès
+        // 13. Verify deployment
         stage('Verify Deployment') {
             steps {
                 script {
-                    // Obtenir les NodePorts pour accéder aux services et les stocker dans des variables
+
                     def frontendNodePortCmd = bat(script: "kubectl --kubeconfig=${env.KUBECONFIG} get service astrolearn-frontend-service -o jsonpath='{.spec.ports[0].nodePort}'", returnStdout: true).trim()
                     def backendNodePortCmd = bat(script: "kubectl --kubeconfig=${env.KUBECONFIG} get service astrolearn-backend-service -o jsonpath='{.spec.ports[0].nodePort}'", returnStdout: true).trim()
                     
-                    // Extraire uniquement le numéro de port (dernier mot de la sortie)
+
                     def frontendNodePort = frontendNodePortCmd.tokenize('\r\n').last().replaceAll("'", "")
                     def backendNodePort = backendNodePortCmd.tokenize('\r\n').last().replaceAll("'", "")
                     
@@ -313,10 +292,8 @@ pipeline {
         always {
             // Terminer tous les processus kubectl pour éviter les problèmes de nettoyage
             bat(script: "taskkill /F /IM kubectl.exe", returnStatus: true)
-            // Attendre un peu pour que les processus se terminent
             sleep(time: 5, unit: 'SECONDS')
             // Nettoie l'espace de travail Jenkins pour le prochain build
-            // Pas besoin de node block car le pipeline est déjà dans un agent
             cleanWs()
         }
         success {

@@ -284,7 +284,38 @@ pipeline {
                 }
             }
         }
-    } // Fin des stages
+    } 
+    // Stage 14: Deploy Monitoring Stack
+    stage('Deploy Monitoring') {
+        steps {
+            script {
+                echo "Deploying Prometheus and Grafana monitoring stack..."
+                
+                // Apply the Prometheus stack using Helm
+                bat "helm install monitoring prometheus-community/kube-prometheus-stack -f k8s/monitoring/prometheus-stack-values.yaml"
+                
+                // Wait for Prometheus and Grafana pods to be ready
+                bat "kubectl --kubeconfig=${env.KUBECONFIG} wait --for=condition=ready pod -l app=prometheus --timeout=120s"
+                bat "kubectl --kubeconfig=${env.KUBECONFIG} wait --for=condition=ready pod -l app=grafana --timeout=120s"
+                
+                // Get the NodePorts for Prometheus and Grafana
+                def grafanaNodePortCmd = bat(script: "kubectl --kubeconfig=${env.KUBECONFIG} get service monitoring-grafana -o jsonpath='{.spec.ports[0].nodePort}'", returnStdout: true).trim()
+                def prometheusNodePortCmd = bat(script: "kubectl --kubeconfig=${env.KUBECONFIG} get service monitoring-prometheus-server -o jsonpath='{.spec.ports[0].nodePort}'", returnStdout: true).trim()
+                
+                // Extract port numbers
+                def grafanaNodePort = grafanaNodePortCmd.tokenize('\r\n').last().replaceAll("'", "")
+                def prometheusNodePort = prometheusNodePortCmd.tokenize('\r\n').last().replaceAll("'", "")
+                
+                echo "Monitoring stack deployed successfully!"
+                echo "Grafana: http://localhost:${grafanaNodePort} (admin/admin)"
+                echo "Prometheus: http://localhost:${prometheusNodePort}"
+            }
+        }
+    }
+
+
+
+    // Fin des stages
 
     // Actions à exécuter à la toute fin du pipeline
     post {

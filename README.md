@@ -158,7 +158,7 @@ The local development environment leverages Docker Desktop with Kubernetes for c
 ### Cloud Deployment (AWS)
 
 <div align="center">
-  <img src="Diagrams/schema deployment .jpg" alt="AWS Deployment Architecture" width="400"/>
+  <img src="Diagrams/schema deployment .jpg" alt="AWS Deployment Architecture" width="700"/>
   <p><i>AWS Three-Tier Architecture Deployment</i></p>
 </div>
 

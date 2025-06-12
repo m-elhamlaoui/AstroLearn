@@ -163,6 +163,12 @@
 			<version>2.20.160</version>
 		</dependency>
 
+		<dependency>
+			<groupId>me.paulschwarz</groupId>
+			<artifactId>spring-dotenv</artifactId>
+			<version>2.5.4</version>
+		</dependency>
+
 
 
 	</dependencies>

@@ -1,0 +1,284 @@
+# Prometheus Stack Values Configuration
+
+# Prometheus configuration
+prometheus:
+  prometheusSpec:
+    retention: 10d
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 250m
+      limits:
+        memory: 512Mi
+        cpu: 500m
+    # Custom scrape configs
+    additionalScrapeConfigs:
+      - job_name: 'astrolearn-backend'
+        static_configs:
+          - targets: ['astrolearn-backend-service.default.svc.cluster.local:8088']
+        metrics_path: '/actuator/prometheus'
+      
+      # Frontend service metrics (if you add metrics later)
+      - job_name: 'astrolearn-frontend'
+        static_configs:
+          - targets: ['astrolearn-frontend-service.default.svc.cluster.local:80']
+
+# Grafana configuration
+grafana:
+  adminPassword: admin
+  persistence:
+    enabled: false # Disable persistence to avoid permission issues
+  plugins:
+    - grafana-clock-panel
+    - grafana-simple-json-datasource
+  
+  # Dashboard Provisioning
+  dashboards:
+    default:
+      spring-boot:
+        json: |
+          {
+            "annotations": {
+              "list": [
+                {
+                  "builtIn": 1,
+                  "datasource": "-- Grafana --",
+                  "enable": true,
+                  "hide": true,
+                  "iconColor": "rgba(0, 211, 255, 1)",
+                  "name": "Annotations & Alerts",
+                  "type": "dashboard"
+                }
+              ]
+            },
+            "editable": true,
+            "gnetId": null,
+            "graphTooltip": 0,
+            "id": 1,
+            "links": [],
+            "panels": [
+              {
+                "aliasColors": {},
+                "bars": false,
+                "dashLength": 10,
+                "dashes": false,
+                "datasource": "Prometheus",
+                "fill": 1,
+                "fillGradient": 0,
+                "gridPos": {
+                  "h": 8,
+                  "w": 12,
+                  "x": 0,
+                  "y": 0
+                },
+                "hiddenSeries": false,
+                "id": 2,
+                "legend": {
+                  "avg": false,
+                  "current": false,
+                  "max": false,
+                  "min": false,
+                  "show": true,
+                  "total": false,
+                  "values": false
+                },
+                "lines": true,
+                "linewidth": 1,
+                "nullPointMode": "null",
+                "options": {
+                  "dataLinks": []
+                },
+                "percentage": false,
+                "pointradius": 2,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "spaceLength": 10,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                  {
+                    "expr": "system_cpu_usage",
+                    "refId": "A"
+                  }
+                ],
+                "thresholds": [],
+                "timeFrom": null,
+                "timeRegions": [],
+                "timeShift": null,
+                "title": "CPU Usage",
+                "tooltip": {
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "individual"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "buckets": null,
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": []
+                },
+                "yaxes": [
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  }
+                ],
+                "yaxis": {
+                  "align": false,
+                  "alignLevel": null
+                }
+              },
+              {
+                "aliasColors": {},
+                "bars": false,
+                "dashLength": 10,
+                "dashes": false,
+                "datasource": "Prometheus",
+                "fill": 1,
+                "fillGradient": 0,
+                "gridPos": {
+                  "h": 8,
+                  "w": 12,
+                  "x": 12,
+                  "y": 0
+                },
+                "hiddenSeries": false,
+                "id": 4,
+                "legend": {
+                  "avg": false,
+                  "current": false,
+                  "max": false,
+                  "min": false,
+                  "show": true,
+                  "total": false,
+                  "values": false
+                },
+                "lines": true,
+                "linewidth": 1,
+                "nullPointMode": "null",
+                "options": {
+                  "dataLinks": []
+                },
+                "percentage": false,
+                "pointradius": 2,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "spaceLength": 10,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                  {
+                    "expr": "jvm_memory_used_bytes",
+                    "refId": "A"
+                  }
+                ],
+                "thresholds": [],
+                "timeFrom": null,
+                "timeRegions": [],
+                "timeShift": null,
+                "title": "JVM Memory Used",
+                "tooltip": {
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "individual"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "buckets": null,
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": []
+                },
+                "yaxes": [
+                  {
+                    "format": "bytes",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  }
+                ],
+                "yaxis": {
+                  "align": false,
+                  "alignLevel": null
+                }
+              }
+            ],
+            "schemaVersion": 22,
+            "style": "dark",
+            "tags": [],
+            "templating": {
+              "list": []
+            },
+            "time": {
+              "from": "now-6h",
+              "to": "now"
+            },
+            "timepicker": {},
+            "timezone": "",
+            "title": "Spring Boot Metrics (via Helm Values)",
+            "uid": "springboot-helm",
+            "version": 1
+          }
+
+# PostgreSQL Exporter
+prometheus-postgres-exporter:
+  enabled: true
+  config:
+    datasource:
+      host: postgres-service.default.svc.cluster.local
+      user: user
+      password: password
+      port: "5432"
+      database: db11
+      sslmode: disable
+  serviceMonitor:
+    enabled: true
+
+# Node Exporter is enabled by default
+# nodeExporter:
+#   enabled: true
+
+# kube-state-metrics is enabled by default
+# kubeStateMetrics:
+#   enabled: true
+
+# Service monitors for your custom applications
+additionalServiceMonitors:
+  - name: astrolearn-backend-monitor
+    selector:
+      matchLabels:
+        app: astrolearn-backend
+    namespaceSelector:
+      matchNames:
+        - default
+    endpoints:
+      - port: http
+        path: /actuator/prometheus
+        interval: 15s

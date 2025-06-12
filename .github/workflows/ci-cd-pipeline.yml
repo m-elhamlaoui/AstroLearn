@@ -1,0 +1,170 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ LocalDeployment ]
+  pull_request:
+    branches: [ LocalDeployment ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: ${{ secrets.DB_USERNAME }}
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.DB_NAME }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Make mvnw executable
+        working-directory: ./Backend/demo
+        run: chmod +x ./mvnw
+
+      - name: Test Backend
+        working-directory: ./Backend/demo
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/${{ secrets.DB_NAME }}
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.DB_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+          SPRING_PROFILES_ACTIVE: test
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: ./mvnw test -B -Dtest="com.example.demo.service.**.*Test" -DfailIfNoTests=true --fail-at-end    
+
+      - name: Set up Docker Buildx
+        if: success()
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        if: success()
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Frontend Docker image
+        if: success()
+        uses: docker/build-push-action@v4
+        with:
+          context: ./Frontend
+          push: false
+          load: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/astrolearn-frontend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build Backend Docker image
+        if: success()
+        uses: docker/build-push-action@v4
+        with:
+          context: ./Backend/demo
+          push: false
+          load: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/astrolearn-backend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Push Frontend Docker image
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/production'
+        uses: docker/build-push-action@v4
+        with:
+          context: ./Frontend
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/astrolearn-frontend:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/astrolearn-frontend:latest
+
+      - name: Push Backend Docker image
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/production'
+        uses: docker/build-push-action@v4
+        with:
+          context: ./Backend/demo
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/astrolearn-backend:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/astrolearn-backend:latest
+
+  deploy:
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/production'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.0.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Terraform Init
+        working-directory: ./Terraform
+        run: terraform init -input=false
+
+      - name: Terraform Plan
+        working-directory: ./Terraform
+        env:
+          TF_VAR_docker_image_frontend: "${{ secrets.DOCKER_USERNAME }}/astrolearn-frontend:${{ github.sha }}"
+          TF_VAR_docker_image_backend: "${{ secrets.DOCKER_USERNAME }}/astrolearn-backend:${{ github.sha }}"
+        run: |
+          terraform plan -input=false -out=tfplan \
+            -var="access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            -var="secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+            -var="key_pair_name=${{ secrets.AWS_KEY_PAIR_NAME }}"
+
+      - name: Terraform Apply
+        working-directory: ./Terraform
+        run: terraform apply -input=false -auto-approve tfplan
+
+      - name: Run Database Migrations
+        env:
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: |
+          cd ./Terraform
+          DB_ENDPOINT=$(terraform output -raw rds_endpoint)
+
+          if [ -z "${DB_ENDPOINT}" ]; then
+            echo "Error: RDS_ENDPOINT is empty. Cannot run migrations."
+            exit 1
+          fi
+          echo "Attempting to run migrations against: ${DB_ENDPOINT}"
+
+          docker run --rm \
+            --entrypoint /bin/sh \
+            -e SPRING_DATASOURCE_URL="jdbc:postgresql://${DB_ENDPOINT}:5432/${DB_NAME}" \
+            -e SPRING_DATASOURCE_USERNAME="${DB_USERNAME}" \
+            -e SPRING_DATASOURCE_PASSWORD="${DB_PASSWORD}" \
+            -e SPRING_PROFILES_ACTIVE=production,dbmigration \
+            ${{ secrets.DOCKER_USERNAME }}/astrolearn-backend:${{ github.sha }} \
+            -c "./mvnw flyway:migrate -B"

@@ -1,0 +1,14 @@
+**/node_modules/*
+**/.next
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+**/.terraform.lock.hcl
+
+# Environment variables and secrets
+*.env
+*.pem

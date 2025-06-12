@@ -1,0 +1,64 @@
+services:
+
+  # Next.js & React Frontend Service
+  space-hub-frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: space-hub-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - space-hub-backend
+    networks:
+      - si-network
+
+  # Spring Boot Backend Service (Secure)
+  space-hub-backend:
+    build:
+      context: ./Backend/demo
+      dockerfile: Dockerfile
+    container_name: space-hub-backend
+    restart: always
+    ports:
+      - "8088:8088"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://devopsify-postgres:5432/${DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SERVER_PORT=8088
+      - JWT_SECRET=${JWT_SECRET}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - ADMIN_EMAILS=${ADMIN_EMAILS}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+    depends_on:
+     - devopsify-postgres
+    networks:
+      - si-network
+
+  devopsify-postgres:
+    image: postgres:13
+    container_name: si-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - si-network
+
+volumes:
+  postgres_data:
+
+networks:
+  si-network:
+    driver: bridge

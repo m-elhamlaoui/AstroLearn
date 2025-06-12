@@ -17,6 +17,11 @@
 ## Project Overview
 AstroLearn is a comprehensive platform designed for space enthusiasts to explore, learn, and contribute to the space exploration community. The application provides a rich set of features including user-generated content, interactive learning resources, and AI-powered assistance to create an engaging and educational experience.
 
+## Video Demo
+
+[Video Demo Link Google Drive](https://drive.google.com/file/d/1XZG86qxy7qdZBGmnuUAa331CfoFcctBf/view?usp=drive_link)
+
+
 ## Core Features
 
 ### User Management
@@ -158,7 +163,7 @@ The local development environment leverages Docker Desktop with Kubernetes for c
 ### Cloud Deployment (AWS)
 
 <div align="center">
-  <img src="Diagrams/schema deployment .jpg" alt="AWS Deployment Architecture" width="400"/>
+  <img src="Diagrams/schema deployment .jpg" alt="AWS Deployment Architecture" width="700"/>
   <p><i>AWS Three-Tier Architecture Deployment</i></p>
 </div>
 
